@@ -4,7 +4,7 @@
  * -----
  * File: parallelized_hash.cu
  * Created Date: 28/09/2021
- * Last Modified: 09/10/2021
+ * Last Modified: 08/11/2021
  * -----
  *
  */
@@ -54,7 +54,7 @@ int main(){
         n++;
     }
 
-    printf("PASSWORD FILE TO BUFFER DONE\n");
+    printf("PASSWORD FILE TO BUFFER DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
 
     //Deep copy, this is a mecanism for CUDA to allocate memory correctly
     for(int i=0;i<NUMBER_OF_PASSWORD;i++){
@@ -65,7 +65,7 @@ int main(){
         cudaMemcpy(passwords_to_hash[i],file_buffer[i],MAX_PASSWORD_LENGTH*sizeof(BYTE),cudaMemcpyHostToDevice);
     }
 
-    printf("COPY TO GPU DONE\n");
+    printf("COPY TO GPU DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
 
     fclose(fp);
 
@@ -83,7 +83,7 @@ int main(){
     cudaMemcpy(d_total_length,&total_length,sizeof(WORD),cudaMemcpyHostToDevice);
     cudaMemcpy(d_length,&length,sizeof(WORD),cudaMemcpyHostToDevice);
 
-    printf("VARIABLES DONE\n");
+    printf("CREATE VARIABLES DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
 
     //Mesure time
     clock_t start, end;
@@ -92,9 +92,9 @@ int main(){
 
     //We need to define the context for MD5 hash
     CUDA_MD5_CTX context;
-    kernel_md5_hash<<<NUMBER_OF_PASSWORD,1>>>(d_passwords,d_total_length,d_results,d_length,context);
+    kernel_md5_hash<<<NUMBER_OF_PASSWORD-(NUMBER_OF_PASSWORD/512),NUMBER_OF_PASSWORD/512>>>(d_passwords,d_total_length,d_results,d_length,context);
 
-    printf("KERNEL DONE\n");
+    printf("KERNEL DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
 
     //Check for errors during kernel execution
     cudaError_t cudaerr = cudaDeviceSynchronize();
@@ -114,6 +114,8 @@ int main(){
     for(int k=0;k<NUMBER_OF_PASSWORD;k++){
         results[k] = (BYTE*)malloc(MAX_PASSWORD_LENGTH*sizeof(BYTE));
     }
+
+    printf("CREATE FINAL RESULT ARRAY DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
 
     //Copy back the device result array to host result array
     cudaMemcpy(h_results,d_results,sizeof(BYTE*)*NUMBER_OF_PASSWORD,cudaMemcpyDeviceToHost);
