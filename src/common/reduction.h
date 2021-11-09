@@ -1,4 +1,4 @@
-#define PLAIN_LENGTH 8
+#define PLAIN_LENGTH 52
 #define CHARSET_LENGTH 62
 
 void reduceV1(unsigned long int columnIndex, const char* hash, char* plain);

@@ -3,119 +3,68 @@
 #include <time.h>
 #include "../src/common/reduction.h"
 
-double test_function1(long int nb_iter) {
+#define REDUCTION_FUNCTION reduceV5 // reduction function to be tested
+#define NB_REDUCTIONS 1000000000  // number of reductions to be performed
+// Note : The size of the plain texts can be changed in src/common/reduction.h (PLAIN_LENGTH)
+
+// Returns the execution time of NB_REDUCTIONS reductions using REDUCTION_FUNCTION.
+double test_function_speed(char* hash) {
     clock_t start, end;
-    double cpu_time_used;
-    char* hash = "8846f7eaee8fb117ad06bdd830b7586c";
+    double cpu_time_used; 
+    char* plain = malloc(sizeof(char) * (PLAIN_LENGTH + 1));
 
-    char* plain = malloc(sizeof(char) * PLAIN_LENGTH);
+    start = clock();  // Start the timer
 
-    printf("Starting reduction...\n");
-
-    start = clock();
-    for (unsigned long int i = 0; i < nb_iter; i++) {
-        reduceV1(i, hash, plain);
+    for (unsigned long int i = 0; i < NB_REDUCTIONS; i++) {
+        REDUCTION_FUNCTION(i, hash, plain);
+        // printf("%s\n", plain);
     }
-    end = clock();
-    printf("Completed.\n");
+
+    end = clock();  // End the timer
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time : %fs\n\n", cpu_time_used);
+
     return cpu_time_used;
 }
 
-double test_function2(long int nb_iter) {
-    clock_t start, end;
-    double cpu_time_used;
-    char* hash = "8846f7eaee8fb117ad06bdd830b7586c";
+// Returns the number of collisions (=same reduction returned multiple times) for NB_REDUCTIONS reductions using REDUCTION_FUNCTION with the same hash.
+long test_function_collision(char* hash) {
 
-    char* plain = malloc(sizeof(char) * PLAIN_LENGTH);
-
-    printf("Starting reduction...\n");
-
-    start = clock();
-    for (unsigned long int i = 0; i < nb_iter; i++) {
-        reduceV2(i, hash, plain);
+    // Allocate memory to store the generated plain texts
+    char** plains = malloc(sizeof(char*) * NB_REDUCTIONS);
+    for (int i = 0; i < NB_REDUCTIONS; i++){
+        plains[i] = malloc(sizeof(char) * (PLAIN_LENGTH + 1));
     }
-    end = clock();
-    printf("Completed.\n");
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time : %fs\n\n", cpu_time_used);
-    return cpu_time_used;
-}
 
-double test_function3(long int nb_iter) {
-    clock_t start, end;
-    double cpu_time_used;
-    char* hash = "8846f7eaee8fb117ad06bdd830b7586c";
+    long count = 0;
 
-    char* plain = malloc(sizeof(char) * PLAIN_LENGTH);
-
-    printf("Starting reduction...\n");
-
-    start = clock();
-    for (unsigned long int i = 0; i < nb_iter; i++) {
-        reduceV3(i, hash, plain);
+    for (unsigned long int i = 0; i < NB_REDUCTIONS; i++) {
+        REDUCTION_FUNCTION(i, hash, plains[i]);
+        // printf("%s\n", plains[i]);
     }
-    end = clock();
-    printf("Completed.\n");
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time : %fs\n\n", cpu_time_used);
-    return cpu_time_used;
-}
 
-double test_function4(long int nb_iter) {
-    clock_t start, end;
-    double cpu_time_used;
-    char* hash = "8846f7eaee8fb117ad06bdd830b7586c";
-
-    char* plain = malloc(sizeof(char) * PLAIN_LENGTH);
-
-    printf("Starting reduction...\n");
-
-    start = clock();
-    for (unsigned long int i = 0; i < nb_iter; i++) {
-        reduceV4(i, hash, plain);
+    // Find all duplicate elements in plains
+    for(unsigned long int k=0; k<NB_REDUCTIONS; k++) {
+        // printf("%lu/%d\n", k, NB_REDUCTIONS);
+        for(unsigned long j=0; j<NB_REDUCTIONS; j++) {
+            // If duplicate found then increment count by 1
+            if(k!=j && plains[k] == plains[j]) {
+                printf("Collision spotted : %s ::: %s\n", plains[k], plains[j]);
+                count++;
+                break;
+            }
+        }
     }
-    end = clock();
-    printf("Completed.\n");
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time : %fs\n\n", cpu_time_used);
-    return cpu_time_used;
+
+    return count;
 }
-
-double test_function5(long int nb_iter) {
-    clock_t start, end;
-    double cpu_time_used;
-    char* hash = "8846f7eaee8fb117ad06bdd830b7586c";
-
-    char* plain = malloc(sizeof(char) * PLAIN_LENGTH);
-
-    printf("Starting reduction...\n");
-
-    start = clock();
-    for (unsigned long int i = 0; i < nb_iter; i++) {
-        reduceV5(i, hash, plain);
-    }
-    end = clock();
-    printf("Completed.\n");
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time : %fs\n\n", cpu_time_used);
-    return cpu_time_used;
-}
-
 
 int main(int argc, char** argv) {
-    long int nb_reductions = 1000000000;    // 100 millions
-    int nb_iter = 5;
-    double sum, avg = 0;
+    char* hash = "8846f7eaee8fb117ad06bdd830b7586c";  // the hash will remain the same for every iterations
+    // long collisions = test_function_collision(hash);
+    double time = test_function_speed(hash);
+    printf("%d reductions of %d characters have been performed in %f seconds.\nThe character set used contains %d characters.\n", NB_REDUCTIONS, PLAIN_LENGTH, time, CHARSET_LENGTH);
 
-    double times1[nb_iter];
-    
-    for (int i = 0; i<nb_iter; i++) {
-        printf("reducev5\n");
-        times1[i] = test_function5(nb_reductions);
-        sum += times1[i];
-    }
+    // printf("%d reductions of %d characters have been performed in %f seconds with %ld collision(s).\n", NB_REDUCTIONS, PLAIN_LENGTH, time, collisions);
 
-    printf("Average for %ld reductions with reducev5 is %f seconds (%d iterations). \n Plain text length is %d. Charset contains %d characters.\n", nb_reductions, sum/nb_iter, nb_iter, PLAIN_LENGTH, CHARSET_LENGTH);
+    return 0;
 }
