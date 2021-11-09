@@ -14,8 +14,9 @@
 #include <cuda_runtime.h>
 #include "myMd5.cu"
 #include <ctime>
+#include "test_hash.cuh"
 
-#define NUMBER_OF_PASSWORD 2000000
+#define NUMBER_OF_PASSWORD 1000000
 #define MAX_PASSWORD_LENGTH 15
 
 int main(){
@@ -41,7 +42,7 @@ int main(){
     }
 
     //Opening the file with passwords to hash
-    FILE * fp = fopen("/home/mynder/Desktop/projets/CUDA_hash/CUDA_naive_exhaustive_search/passwords.txt","r");
+    FILE * fp = fopen("/home/mynder/Desktop/projets/GPUCrack/src/gpu/passwords.txt","r");
 
     if(fp==nullptr){
         perror("Error while opening the file\n");
@@ -137,6 +138,8 @@ int main(){
     free(file_buffer);
     cudaFree(d_passwords);
     cudaFree(d_results);
+    cudaFree(passwords_to_hash);
+    cudaFree(h_results);
 
     program_end = clock();
     program_time_used = ((double)(program_end - program_start))/CLOCKS_PER_SEC;

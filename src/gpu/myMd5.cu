@@ -224,7 +224,6 @@ __global__ void kernel_md5_hash(BYTE** indata, WORD* tab_len, BYTE** outdata, WO
         return;
     }
     BYTE *in = indata[indexB] + index * (*len);
-    //printf("GPU DATA : %s\n", indata[indexB]);
     BYTE *out = outdata[indexB] + index * MD5_BLOCK_SIZE;
     cuda_md5_init(&ctx);
     cuda_md5_update(&ctx, in, *len);
