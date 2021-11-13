@@ -6,20 +6,17 @@
 #include <cstdlib>
 #include "test_hash.cuh"
 #include "myMd5.cu"
+#include "md5.cuh"
 
 #define REFERENCE_SENTENCE1 "The quick brown fox jumps over the lazy dog"
 #define REFERENCE_RESULT1 "9e107d9d372bb6826bd81d3542a419d6"
-#define REFERENCE_SENTENCE2 "The quick brown fox jumps over the lazy dog."
-#define REFERENCE_RESULT2 "e4d909c290d0fb1ca068ffaddf22cbd0"
-#define MAX_PASSWORD_LENGTH 100
-#define NUMBER_OF_PASSWORD 2
+#define MAX_PASSWORD_LENGTH 43
+#define NUMBER_OF_PASSWORD 1
 
 int main(){
 
     BYTE ** passwords = (BYTE**)malloc(NUMBER_OF_PASSWORD*sizeof(BYTE*));
     BYTE ** results = (BYTE**)malloc(NUMBER_OF_PASSWORD*sizeof(BYTE*));
-    WORD total_length = NUMBER_OF_PASSWORD;
-    WORD length = MAX_PASSWORD_LENGTH;
 
     for(int i=0;i<NUMBER_OF_PASSWORD;i++){
         //Each time we allocate the host pointer into device memory
@@ -30,19 +27,14 @@ int main(){
     int count;
     for(count=0;count<MAX_PASSWORD_LENGTH;count++){
         if(REFERENCE_SENTENCE1[count] == '\0'){
-            printf("COUNT : %d\n",count);
+            printf("PASSWORD LENGTH : %d\n",count);
             break;
         }
     }
     cudaMemcpy(passwords[0],REFERENCE_SENTENCE1,count*sizeof(BYTE),cudaMemcpyHostToDevice);
 
-    for(count=0;count<MAX_PASSWORD_LENGTH;count++){
-        if(REFERENCE_SENTENCE2[count] == '\0'){
-            printf("COUNT : %d\n",count);
-            break;
-        }
-    }
-    cudaMemcpy(passwords[1],REFERENCE_SENTENCE2,count*sizeof(BYTE),cudaMemcpyHostToDevice);
+    WORD total_length = count;
+    WORD length = count;
 
     BYTE **d_passwords;
     BYTE **d_results;
@@ -86,37 +78,34 @@ int main(){
     }
     printf("PASSWORD RETRIEVED : %d\n",j);
 
-    bool test1 = true;
-    bool test2 = true;
+    bool test1 = strcmp((char *)final_results[0],REFERENCE_RESULT1);
 
-    for(int j=0; j<NUMBER_OF_PASSWORD;j++) {
-        for (int i = 0; i < MAX_PASSWORD_LENGTH; i++) {
-                if (j==0) {
-                    if (final_results[j][i] != REFERENCE_RESULT1[i]) {
-                        test1 = false;
-                        break;
-                    }
-                }else{
-                    if (final_results[j][i] != REFERENCE_RESULT2[i]) {
-                        test2 = false;
-                        break;
-                    }
-                }
-        }
-    }
-
-    printf("RESULTS :");
+    printf("RESULTS FROM CUDA FUNCTION : ");
     for(int i=0;i<MAX_PASSWORD_LENGTH;i++){
         if(final_results[0][i] == '\0') break;
         printf("%x",final_results[0][i]);
     }
-    printf(" ,");
+
+    printf("\n");
+
+    //Comparing with CPU version
+    BYTE buf[MD5_BLOCK_SIZE];
+    MD5_CTX ctx;
+
+    md5_init(&ctx);
+    md5_update(&ctx, (BYTE *)REFERENCE_SENTENCE1, strlen(REFERENCE_SENTENCE1));
+    md5_final(&ctx, buf);
+
+
+    printf("RESULTS FROM BASE FUNCTION : ");
     for(int i=0;i<MAX_PASSWORD_LENGTH;i++){
-        if(final_results[0][i] == '\0') break;
-        printf("%x",final_results[1][i]);
+        if(buf[i] == '\0') break;
+        printf("%x",buf[i]);
     }
     printf("\n");
-    printf("TEST RESULTS : %d ,%d\n",test1,test2);
+
+    if (test1) printf("TEST PASSED !\n");
+    else printf("TEST FAILED !\n");
 
     //Cleanup
     free(passwords);
@@ -124,8 +113,6 @@ int main(){
     free(final_results);
     cudaFree(d_passwords);
     cudaFree(d_results);
-    cudaFree(passwords);
-    cudaFree(results);
 
     return 0;
 

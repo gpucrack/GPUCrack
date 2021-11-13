@@ -26,11 +26,10 @@
 
 /*************************** HEADER FILES ***************************/
 #include <cstdlib>
+#include "md5.cuh"
 /****************************** MACROS ******************************/
 #define MD5_BLOCK_SIZE 16               // MD5 outputs a 16 byte digest
 /**************************** DATA TYPES ****************************/
-typedef unsigned char BYTE;             // 8-bit byte
-typedef unsigned long WORD;             // 32-bit word, change to "long" for 16-bit machines
 
 typedef struct {
     BYTE data[64];
@@ -217,15 +216,14 @@ __device__ void cuda_md5_final(CUDA_MD5_CTX *ctx, BYTE hash[])
 
 __global__ void kernel_md5_hash(BYTE** indata, WORD* tab_len, BYTE** outdata, WORD* len, CUDA_MD5_CTX ctx)
 {
-    WORD index = threadIdx.x;
-    WORD indexB = blockIdx.x * blockDim.x;
-    if (index >= *tab_len)
+    WORD index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < *tab_len)
     {
-        return;
+        BYTE *in = indata[index];
+        BYTE *out = outdata[index];
+        cuda_md5_init(&ctx);
+        cuda_md5_update(&ctx, in, *len);
+        cuda_md5_final(&ctx, out);
     }
-    BYTE *in = indata[indexB] + index * (*len);
-    BYTE *out = outdata[indexB] + index * MD5_BLOCK_SIZE;
-    cuda_md5_init(&ctx);
-    cuda_md5_update(&ctx, in, *len);
-    cuda_md5_final(&ctx, out);
+
 }

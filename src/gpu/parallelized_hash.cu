@@ -14,10 +14,9 @@
 #include <cuda_runtime.h>
 #include "myMd5.cu"
 #include <ctime>
-#include "test_hash.cuh"
 
-#define NUMBER_OF_PASSWORD 1000000
-#define MAX_PASSWORD_LENGTH 15
+#define NUMBER_OF_PASSWORD 4800000
+#define MAX_PASSWORD_LENGTH 7
 
 int main(){
 
@@ -49,9 +48,14 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
+    char test_password[7] = {'1','2','3','4','5','6','7'};
     int n = 0;
     while(n<NUMBER_OF_PASSWORD){
-        fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
+        //fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
+        strcpy((char*)file_buffer[n],test_password);
+
+        //TO TEST INPUTS
+        //printf("%s\n",file_buffer[n]);
         n++;
     }
 
@@ -61,7 +65,7 @@ int main(){
     for(int i=0;i<NUMBER_OF_PASSWORD;i++){
         //Each time we allocate the host pointer into device memory
         cudaMalloc((void**)&passwords_to_hash[i], MAX_PASSWORD_LENGTH*sizeof(BYTE));
-        cudaMalloc((void**)&h_results[i], MAX_PASSWORD_LENGTH*sizeof(BYTE));
+        cudaMalloc((void**)&h_results[i], MD5_BLOCK_SIZE*sizeof(BYTE));
         //We also copy the passwords to the device memory
         cudaMemcpy(passwords_to_hash[i],file_buffer[i],MAX_PASSWORD_LENGTH*sizeof(BYTE),cudaMemcpyHostToDevice);
     }
@@ -93,7 +97,8 @@ int main(){
 
     //We need to define the context for MD5 hash
     CUDA_MD5_CTX context;
-    kernel_md5_hash<<<NUMBER_OF_PASSWORD-(NUMBER_OF_PASSWORD/512),NUMBER_OF_PASSWORD/512>>>(d_passwords,d_total_length,d_results,d_length,context);
+
+    kernel_md5_hash<<<NUMBER_OF_PASSWORD,1>>>(d_passwords,d_total_length,d_results,d_length,context);
 
     printf("KERNEL DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
 
@@ -113,7 +118,7 @@ int main(){
 
     //We need to allocate each char pointers
     for(int k=0;k<NUMBER_OF_PASSWORD;k++){
-        results[k] = (BYTE*)malloc(MAX_PASSWORD_LENGTH*sizeof(BYTE));
+        results[k] = (BYTE*)malloc(MD5_BLOCK_SIZE*sizeof(BYTE));
     }
 
     printf("CREATE FINAL RESULT ARRAY DONE @ %f seconds\n",(double)(clock()-program_start)/CLOCKS_PER_SEC);
@@ -125,9 +130,27 @@ int main(){
     int j;
     //Deep copy of each pointers to the host result array
     for(j=0;j<NUMBER_OF_PASSWORD;j++){
-        cudaMemcpy(results[j],h_results[j],MAX_PASSWORD_LENGTH*sizeof(BYTE),cudaMemcpyDeviceToHost);
+        cudaMemcpy(results[j],h_results[j],MD5_BLOCK_SIZE*sizeof(BYTE),cudaMemcpyDeviceToHost);
     }
+
     printf("PASSWORD RETRIEVED : %d\n",j);
+
+    //TO TEST OUTPUTS
+    /*
+    for(int k=0; k<NUMBER_OF_PASSWORD;k++) {
+        BYTE * toPrint = results[k];
+        for (int i = 0; i < MD5_BLOCK_SIZE; i++) {
+            printf("%x", toPrint[i]);
+        }
+        printf("\n");
+    }
+    */
+
+    printf("SAMPLE OF OUTPUT : ");
+    for (int i = 0; i < MD5_BLOCK_SIZE; i++) {
+        printf("%x", results[0][i]);
+    }
+    printf("\n");
 
     printf("GPU PARALLEL HASH TIME : %f seconds\n",gpu_time_used);
 
@@ -138,8 +161,6 @@ int main(){
     free(file_buffer);
     cudaFree(d_passwords);
     cudaFree(d_results);
-    cudaFree(passwords_to_hash);
-    cudaFree(h_results);
 
     program_end = clock();
     program_time_used = ((double)(program_end - program_start))/CLOCKS_PER_SEC;
