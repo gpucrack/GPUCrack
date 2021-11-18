@@ -18,7 +18,6 @@
  * -----
  * File: myMd5.cu
  * Created Date: 09/10/2021
- * Last Modified: 09/10/2021
  * -----
  *
  */
@@ -27,15 +26,10 @@
 #include <cstdlib>
 
 #include "md5.cuh"
+#include "parallelized_hash.cuh"
 /****************************** MACROS ******************************/
 #define MD5_BLOCK_SIZE 16  // MD5 outputs a 16 byte digest
 /**************************** DATA TYPES ****************************/
-
-// The length of a password.
-#define PASSWORD_LENGTH 7
-
-// The number of password to hash.
-#define PASSWORD_NUMBER 4800000
 
 typedef struct {
     BYTE data[64];
@@ -43,16 +37,6 @@ typedef struct {
     unsigned long long bitlen;
     WORD state[4];
 } CUDA_MD5_CTX;
-
-// A password, put into a struct so it's easier with mallocs.
-typedef struct {
-    char chars[PASSWORD_LENGTH + 1];
-} Password;
-
-// A digest put into a struct.
-typedef struct {
-    unsigned char bytes[16];
-} Digest;
 
 /****************************** MACROS ******************************/
 #ifndef ROTLEFT
@@ -238,24 +222,12 @@ __device__ void cuda_md5_final(CUDA_MD5_CTX* ctx, BYTE hash[]) {
     }
 }
 
-__global__ void kernel_md5_hash(BYTE** indata, WORD* tab_len, BYTE** outdata,
-                                WORD* len, CUDA_MD5_CTX ctx) {
+__global__ void kernel_md5_hash(Password * indata, Digest * outdata) {
     WORD index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < *tab_len) {
-        BYTE* in = indata[index];
-        BYTE* out = outdata[index];
-        cuda_md5_init(&ctx);
-        cuda_md5_update(&ctx, in, *len);
-        cuda_md5_final(&ctx, out);
-    }
-}
-
-__global__ void md5_hash2(Password* passwords, Digest* digests) {
-    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     CUDA_MD5_CTX ctx;
 
+    //printf("%s\n", indata[index].chars);
     cuda_md5_init(&ctx);
-    cuda_md5_update(&ctx, (unsigned char*)passwords[index].chars,
-                    PASSWORD_LENGTH);
-    cuda_md5_final(&ctx, digests[index].bytes);
+    cuda_md5_update(&ctx, indata[index].chars, MAX_PASSWORD_LENGTH);
+    cuda_md5_final(&ctx, outdata[index].bytes);
 }

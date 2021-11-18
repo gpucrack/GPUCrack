@@ -4,7 +4,6 @@
  * -----
  * File: parallelized_hash.cu
  * Created Date: 28/09/2021
- * Last Modified: 08/11/2021
  * -----
  *
  */
@@ -16,9 +15,7 @@
 #include <ctime>
 
 #include "myMd5.cu"
-
-#define PASSWORD_NUMBER 4800000
-#define MAX_PASSWORD_LENGTH 7
+#include "parallelized_hash.cuh"
 
 int main() {
     double program_time_used;
@@ -26,93 +23,67 @@ int main() {
     program_start = clock();
 
     // Host copies
-    BYTE **passwords_to_hash;
-    BYTE **h_results;
-    BYTE **file_buffer;
-    WORD total_length = PASSWORD_NUMBER;
-    WORD length = MAX_PASSWORD_LENGTH;
+    Password * passwords_to_hash;
+    Password * file_buffer;
 
     // We store everything inside arrays of pointers to char pointers into host
     // memory first
-    passwords_to_hash = (BYTE **)malloc(sizeof(BYTE *) * PASSWORD_NUMBER);
-    h_results = (BYTE **)malloc(sizeof(BYTE *) * PASSWORD_NUMBER);
-    file_buffer = (BYTE **)malloc(sizeof(BYTE *) * (PASSWORD_NUMBER));
+    passwords_to_hash = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
+    file_buffer = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
 
-    for (int i = 0; i < PASSWORD_NUMBER; i++) {
-        file_buffer[i] = (BYTE *)malloc(sizeof(BYTE) * MAX_PASSWORD_LENGTH);
-    }
+    //Opening the file with passwords to hash
+    //FILE *fp = fopen("passwords.txt", "r");
 
-    // Opening the file with passwords to hash
-    // FILE *fp = fopen("passwords.txt", "r");
-
-    // if (fp == nullptr) {
+    //if (fp == nullptr) {
     //     perror("Error while opening the file\n");
     //     exit(EXIT_FAILURE);
-    // }
+    //}
 
-    char test_password[7] = {'1', '2', '3', '4', '5', '6', '7'};
+    const BYTE test_password[7] = {'1', '2', '3', '4', '5', '6', '7'};
     int n = 0;
     while (n < PASSWORD_NUMBER) {
         // fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
-        strcpy((char *)file_buffer[n], test_password);
+        strcpy((char *) passwords_to_hash[n].chars, (char *) test_password);
 
         // TO TEST INPUTS
         // printf("%s\n",file_buffer[n]);
         n++;
     }
 
-    printf("PASSWORD FILE TO BUFFER DONE @ %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
+    //printf("PASSWORD FILE TO BUFFER DONE @ %f seconds\n",
+    //       (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
-    // Deep copy, this is a mecanism for CUDA to allocate memory correctly
-    for (int i = 0; i < PASSWORD_NUMBER; i++) {
-        // Each time we allocate the host pointer into device memory
-        cudaMalloc((void **)&passwords_to_hash[i],
-                   MAX_PASSWORD_LENGTH * sizeof(BYTE));
-        cudaMalloc((void **)&h_results[i], MD5_BLOCK_SIZE * sizeof(BYTE));
-        // We also copy the passwords to the device memory
-        cudaMemcpy(passwords_to_hash[i], file_buffer[i],
-                   MAX_PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyHostToDevice);
-    }
+    // Simple copy
+    //for (int i = 0; i < PASSWORD_NUMBER; i++) {
+    //    cudaMemcpy(passwords_to_hash[i], file_buffer[i],
+    //               MAX_PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyHostToDevice);
+    //}
+
+    // fclose(fp);
+
+
+    Password * d_passwords;
+    cudaMalloc(&d_passwords, sizeof(Password) * PASSWORD_NUMBER);
+
+    Digest * d_results;
+    cudaMalloc(&d_results, sizeof(Digest) * PASSWORD_NUMBER);
+
+    // Device copies
+    cudaMemcpy(d_passwords, passwords_to_hash, sizeof(Password) * PASSWORD_NUMBER,
+               cudaMemcpyHostToDevice);
 
     printf("COPY TO GPU DONE @ %f seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
-    // fclose(fp);
-
-    // Device copies
-    BYTE **d_passwords;
-    BYTE **d_results;
-    WORD *d_total_length;
-    WORD *d_length;
-    cudaMalloc((void **)&d_passwords, sizeof(BYTE *) * PASSWORD_NUMBER);
-    cudaMalloc((void **)&d_results, sizeof(BYTE *) * PASSWORD_NUMBER);
-    cudaMalloc((void **)&d_total_length, sizeof(WORD *));
-    cudaMalloc((void **)&d_length, sizeof(WORD *));
-    cudaMemcpy(d_passwords, passwords_to_hash, sizeof(BYTE *) * PASSWORD_NUMBER,
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(d_results, h_results, sizeof(BYTE *) * PASSWORD_NUMBER,
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(d_total_length, &total_length, sizeof(WORD),
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(d_length, &length, sizeof(WORD), cudaMemcpyHostToDevice);
-
-    printf("CREATE VARIABLES DONE @ %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
-
     // Mesure time
-    clock_t start, end;
+    cudaEvent_t start, end;
     double gpu_time_used;
-    start = clock();
+    cudaEventCreate(&start);
+    cudaEventCreate(&end);
 
-    // We need to define the context for MD5 hash
-    CUDA_MD5_CTX context;
-
-    kernel_md5_hash<<<PASSWORD_NUMBER, 1>>>(d_passwords, d_total_length,
-                                            d_results, d_length, context);
-
-    printf("KERNEL DONE @ %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
+    cudaEventRecord(start);
+    kernel_md5_hash<<<PASSWORD_NUMBER/(64), (64)>>>(d_passwords, d_results);
+    cudaEventRecord(end);
 
     // Check for errors during kernel execution
     cudaError_t cudaerr = cudaDeviceSynchronize();
@@ -122,58 +93,35 @@ int main() {
         return 1;
     }
 
-    end = clock();
-    gpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-
-    // Then, in order to copy back we need a host array of pointers to char
-    // pointers
-    BYTE **results;
-    results = (BYTE **)malloc(PASSWORD_NUMBER * sizeof(BYTE *));
-
-    // We need to allocate each char pointers
-    for (int k = 0; k < PASSWORD_NUMBER; k++) {
-        results[k] = (BYTE *)malloc(MD5_BLOCK_SIZE * sizeof(BYTE));
-    }
-
-    printf("CREATE FINAL RESULT ARRAY DONE @ %f seconds\n",
+    printf("KERNEL DONE @ %f seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
+    cudaEventSynchronize(end);
+    float milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, end);
+
+    // Then, in order to copy back we need a host array of pointers to char pointers
+    Digest * results;
+    results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
+
     // Copy back the device result array to host result array
-    cudaMemcpy(h_results, d_results, sizeof(BYTE *) * PASSWORD_NUMBER,
+    cudaMemcpy(results, d_results, sizeof(Digest *) * PASSWORD_NUMBER,
                cudaMemcpyDeviceToHost);
 
-    printf("RETRIEVING RESULTS ...\n");
-    int j;
-    // Deep copy of each pointers to the host result array
-    for (j = 0; j < PASSWORD_NUMBER; j++) {
-        cudaMemcpy(results[j], h_results[j], MD5_BLOCK_SIZE * sizeof(BYTE),
-                   cudaMemcpyDeviceToHost);
-    }
-
-    printf("PASSWORD RETRIEVED : %d\n", j);
-
-    // TO TEST OUTPUTS
-    /*
-    for(int k=0; k<NUMBER_OF_PASSWORD;k++) {
-        BYTE * toPrint = results[k];
-        for (int i = 0; i < MD5_BLOCK_SIZE; i++) {
-            printf("%x", toPrint[i]);
-        }
-        printf("\n");
-    }
-    */
+    printf("HASH RETRIEVED @ %f seconds\n",
+           (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     printf("SAMPLE OF OUTPUT : ");
     for (int i = 0; i < MD5_BLOCK_SIZE; i++) {
-        printf("%x", results[0][i]);
+        printf("%x", results[666].bytes[i]);
     }
     printf("\n");
 
-    printf("GPU PARALLEL HASH TIME : %f seconds\n", gpu_time_used);
+    printf("GPU PARALLEL HASH TIME : %f seconds\n", milliseconds/1000);
+    printf("HASH RATE : %f MH/s\n", (PASSWORD_NUMBER/(milliseconds/1000))/1000000);
 
     // Cleanup
     free(passwords_to_hash);
-    free(h_results);
     free(results);
     free(file_buffer);
     cudaFree(d_passwords);

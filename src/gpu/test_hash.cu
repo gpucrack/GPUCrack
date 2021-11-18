@@ -1,7 +1,3 @@
-//
-// Created by mynder on 09/11/2021.
-//
-
 #include <cstdio>
 #include <cstdlib>
 
@@ -11,7 +7,7 @@
 
 #define REFERENCE_SENTENCE1 "The quick brown fox jumps over the lazy dog"
 #define REFERENCE_RESULT1 "9e107d9d372bb6826bd81d3542a419d6"
-#define MAX_PASSWORD_LENGTH 43
+#define PASSWORD_LENGTH 43
 #define NUMBER_OF_PASSWORD 1
 
 int main() {
@@ -20,12 +16,12 @@ int main() {
 
     for (int i = 0; i < NUMBER_OF_PASSWORD; i++) {
         // Each time we allocate the host pointer into device memory
-        cudaMalloc((void **)&passwords[i], MAX_PASSWORD_LENGTH * sizeof(BYTE));
-        cudaMalloc((void **)&results[i], MAX_PASSWORD_LENGTH * sizeof(BYTE));
+        cudaMalloc((void **)&passwords[i], PASSWORD_LENGTH * sizeof(BYTE));
+        cudaMalloc((void **)&results[i], PASSWORD_LENGTH * sizeof(BYTE));
     }
 
     int count;
-    for (count = 0; count < MAX_PASSWORD_LENGTH; count++) {
+    for (count = 0; count < PASSWORD_LENGTH; count++) {
         if (REFERENCE_SENTENCE1[count] == '\0') {
             printf("PASSWORD LENGTH : %d\n", count);
             break;
@@ -72,7 +68,7 @@ int main() {
 
     // We need to allocate each char pointers
     for (int k = 0; k < NUMBER_OF_PASSWORD; k++) {
-        final_results[k] = (BYTE *)malloc(MAX_PASSWORD_LENGTH * sizeof(BYTE));
+        final_results[k] = (BYTE *)malloc(PASSWORD_LENGTH * sizeof(BYTE));
     }
 
     // Copy back the device result array to host result array
@@ -83,14 +79,14 @@ int main() {
     // Deep copy of each pointers to the host result array
     for (j = 0; j < NUMBER_OF_PASSWORD; j++) {
         cudaMemcpy(final_results[j], results[j],
-                   MAX_PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyDeviceToHost);
+                   PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyDeviceToHost);
     }
     printf("PASSWORD RETRIEVED : %d\n", j);
 
     bool test1 = strcmp((char *)final_results[0], REFERENCE_RESULT1);
 
     printf("RESULTS FROM CUDA FUNCTION : ");
-    for (int i = 0; i < MAX_PASSWORD_LENGTH; i++) {
+    for (int i = 0; i < PASSWORD_LENGTH; i++) {
         if (final_results[0][i] == '\0') break;
         printf("%x", final_results[0][i]);
     }
@@ -106,7 +102,7 @@ int main() {
     md5_final(&ctx, buf);
 
     printf("RESULTS FROM BASE FUNCTION : ");
-    for (int i = 0; i < MAX_PASSWORD_LENGTH; i++) {
+    for (int i = 0; i < PASSWORD_LENGTH; i++) {
         if (buf[i] == '\0') break;
         printf("%x", buf[i]);
     }

@@ -3,11 +3,11 @@ project(CUDA_naive_exhaustive_search CUDA)
 
 set(CMAKE_CUDA_STANDARD 14)
 
-add_executable(CUDA_naive_exhaustive_search parallelized_hash.cu)
-add_executable(ParaHash parahash.cu)
+add_executable(Main_executable parallelized_hash.cu)
+add_executable(Test_executable test_hash.cu test_hash.cuh md5.cu md5.cuh)
 
-set_target_properties(CUDA_naive_exhaustive_search PROPERTIES
+set_target_properties(Main_executable PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(ParaHash PROPERTIES
+set_target_properties(Test_executable PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
