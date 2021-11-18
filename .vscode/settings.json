@@ -1,0 +1,7 @@
+{
+  "cmake.sourceDirectory": "${workspaceFolder}/src/gpu",
+  "files.associations": {
+    "*.pl": "prolog",
+    "cstring": "cpp"
+  }
+}
