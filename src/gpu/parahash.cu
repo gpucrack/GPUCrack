@@ -17,7 +17,7 @@ int main() {
 
     // copy in all password a test string
     const char* test_password = "1234567";
-    for (unsigned int i = 0; i < PASSWORD_NUMBER; i++) {
+    for (unsigned long i = 0; i < PASSWORD_NUMBER; i++) {
         strcpy(passwords[i].chars, test_password);
     }
 
@@ -35,9 +35,12 @@ int main() {
     printf("Copy to GPU done in %.2lf seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
+    // we don't need passwords in RAM anymore
+    free(passwords);
+
     clock_t device_start = clock();
 
-    md5_hash2<<<PASSWORD_NUMBER, 1>>>(d_passwords, d_digests);
+    md5_hash2<<<PASSWORD_NUMBER / 1024, 1024>>>(d_passwords, d_digests);
 
     // check for errors during the kernel execution
     cudaError_t status = cudaDeviceSynchronize();
@@ -63,7 +66,6 @@ int main() {
     printf("\n");
 
     // cleanup
-    free(passwords);
     free(digests);
     cudaFree(d_passwords);
     cudaFree(d_digests);

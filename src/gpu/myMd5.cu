@@ -34,8 +34,8 @@
 // The length of a password.
 #define PASSWORD_LENGTH 7
 
-// The number of password to hash.
-#define PASSWORD_NUMBER 4800000
+// The number of password to hash. (2^27)
+#define PASSWORD_NUMBER 134217728
 
 typedef struct {
     BYTE data[64];
@@ -251,7 +251,7 @@ __global__ void kernel_md5_hash(BYTE** indata, WORD* tab_len, BYTE** outdata,
 }
 
 __global__ void md5_hash2(Password* passwords, Digest* digests) {
-    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
     CUDA_MD5_CTX ctx;
 
     cuda_md5_init(&ctx);
