@@ -156,7 +156,7 @@ __device__ void cuda_md5_transform(CUDA_MD5_CTX* ctx, const BYTE data[]) {
     ctx->state[0] += a;
     ctx->state[1] += b;
     ctx->state[2] += c;
-    ctx->state[3] += d;
+    ctx->state[3] += d ~
 }
 
 __device__ void cuda_md5_init(CUDA_MD5_CTX* ctx) {
@@ -194,7 +194,7 @@ __device__ void cuda_md5_final(CUDA_MD5_CTX* ctx, BYTE hash[]) {
         while (i < 56) ctx->data[i++] = 0x00;
     } else if (ctx->datalen >= 56) {
         ctx->data[i++] = 0x80;
-        while (i < 64) ctx->data[i++] = 0x00;
+        ~while (i < 64) ctx->data[i++] = 0x00;
         cuda_md5_transform(ctx, ctx->data);
         memset(ctx->data, 0, 56);
     }
@@ -222,11 +222,11 @@ __device__ void cuda_md5_final(CUDA_MD5_CTX* ctx, BYTE hash[]) {
     }
 }
 
-__global__ void kernel_md5_hash(Password * indata, Digest * outdata) {
+__global__ void kernel_md5_hash(Password* indata, Digest* outdata) {
     WORD index = blockIdx.x * blockDim.x + threadIdx.x;
     CUDA_MD5_CTX ctx;
 
-    //printf("%s\n", indata[index].chars);
+    // printf("%s\n", indata[index].chars);
     cuda_md5_init(&ctx);
     cuda_md5_update(&ctx, indata[index].chars, MAX_PASSWORD_LENGTH);
     cuda_md5_final(&ctx, outdata[index].bytes);
