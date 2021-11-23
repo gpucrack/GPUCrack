@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "md5.cuh"
-#include "myMd5.cu"
+#include "constants.cuh"
+#include "myMd5.cuh"
 #include "test_hash.cuh"
 
 #define REFERENCE_SENTENCE1 "The quick brown fox jumps over the lazy dog"
@@ -78,8 +78,8 @@ int main() {
     int j;
     // Deep copy of each pointers to the host result array
     for (j = 0; j < NUMBER_OF_PASSWORD; j++) {
-        cudaMemcpy(final_results[j], results[j],
-                   PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyDeviceToHost);
+        cudaMemcpy(final_results[j], results[j], PASSWORD_LENGTH * sizeof(BYTE),
+                   cudaMemcpyDeviceToHost);
     }
     printf("PASSWORD RETRIEVED : %d\n", j);
 
@@ -94,7 +94,7 @@ int main() {
     printf("\n");
 
     // Comparing with CPU version
-    BYTE buf[MD5_BLOCK_SIZE];
+    BYTE buf[HASH_LENGTH];
     MD5_CTX ctx;
 
     md5_init(&ctx);

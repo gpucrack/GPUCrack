@@ -1,29 +1,9 @@
+#ifndef NTLM_CUH
+#define NTLM_CUH
+
 #include <cuda_stdint.h>
 
-// The length of a NTLM hash.
-#define HASH_LENGTH 16
-
-// The length of a password.
-#define PASSWORD_LENGTH 7
-
-// The number of password to hash. (2^27)
-#define PASSWORD_NUMBER 134217728
-
-// A macro to have a ceil-like function.
-#define CEILING(x, y) (((x) + (y)-1) / (y))
-
-// A password put into an union. This is easier to use with mallocs and crypto
-// functions.
-typedef union {
-    uint8_t bytes[PASSWORD_LENGTH];
-    uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
-} Password;
-
-// A digest put into an union.
-typedef union {
-    uint8_t bytes[HASH_LENGTH];
-    uint32_t i[CEILING(HASH_LENGTH, 4)];
-} Digest;
+#include "constants.cuh"
 
 // Md4 context.
 typedef struct md4_ctx_vector {
@@ -121,3 +101,5 @@ __device__ void append_helper_1x4(uint32_t* r, const uint32_t v,
         a += K + f(b, c, d);           \
         a = rotl32(a, s);              \
     }
+
+#endif  // NTLM_CUH

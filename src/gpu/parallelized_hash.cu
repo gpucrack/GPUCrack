@@ -14,8 +14,9 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "myMd5.cu"
-#include "parallelized_hash.cuh"
+#include "constants.cuh"
+#include "myMd5.cuh"
+#include "ntlm.cuh"
 
 int main() {
     double program_time_used;
@@ -23,18 +24,18 @@ int main() {
     program_start = clock();
 
     // Host copies
-    Password * passwords_to_hash;
-    Password * file_buffer;
+    Password *passwords_to_hash;
+    Password *file_buffer;
 
     // We store everything inside arrays of pointers to char pointers into host
     // memory first
     passwords_to_hash = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
     file_buffer = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
 
-    //Opening the file with passwords to hash
-    //FILE *fp = fopen("passwords.txt", "r");
+    // Opening the file with passwords to hash
+    // FILE *fp = fopen("passwords.txt", "r");
 
-    //if (fp == nullptr) {
+    // if (fp == nullptr) {
     //     perror("Error while opening the file\n");
     //     exit(EXIT_FAILURE);
     //}
@@ -43,34 +44,33 @@ int main() {
     int n = 0;
     while (n < PASSWORD_NUMBER) {
         // fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
-        strcpy((char *) passwords_to_hash[n].chars, (char *) test_password);
+        strcpy((char *)passwords_to_hash[n].bytes, (char *)test_password);
 
         // TO TEST INPUTS
         // printf("%s\n",file_buffer[n]);
         n++;
     }
 
-    //printf("PASSWORD FILE TO BUFFER DONE @ %f seconds\n",
+    // printf("PASSWORD FILE TO BUFFER DONE @ %f seconds\n",
     //       (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     // Simple copy
-    //for (int i = 0; i < PASSWORD_NUMBER; i++) {
+    // for (int i = 0; i < PASSWORD_NUMBER; i++) {
     //    cudaMemcpy(passwords_to_hash[i], file_buffer[i],
-    //               MAX_PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyHostToDevice);
+    //               PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyHostToDevice);
     //}
 
     // fclose(fp);
 
-
-    Password * d_passwords;
+    Password *d_passwords;
     cudaMalloc(&d_passwords, sizeof(Password) * PASSWORD_NUMBER);
 
-    Digest * d_results;
+    Digest *d_results;
     cudaMalloc(&d_results, sizeof(Digest) * PASSWORD_NUMBER);
 
     // Device copies
-    cudaMemcpy(d_passwords, passwords_to_hash, sizeof(Password) * PASSWORD_NUMBER,
-               cudaMemcpyHostToDevice);
+    cudaMemcpy(d_passwords, passwords_to_hash,
+               sizeof(Password) * PASSWORD_NUMBER, cudaMemcpyHostToDevice);
 
     printf("COPY TO GPU DONE @ %f seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
@@ -82,7 +82,9 @@ int main() {
     cudaEventCreate(&end);
 
     cudaEventRecord(start);
-    kernel_md5_hash<<<PASSWORD_NUMBER/(64), (64)>>>(d_passwords, d_results);
+    ntlm<<<PASSWORD_NUMBER / 64, 64>>>(d_passwords, d_results);
+    // kernel_md5_hash<<<PASSWORD_NUMBER / (64), (64)>>>(d_passwords,
+    // d_results);
     cudaEventRecord(end);
 
     // Check for errors during kernel execution
@@ -100,8 +102,7 @@ int main() {
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, end);
 
-    // Then, in order to copy back we need a host array of pointers to char pointers
-    Digest * results;
+    Digest *results;
     results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
 
     // Copy back the device result array to host result array
@@ -112,13 +113,14 @@ int main() {
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     printf("SAMPLE OF OUTPUT : ");
-    for (int i = 0; i < MD5_BLOCK_SIZE; i++) {
+    for (int i = 0; i < HASH_LENGTH; i++) {
         printf("%x", results[666].bytes[i]);
     }
     printf("\n");
 
-    printf("GPU PARALLEL HASH TIME : %f seconds\n", milliseconds/1000);
-    printf("HASH RATE : %f MH/s\n", (PASSWORD_NUMBER/(milliseconds/1000))/1000000);
+    printf("GPU PARALLEL HASH TIME : %f seconds\n", milliseconds / 1000);
+    printf("HASH RATE : %f MH/s\n",
+           (PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000);
 
     // Cleanup
     free(passwords_to_hash);
