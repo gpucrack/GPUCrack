@@ -1,7 +1,7 @@
 #ifndef NTLM_CUH
 #define NTLM_CUH
 
-#include <cuda_stdint.h>
+#include <stdint.h>
 
 #include "constants.cuh"
 
