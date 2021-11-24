@@ -12,6 +12,9 @@
 // The number of password to hash. (2^27)
 #define PASSWORD_NUMBER 134217728
 
+// How many thread per block to launch the kernel
+#define THREAD_PER_BLOCK 128
+
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
 

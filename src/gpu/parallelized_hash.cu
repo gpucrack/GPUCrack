@@ -77,12 +77,11 @@ int main() {
 
     // Mesure time
     cudaEvent_t start, end;
-    double gpu_time_used;
     cudaEventCreate(&start);
     cudaEventCreate(&end);
 
     cudaEventRecord(start);
-    ntlm<<<PASSWORD_NUMBER / 64, 64>>>(d_passwords, d_results);
+    ntlm<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(d_passwords, d_results);
     // kernel_md5_hash<<<PASSWORD_NUMBER / (64), (64)>>>(d_passwords,
     // d_results);
     cudaEventRecord(end);
