@@ -19,6 +19,21 @@
 #include "ntlm.cuh"
 
 int main() {
+    size_t freeMem;
+    size_t totalMem;
+    cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
+
+    printf("MEMORY AVAILABLE : %ld Megabytes\n",(totalMem/1000000));
+
+    size_t memUsed = sizeof(Password) * PASSWORD_NUMBER + sizeof(Digest) * PASSWORD_NUMBER;
+
+    printf("THIS MUCH MEMORY WILL BE USED : %ld Megabytes\n",(memUsed/1000000));
+
+    auto numberOfPass = (double)((double)memUsed/(double)totalMem);
+
+    printf("NUMBER OF PASS : %f\n", numberOfPass);
+
+
     double program_time_used;
     clock_t program_start, program_end;
     program_start = clock();
@@ -82,8 +97,7 @@ int main() {
 
     cudaEventRecord(start);
     ntlm<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(d_passwords, d_results);
-    // kernel_md5_hash<<<PASSWORD_NUMBER / (64), (64)>>>(d_passwords,
-    // d_results);
+    //kernel_md5_hash<<<PASSWORD_NUMBER / (THREAD_PER_BLOCK), (THREAD_PER_BLOCK)>>>(d_passwords,d_results);
     cudaEventRecord(end);
 
     // Check for errors during kernel execution
