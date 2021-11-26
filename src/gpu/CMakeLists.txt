@@ -4,9 +4,13 @@ project(CUDA_naive_exhaustive_search CUDA)
 set(CMAKE_CUDA_STANDARD 14)
 
 add_executable(Main_executable parallelized_hash.cu myMd5.cu ntlm.cu)
+add_executable(Benchmark_executable benchmark.cu myMd5.cu ntlm.cu)
 add_executable(Test_executable test_hash.cu test_hash.cuh md5.cu md5.cuh)
 
 set_target_properties(Main_executable PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(Benchmark_executable PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(Test_executable PROPERTIES
