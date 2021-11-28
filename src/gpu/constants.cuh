@@ -13,7 +13,7 @@
 #define PASSWORD_NUMBER 268435456
 
 // How many thread per block to launch the kernel
-#define THREAD_PER_BLOCK 64
+#define THREAD_PER_BLOCK 32
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))

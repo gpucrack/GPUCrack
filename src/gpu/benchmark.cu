@@ -18,6 +18,8 @@
 #include "myMd5.cuh"
 #include "ntlm.cuh"
 
+#define NUMBER_OF_TEST 50
+
 int main() {
     size_t freeMem;
     size_t totalMem;
@@ -87,20 +89,20 @@ int main() {
     cudaMemcpy(d_passwords, passwords_to_hash,
                sizeof(Password) * PASSWORD_NUMBER, cudaMemcpyHostToDevice);
 
-    printf("COPY TO GPU DONE @ %f seconds\n",
+    printf("LAUNCHING BENCHMARK WITH %d TEST PER THREAD PER BLOCK VALUE @ %f seconds\n",NUMBER_OF_TEST,
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     double maxhashrate;
     int bestValue;
 
-    for(int k=16;k<512;k+=16) {
-        for (int i=0; i<1000; i++) {
+    for(int k=8;k<512;k+=8) {
+        for (int i=0; i<NUMBER_OF_TEST; i++) {
             cudaEvent_t start, end;
             cudaEventCreate(&start);
             cudaEventCreate(&end);
 
             cudaEventRecord(start);
-            ntlm<<<PASSWORD_NUMBER / k, k>>>(d_passwords, d_results);
+            ntlm<<<PASSWORD_NUMBER / k, k>>>(d_passwords, d_results, 0);
             cudaEventRecord(end);
 
             cudaEventSynchronize(end);
@@ -112,11 +114,6 @@ int main() {
                 maxhashrate = hashrate;
                 bestValue = k;
             }
-
-            //printf("GPU PARALLEL HASH TIME : %f seconds\n", milliseconds / 1000);
-            //printf("HASH RATE : %f MH/s\n",
-            //       hashrate);
-            //printf("---------------------\n");
         }
     }
 
@@ -141,9 +138,6 @@ int main() {
     // Copy back the device result array to host result array
     cudaMemcpy(results, d_results, sizeof(Digest *) * PASSWORD_NUMBER,
                cudaMemcpyDeviceToHost);
-
-    printf("HASH RETRIEVED @ %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     printf("SAMPLE OF OUTPUT : ");
     for (int i = 0; i < HASH_LENGTH; i++) {

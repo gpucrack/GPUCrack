@@ -22,6 +22,11 @@ int main() {
     size_t freeMem;
     size_t totalMem;
     cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
+    if (mem != cudaSuccess) {
+        printf("memory check failed with error \"%s\".\n",
+               cudaGetErrorString(mem));
+        return 1;
+    }
 
     printf("MEMORY AVAILABLE : %ld Megabytes\n",(totalMem/1000000));
 
@@ -32,7 +37,6 @@ int main() {
     auto numberOfPass = (double)((double)memUsed/(double)totalMem);
 
     printf("NUMBER OF PASS : %f\n", numberOfPass);
-
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -95,18 +99,36 @@ int main() {
     cudaEventCreate(&start);
     cudaEventCreate(&end);
 
-    cudaEventRecord(start);
-    ntlm<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(d_passwords, d_results);
-    //kernel_md5_hash<<<PASSWORD_NUMBER / (THREAD_PER_BLOCK), (THREAD_PER_BLOCK)>>>(d_passwords,d_results);
-    cudaEventRecord(end);
+    int batchSize;
+    if (numberOfPass > 1) batchSize = PASSWORD_NUMBER / numberOfPass;
+    else batchSize = PASSWORD_NUMBER;
+    int passwordRemaining = PASSWORD_NUMBER;
+    int currentIndex = 0;
+    printf("FIRST BATCH SIZE : %d\n", batchSize);
 
-    // Check for errors during kernel execution
-    cudaError_t cudaerr = cudaDeviceSynchronize();
-    if (cudaerr != cudaSuccess) {
-        printf("kernel launch failed with error \"%s\".\n",
-               cudaGetErrorString(cudaerr));
-        return 1;
+    cudaEventRecord(start);
+    for(long i=0; i< (int)numberOfPass+1; i++) {
+        if (currentIndex >= PASSWORD_NUMBER) break;
+        if (passwordRemaining < batchSize) batchSize = passwordRemaining;
+        printf("PASSWORD REMAINING : %d, BATCH SIZE : %d\n", passwordRemaining, batchSize);
+        printf("CURRENT INDEX : %d\n", currentIndex);
+        ntlm<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(d_passwords, d_results, currentIndex);
+
+        // Check for errors during kernel execution
+        cudaError_t cudaerr = cudaDeviceSynchronize();
+        if (cudaerr != cudaSuccess) {
+            printf("kernel launch failed with error \"%s\".\n",
+                   cudaGetErrorString(cudaerr));
+            return 1;
+        }
+
+        if (i == 0) currentIndex += batchSize-1;
+        else currentIndex += batchSize;
+        passwordRemaining -= batchSize;
+        printf("NEW CURRENT INDEX : %ld\n", currentIndex);
+        //kernel_md5_hash<<<PASSWORD_NUMBER / (THREAD_PER_BLOCK), (THREAD_PER_BLOCK)>>>(d_passwords,d_results);
     }
+    cudaEventRecord(end);
 
     printf("KERNEL DONE @ %f seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
