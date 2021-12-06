@@ -12,7 +12,7 @@
 /*************************** HEADER FILES ***************************/
 #include <stdlib.h>
 #include <memory.h>
-#include "md5.cuh"
+#include "classicMd5.cuh"
 
 /****************************** MACROS ******************************/
 #define ROTLEFT(a,b) ((a << b) | (a >> (32-b)))

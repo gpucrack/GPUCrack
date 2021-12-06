@@ -26,8 +26,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "constants.cuh"
-#include "myMd5.cuh"
+#include "../constants.cuh"
+#include "cudaMd5.cuh"
 
 /****************************** MACROS ******************************/
 #define MD5_BLOCK_SIZE 16  // MD5 outputs a 16 byte digest

@@ -5,8 +5,8 @@
 #include <ctime>
 
 #include "constants.cuh"
-#include "myMd5.cuh"
-#include "ntlm.cuh"
+#include "hash_functions/cudaMd5.cuh"
+#include "hash_functions/ntlm.cuh"
 
 int main() {
 
@@ -16,7 +16,7 @@ int main() {
     size_t totalMem;
     cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
 
-    // Just to keep a little bit of memory, just in case
+    // Just to keep a little of memory, just in case
     freeMem -= 500000000;
 
     // Checking errors on memory detection
@@ -82,7 +82,7 @@ int main() {
 
     // Host copies
     Password *passwords_to_hash;
-    //Password *file_buffer;
+    // Password *file_buffer;
 
     // Device copies
     Digest *d_results;
@@ -105,6 +105,7 @@ int main() {
 
         // We store everything inside a big array into host memory first
         passwords_to_hash = (Password *)malloc(sizeof(Password) * batchSize);
+
         // file_buffer = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
 
         // Opening the file with passwords to hash
@@ -117,6 +118,7 @@ int main() {
         // }
 
         for (int n=0; n<batchSize; n++) {
+
             // Reading lines from the file
             // fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
 
@@ -191,7 +193,7 @@ int main() {
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     // Host copies
-    Digest *results;
+    Digest * results;
     results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
 
     // Copy back the device result array to host result array

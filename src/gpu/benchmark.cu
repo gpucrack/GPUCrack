@@ -15,26 +15,38 @@
 #include <ctime>
 
 #include "constants.cuh"
-#include "myMd5.cuh"
-#include "ntlm.cuh"
+#include "hash_functions/cudaMd5.cuh"
+#include "hash_functions/ntlm.cuh"
 
 #define NUMBER_OF_TEST 50
+#define MAX_THREAD_NUMBER 1024
 
 int main() {
     size_t freeMem;
     size_t totalMem;
     cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
 
-    printf("MEMORY AVAILABLE : %ld Megabytes\n",(totalMem/1000000));
+    // Just to keep a little of memory, just in case
+    freeMem -= 500000000;
+
+    // Checking errors on memory detection
+    if (mem != cudaSuccess) {
+        printf("memory check failed with error \"%s\".\n",
+               cudaGetErrorString(mem));
+        return 1;
+    }
+
+    printf("MEMORY AVAILABLE : %ld Megabytes\n",(freeMem/1000000));
 
     size_t memUsed = sizeof(Password) * PASSWORD_NUMBER + sizeof(Digest) * PASSWORD_NUMBER;
 
     printf("THIS MUCH MEMORY WILL BE USED : %ld Megabytes\n",(memUsed/1000000));
 
-    auto numberOfPass = (double)((double)memUsed/(double)totalMem);
-
-    printf("NUMBER OF PASS : %f\n", numberOfPass);
-
+    // If the result array is greater than the available memory, it's useless to try
+    if (memUsed > freeMem) {
+        printf("NOT ENOUGHT MEMORY\n");
+        exit(1);
+    }
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -95,8 +107,16 @@ int main() {
     double maxhashrate;
     int bestValue;
 
-    for(int k=8;k<512;k+=8) {
+    printf("[");
+    fflush(stdout);
+    int segment_size = MAX_THREAD_NUMBER*0.1;
+
+    for(int k=8;k<MAX_THREAD_NUMBER;k+=8) {
         for (int i=0; i<NUMBER_OF_TEST; i++) {
+            if((k % segment_size) == 0) {
+                printf("=");
+                fflush(stdout);
+            }
             cudaEvent_t start, end;
             cudaEventCreate(&start);
             cudaEventCreate(&end);
@@ -116,6 +136,7 @@ int main() {
             }
         }
     }
+    printf("]\n");
 
     printf("MAX HASHRATE : %f\n", maxhashrate);
     printf("BEST THREAD PER BLOCK VALUE : %d\n", bestValue);

@@ -2,7 +2,7 @@
 #include <cstdlib>
 
 #include "constants.cuh"
-#include "myMd5.cuh"
+#include "hash_functions/cudaMd5.cuh"
 #include "test_hash.cuh"
 
 #define REFERENCE_SENTENCE1 "The quick brown fox jumps over the lazy dog"
