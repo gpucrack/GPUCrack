@@ -158,9 +158,13 @@ int main() {
         //printf("CURRENT INDEX : %d\n", currentIndex);
 
         // Measure time before and after kernel launch
+        printf("LAUNCHING KERNEL @ %f seconds\n",
+               (double)(clock() - program_start) / CLOCKS_PER_SEC);
         cudaEventRecord(start);
         ntlm<<<batchSize / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(d_passwords, d_results, currentIndex);
         cudaEventRecord(end);
+        printf("KERNEL DONE @ %f seconds\n",
+               (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
         // Necessary procedure to record time and store the elasped time in tempMilli
         cudaEventSynchronize(end);
@@ -189,9 +193,6 @@ int main() {
         cudaFree(d_passwords);
     }
 
-    printf("KERNEL DONE @ %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
-
     // Host copies
     Digest * results;
     results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
@@ -211,7 +212,7 @@ int main() {
     printf("\n");
 
     // Compute GPU time and hash rate
-    printf("GPU PARALLEL HASH TIME : %f seconds\n", milliseconds / 1000);
+    printf("GPU PARALLEL HASH TIME : %f milliseconds\n", milliseconds);
     printf("HASH RATE : %f MH/s\n",
            (PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000);
 
