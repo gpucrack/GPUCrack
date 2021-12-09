@@ -17,6 +17,7 @@
 #include "constants.cuh"
 #include "myMd5.cuh"
 #include "ntlm.cuh"
+#include "rainbow.cuh"
 
 int main() {
     double program_time_used;
@@ -81,7 +82,8 @@ int main() {
     cudaEventCreate(&end);
 
     cudaEventRecord(start);
-    ntlm<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(d_passwords, d_results);
+    ntlm_chain_kernel<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(
+        d_passwords, d_results);
     // kernel_md5_hash<<<PASSWORD_NUMBER / (64), (64)>>>(d_passwords,
     // d_results);
     cudaEventRecord(end);

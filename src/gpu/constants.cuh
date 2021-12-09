@@ -10,7 +10,7 @@
 #define PASSWORD_LENGTH 7
 
 // The number of password to hash. (2^27)
-#define PASSWORD_NUMBER 134217728
+#define PASSWORD_NUMBER 8192
 
 // How many thread per block to launch the kernel
 #define THREAD_PER_BLOCK 128

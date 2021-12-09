@@ -11,9 +11,9 @@ inline int pwdcpy(Password* p1, const Password* p2) {
 }
 
 int compare_rainbow_chains(const void* p1, const void* p2) {
-    const RainbowChain* chain1 = (RainbowChain*)p1;
-    const RainbowChain* chain2 = (RainbowChain*)p2;
-    return strcmp(chain1->endpoint, chain2->endpoint);
+    RainbowChain* chain1 = (RainbowChain*)p1;
+    RainbowChain* chain2 = (RainbowChain*)p2;
+    return pwdcmp(&chain1->endpoint, &chain2->endpoint);
 }
 
 char char_in_range(unsigned char n) {
@@ -24,13 +24,13 @@ char char_in_range(unsigned char n) {
     return chars[n];
 }
 
-void reduce_digest(unsigned char* digest, unsigned long iteration,
-                   unsigned char table_number, char* plain_text) {
+void reduce_digest(Digest* digest, unsigned long iteration,
+                   unsigned char table_number, Password* plain_text) {
     // pseudo-random counter based on the hash
-    unsigned long counter = digest[7];
+    unsigned long counter = digest->bytes[7];
     for (char i = 6; i >= 0; i--) {
         counter <<= 8;
-        counter |= digest[i];
+        counter |= digest->bytes[i];
     }
 
     /*
@@ -55,10 +55,7 @@ void create_startpoint(unsigned long counter, Password* plain_text) {
 }
 
 inline void insert_chain(RainbowTable* table, Password* startpoint,
-                         char* endpoint) {
-    memcpy(&table->chains[table->length].endpoint, endpoint, PASSWORD_LENGTH);
-    memcpy(&table->chains[table->length].startpoint, startpoint,
-           PASSWORD_LENGTH);
+                         Password* endpoint) {
     table->length++;
 }
 
@@ -109,9 +106,8 @@ RainbowTable gen_table(unsigned char table_number, unsigned long m0) {
         // generate the chain
         Password last_plain_text;
         Password startpoint;
-        char startpoint[PASSWORD_LENGTH + 1];
-        create_startpoint(i, startpoint);
-        memcpy(last_plain_text, startpoint, PASSWORD_LENGTH);
+        create_startpoint(i, &startpoint);
+        pwdcpy(&last_plain_text, &startpoint);
 
         /*
             Apply a round of hash + reduce `TABLE_T - 1` times.
@@ -120,12 +116,12 @@ RainbowTable gen_table(unsigned char table_number, unsigned long m0) {
             n -> r0(h(n)) -> r1(h(r0(h(n))) -> ...
         */
         for (unsigned long j = 0; j < TABLE_T - 1; j++) {
-            unsigned char digest[HASH_LENGTH];
+            Digest digest;
             ntlm(&last_plain_text, &digest);
-            reduce_digest(digest, j, table_number, last_plain_text);
+            reduce_digest(&digest, j, table_number, &last_plain_text);
         }
 
-        insert_chain(&table, startpoint, last_plain_text);
+        insert_chain(&table, &startpoint, &last_plain_text);
 
         if (i % 1000 == 0) {
             DEBUG_PRINT("\rprogress: %.2f%%", (float)(i + 1) / m0 * 100);
@@ -180,7 +176,8 @@ RainbowTable load_table(const char* file_path) {
     unsigned long table_length;
     fscanf(file, "%lu %hhu\n", &table_length, &table.number);
 
-    RainbowChain* chains = malloc(sizeof(RainbowChain) * table_length);
+    RainbowChain* chains =
+        (RainbowChain*)malloc(sizeof(RainbowChain) * table_length);
     table.chains = chains;
     if (!chains) {
         perror("Cannot allocate enough memory to load this rainbow table");
@@ -199,39 +196,6 @@ RainbowTable load_table(const char* file_path) {
 }
 
 void del_table(RainbowTable* table) { free(table->chains); }
-
-void print_hash(const unsigned char* digest) {
-    for (int i = 0; i < HASH_LENGTH; i++) {
-        printf("%02x", digest[i]);
-    }
-}
-
-void print_table(const RainbowTable* table) {
-    for (unsigned long i = 0; i < table->length; i++) {
-        printf("%s -> ... -> %s\n", table->chains[i].startpoint,
-               table->chains[i].endpoint);
-    }
-}
-
-void print_matrix(const RainbowTable* table) {
-    for (unsigned long i = 0; i < table->length; i++) {
-        unsigned char plain_text[PASSWORD_LENGTH];
-        unsigned char digest[HASH_LENGTH];
-        memcpy(plain_text, table->chains[i].startpoint);
-        strcpy(plain_text, table->chains[i].startpoint);
-
-        for (unsigned long j = 0; j < TABLE_T - 1; j++) {
-            ntlm(plain_text, strlen(plain_text), digest);
-            printf("%s -> ", plain_text);
-            print_hash(digest);
-            printf(" -> ");
-            reduce_digest(digest, j, table->number, plain_text);
-        }
-
-        assert(!strcmp(table->chains[i].endpoint, plain_text));
-        printf("%s\n", plain_text);
-    }
-}
 
 void offline(RainbowTable* rainbow_tables) {
     // the number of possible passwords
@@ -256,89 +220,28 @@ void offline(RainbowTable* rainbow_tables) {
     }
 }
 
-void online(RainbowTable* rainbow_tables, unsigned char* digest,
-            char* password) {
+__global__ void ntlm_chain_kernel(RainbowTable* table) {
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // generate the chain
+    Password last_plain_text;
+    Password startpoint;
+    create_startpoint(index, &startpoint);
+    pwdcpy(&last_plain_text, &startpoint);
+
     /*
-        Iterate column by column, starting from the last digest.
-        https://stackoverflow.com/questions/3623263/reverse-iteration-with-an-unsigned-loop-variable
+        Apply a round of hash + reduce `TABLE_T - 1` times.
+        The chain should look like this:
 
-        We iterate through all tables at the same time because it's faster
-       to find a match in the last columns.
+        n -> r0(h(n)) -> r1(h(r0(h(n))) -> ...
     */
-    for (unsigned long i = TABLE_T - 1; i-- > 0;) {
-        for (int j = 0; j < TABLE_COUNT; j++) {
-            unsigned char tn = rainbow_tables[j].number;
-
-            char column_plain_text[PASSWORD_LENGTH + 1];
-            unsigned char column_digest[HASH_LENGTH];
-            memcpy(column_digest, digest, HASH_LENGTH);
-
-            // get the reduction corresponding to the current column
-            for (unsigned long k = i; k < TABLE_T - 2; k++) {
-                reduce_digest(column_digest, k, tn, column_plain_text);
-                HASH(column_plain_text, strlen(column_plain_text),
-                     column_digest);
-            }
-            reduce_digest(column_digest, TABLE_T - 2, tn, column_plain_text);
-
-            RainbowChain* found =
-                binary_search(&rainbow_tables[j], column_plain_text);
-
-            if (!found) {
-                continue;
-            }
-
-            // we found a matching endpoint, reconstruct the chain
-            char chain_plain_text[PASSWORD_LENGTH + 1];
-            unsigned char chain_digest[HASH_LENGTH];
-            strcpy(chain_plain_text, found->startpoint);
-
-            for (unsigned long k = 0; k < i; k++) {
-                HASH(chain_plain_text, strlen(chain_plain_text), chain_digest);
-                reduce_digest(chain_digest, k, tn, chain_plain_text);
-            }
-            HASH(chain_plain_text, strlen(chain_plain_text), chain_digest);
-
-            /*
-                The digest was indeed present in the chain, this was
-                not a false positive from a reduction. We found a
-                plain text that matches the digest!
-            */
-            if (!pwdcmp(chain_digest, digest, HASH_LENGTH)) {
-                strcpy(password, chain_plain_text);
-                return;
-            }
-        }
+    for (unsigned long j = 0; j < TABLE_T - 1; j++) {
+        Digest digest;
+        ntlm(&last_plain_text, &digest);
+        // TODO : CHANGE 0 TO TABLE NUMBER
+        reduce_digest(&digest, j, 0, &last_plain_text);
     }
 
-    // no match found
-    password[0] = '\0';
-}
-
-__global__ void ntlm_chain(Password* startpoints, Digest* digests) {
-    for (unsigned long i = 0; i < m0; i++) {
-        // generate the chain
-        char last_plain_text[PASSWORD_LENGTH + 1];
-        char startpoint[PASSWORD_LENGTH + 1];
-        create_startpoint(i, startpoint);
-        strcpy(last_plain_text, startpoint);
-
-        /*
-            Apply a round of hash + reduce `TABLE_T - 1` times.
-            The chain should look like this:
-
-            n -> r0(h(n)) -> r1(h(r0(h(n))) -> ...
-        */
-        for (unsigned long j = 0; j < TABLE_T - 1; j++) {
-            unsigned char digest[HASH_LENGTH];
-            ntlm(last_plain_text, strlen(last_plain_text), digest);
-            reduce_digest(digest, j, table_number, last_plain_text);
-        }
-
-        insert_chain(&table, startpoint, last_plain_text);
-
-        if (i % 1000 == 0) {
-            DEBUG_PRINT("\rprogress: %.2f%%", (float)(i + 1) / m0 * 100);
-        }
-    }
+    pwdcpy(&table->chains[index].endpoint, &last_plain_text);
+    pwdcpy(&table->chains[index].startpoint, &startpoint);
 }
