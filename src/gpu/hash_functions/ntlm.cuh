@@ -50,7 +50,7 @@ typedef enum md4_constants {
     `passwords` is the array containing all passwords to hash.
     `digests` contains all hashed passwords.
 */
-__global__ void ntlm(Password* passwords, Digest* digests, int currentIndex);
+__global__ void ntlm(Password* passwords, Digest* digests);
 
 __device__ uint32_t rotl32(const uint32_t a, const int n);
 __device__ uint32_t rotr32(const uint32_t a, const int n);

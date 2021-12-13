@@ -1,133 +1,42 @@
-/*
- * Author: Maxime Missichini
- * Email: missichini.maxime@gmail.com
- * -----
- * File: parallelized_hash.cu
- * Created Date: 26/11/2021
- * -----
- *
- */
-
-#include <cuda_runtime.h>
-
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
 #include "constants.cuh"
-#include "hash_functions/cudaMd5.cuh"
-#include "hash_functions/ntlm.cuh"
+#include "commons.cuh"
 
-#define NUMBER_OF_TEST 50
+#define NUMBER_OF_TEST 10
 #define MAX_THREAD_NUMBER 1024
 
 int main() {
-    size_t freeMem;
-    size_t totalMem;
-    cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
 
-    // Just to keep a little of memory, just in case
-    freeMem -= 500000000;
+    auto numberOfPass = memoryAnalysis();
 
-    // Checking errors on memory detection
-    if (mem != cudaSuccess) {
-        printf("memory check failed with error \"%s\".\n",
-               cudaGetErrorString(mem));
-        return 1;
-    }
-
-    printf("MEMORY AVAILABLE : %ld Megabytes\n",(freeMem/1000000));
-
-    size_t memUsed = sizeof(Password) * PASSWORD_NUMBER + sizeof(Digest) * PASSWORD_NUMBER;
-
-    printf("THIS MUCH MEMORY WILL BE USED : %ld Megabytes\n",(memUsed/1000000));
-
-    // If the result array is greater than the available memory, it's useless to try
-    if (memUsed > freeMem) {
-        printf("NOT ENOUGHT MEMORY\n");
-        exit(1);
-    }
+    int batchSize = computeBatchSize(numberOfPass);
 
     double program_time_used;
     clock_t program_start, program_end;
     program_start = clock();
 
-    // Host copies
-    Password *passwords_to_hash;
-    Password *file_buffer;
-
-    // We store everything inside arrays of pointers to char pointers into host
-    // memory first
-    passwords_to_hash = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
-    file_buffer = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
-
-    // Opening the file with passwords to hash
-    // FILE *fp = fopen("passwords.txt", "r");
-
-    // if (fp == nullptr) {
-    //     perror("Error while opening the file\n");
-    //     exit(EXIT_FAILURE);
-    //}
-
-    const BYTE test_password[7] = {'1', '2', '3', '4', '5', '6', '7'};
-    int n = 0;
-    while (n < PASSWORD_NUMBER) {
-        // fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
-        strcpy((char *)passwords_to_hash[n].bytes, (char *)test_password);
-
-        // TO TEST INPUTS
-        // printf("%s\n",file_buffer[n]);
-        n++;
-    }
-
-    // printf("PASSWORD FILE TO BUFFER DONE @ %f seconds\n",
-    //       (double)(clock() - program_start) / CLOCKS_PER_SEC);
-
-    // Simple copy
-    // for (int i = 0; i < PASSWORD_NUMBER; i++) {
-    //    cudaMemcpy(passwords_to_hash[i], file_buffer[i],
-    //               PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyHostToDevice);
-    //}
-
-    // fclose(fp);
-
-    Password *d_passwords;
-    cudaMalloc(&d_passwords, sizeof(Password) * PASSWORD_NUMBER);
-
-    Digest *d_results;
-    cudaMalloc(&d_results, sizeof(Digest) * PASSWORD_NUMBER);
-
-    // Device copies
-    cudaMemcpy(d_passwords, passwords_to_hash,
-               sizeof(Password) * PASSWORD_NUMBER, cudaMemcpyHostToDevice);
-
-    printf("LAUNCHING BENCHMARK WITH %d TEST PER THREAD PER BLOCK VALUE @ %f seconds\n",NUMBER_OF_TEST,
+    printf("LAUNCHING BENCHMARK WITH %d TEST PER THREAD/BLOCK VALUE @ %f seconds\n",NUMBER_OF_TEST,
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 
     double maxhashrate;
     int bestValue;
 
-    printf("[");
-    fflush(stdout);
-    int segment_size = MAX_THREAD_NUMBER*0.1;
+    // Host copies
+    Digest * h_results;
+
+    float milliseconds = 0;
 
     for(int k=8;k<MAX_THREAD_NUMBER;k+=8) {
         for (int i=0; i<NUMBER_OF_TEST; i++) {
-            if((k % segment_size) == 0) {
-                printf("=");
-                fflush(stdout);
-            }
-            cudaEvent_t start, end;
-            cudaEventCreate(&start);
-            cudaEventCreate(&end);
 
-            cudaEventRecord(start);
-            ntlm<<<PASSWORD_NUMBER / k, k>>>(d_passwords, d_results, 0);
-            cudaEventRecord(end);
+            kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results);
 
-            cudaEventSynchronize(end);
-            float milliseconds = 0;
-            cudaEventElapsedTime(&milliseconds, start, end);
+            // Cleanup
+            if (k != (MAX_THREAD_NUMBER - 8)) free(h_results);
+
             double hashrate = (PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000;
 
             if(hashrate > maxhashrate){
@@ -136,42 +45,15 @@ int main() {
             }
         }
     }
-    printf("]\n");
 
     printf("MAX HASHRATE : %f\n", maxhashrate);
     printf("BEST THREAD PER BLOCK VALUE : %d\n", bestValue);
 
-
-    // Check for errors during kernel execution
-    cudaError_t cudaerr = cudaDeviceSynchronize();
-    if (cudaerr != cudaSuccess) {
-        printf("kernel launch failed with error \"%s\".\n",
-               cudaGetErrorString(cudaerr));
-        return 1;
-    }
-
-    printf("KERNEL DONE @ %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
-
-    Digest *results;
-    results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
-
-    // Copy back the device result array to host result array
-    cudaMemcpy(results, d_results, sizeof(Digest *) * PASSWORD_NUMBER,
-               cudaMemcpyDeviceToHost);
-
     printf("SAMPLE OF OUTPUT : ");
-    for (int i = 0; i < HASH_LENGTH; i++) {
-        printf("%x", results[666].bytes[i]);
+    for (unsigned char byte : h_results[666].bytes) {
+        printf("%x", byte);
     }
     printf("\n");
-
-    // Cleanup
-    free(passwords_to_hash);
-    free(results);
-    free(file_buffer);
-    cudaFree(d_passwords);
-    cudaFree(d_results);
 
     program_end = clock();
     program_time_used =

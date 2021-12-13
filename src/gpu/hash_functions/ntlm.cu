@@ -1145,7 +1145,8 @@ __device__ void md4_final_vector(md4_ctx_vector_t* ctx) {
     md4_transform_vector(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
-__global__ void ntlm(Password* passwords, Digest* digests, int currentIndex) {
+__global__ void ntlm(Password* passwords, Digest* digests) {
+
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     //printf("INDEX : %d\n", index);
@@ -1160,8 +1161,8 @@ __global__ void ntlm(Password* passwords, Digest* digests, int currentIndex) {
     md4_update_vector_utf16le(&ctx, w);
     md4_final_vector(&ctx);
 
-    digests[index+currentIndex].i[0] = ctx.h[0];
-    digests[index+currentIndex].i[1] = ctx.h[1];
-    digests[index+currentIndex].i[2] = ctx.h[2];
-    digests[index+currentIndex].i[3] = ctx.h[3];
+    digests[index].i[0] = ctx.h[0];
+    digests[index].i[1] = ctx.h[1];
+    digests[index].i[2] = ctx.h[2];
+    digests[index].i[3] = ctx.h[3];
 }
