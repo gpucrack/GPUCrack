@@ -2,11 +2,10 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "constants.cuh"
 #include "commons.cuh"
+#include "constants.cuh"
 
 int main() {
-
     auto numberOfPass = memoryAnalysis();
     int batchSize = computeBatchSize(numberOfPass);
 
@@ -16,7 +15,7 @@ int main() {
     program_start = clock();
 
     // Host copies
-    Digest * h_results;
+    Digest* h_results;
 
     float milliseconds = 0;
 
