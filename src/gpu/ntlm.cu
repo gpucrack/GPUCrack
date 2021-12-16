@@ -1145,7 +1145,7 @@ __device__ void md4_final_vector(md4_ctx_vector_t* ctx) {
     md4_transform_vector(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
-__global__ void ntlm(Password* password, Digest* digest) {
+void ntlm(Password* password, Digest* digest) {
     uint32_t w[16] = {0};
     for (uint32_t i = 0, idx = 0; i < PASSWORD_LENGTH; i += 4, idx += 1) {
         w[idx] = password->i[idx];
@@ -1162,7 +1162,7 @@ __global__ void ntlm(Password* password, Digest* digest) {
     digest->i[3] = ctx.h[3];
 }
 
-__global__ void ntlm_kernel(Password* password, Digest* digest) {
+__global__ void ntlm_kernel(Password* passwords, Digest* digests) {
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
-    ntlm(&password[index], &digest[index]);
+    ntlm(&passwords[index], &digests[index]);
 }

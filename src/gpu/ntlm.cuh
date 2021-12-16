@@ -42,14 +42,22 @@ typedef enum md4_constants {
 } md4_constants_t;
 
 /*
-    A NTLM kernel.
-    This has been adapted from hashcat's m01000_a3-pure.cl module.
-    https://github.com/hashcat/hashcat/blob/master/OpenCL/m01000_a3-pure.cl
+    A kernel using the NTLM hash function.
 
     `passwords` is the array containing all passwords to hash.
     `digests` contains all hashed passwords.
 */
-__global__ void ntlm(Password* passwords, Digest* digests);
+__global__ void ntlm_kernel(Password* passwords, Digest* digests);
+
+/*
+    A NTLM hash function.
+    This has been adapted from hashcat's m01000_a3-pure.cl module.
+    https://github.com/hashcat/hashcat/blob/master/OpenCL/m01000_a3-pure.cl
+
+    `password` contains the password to hash.
+    `digest` contains the hashed password.
+*/
+__device__ void ntlm(Password* password, Digest* digest);
 
 __device__ uint32_t rotl32(const uint32_t a, const int n);
 __device__ uint32_t rotr32(const uint32_t a, const int n);
