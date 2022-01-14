@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "constants.cuh"
+#include "../constants.cuh"
 #include "commons.cuh"
 
 int main() {

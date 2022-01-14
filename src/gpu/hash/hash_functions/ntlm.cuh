@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "../constants.cuh"
+#include "../../constants.cuh"
 
 // Md4 context.
 typedef struct md4_ctx_vector {

@@ -3,7 +3,7 @@
 #include <ctime>
 
 #include "constants.cuh"
-#include "commons.cuh"
+#include "hash/commons.cuh"
 
 #define NUMBER_OF_TEST 10
 #define MAX_THREAD_NUMBER 1024

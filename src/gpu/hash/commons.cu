@@ -5,10 +5,10 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "constants.cuh"
+#include "../constants.cuh"
 
-#include "hash_functions/cudaMd5.cuh"
-#include "hash_functions/ntlm.cuh"
+#include "../hash_functions/cudaMd5.cuh"
+#include "../hash_functions/ntlm.cuh"
 
 // Return the number of batch that we need to do
 __host__ double memoryAnalysis() {

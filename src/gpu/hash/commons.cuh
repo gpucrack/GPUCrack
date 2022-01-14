@@ -6,7 +6,7 @@
 #define CUDA_NAIVE_EXHAUSTIVE_SEARCH_COMMONS_CUH
 
 
-#include "constants.cuh"
+#include "../constants.cuh"
 
 class commons {
 
