@@ -4,22 +4,25 @@ __host__ Password * generatePasswords() {
 
     auto * result = (Password*) malloc(PASSWORD_NUMBER*sizeof(Password));
     int random;
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 9); // define the range
+
     // Generate all passwords
     for(int j=0; j<PASSWORD_NUMBER; j++) {
         Password currentPassword = *((Password*) malloc(sizeof(Password)));
-
         // Generate one password
-        for (int i = 0; i < PASSWORD_LENGTH; i++) {
-            srand((unsigned) time(nullptr));
-            random = (rand() % 9);
-            currentPassword.bytes[i] = random;
+        for (unsigned char & byte : currentPassword.bytes) {
+            random = distr(gen);
+            byte = random;
         }
 
         // Debug
-        for(int n=0; n<PASSWORD_LENGTH; n++) {
-            printf("%x", currentPassword.bytes[n]);
-            printf("\n");
+        for (unsigned char byte : currentPassword.bytes) {
+            printf("%x", byte);
         }
+        printf("\n");
 
         result[j] = currentPassword;
     }

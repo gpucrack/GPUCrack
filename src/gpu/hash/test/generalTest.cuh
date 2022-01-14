@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
+#include <random>
 
 __host__ Password * generatePasswords();
 
