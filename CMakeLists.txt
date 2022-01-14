@@ -19,8 +19,6 @@ add_executable(Benchmark_executable
         src/gpu/hash/commons.cuh)
 
 add_executable(generalTest
-        src/gpu/hash/hash_functions/classicMd5.cu
-        src/gpu/hash/hash_functions/classicMd5.cuh
         src/gpu/hash/commons.cu
         src/gpu/hash/commons.cuh
         src/gpu/hash/test/generalTest.cu
@@ -29,8 +27,14 @@ add_executable(generalTest
         src/gpu/hash/hash_functions/ntlm.cuh)
 
 add_executable(complianceTest
+        src/gpu/hash/commons.cu
+        src/gpu/hash/commons.cuh
+        src/gpu/hash/hash_functions/classicMd5.cu
+        src/gpu/hash/hash_functions/classicMd5.cuh
         src/gpu/hash/test/complianceTest.cu
-        src/gpu/hash/test/complianceTest.cuh)
+        src/gpu/hash/test/complianceTest.cuh
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/gpu/hash/hash_functions/ntlm.cuh)
 
 
 set_target_properties(Chains PROPERTIES

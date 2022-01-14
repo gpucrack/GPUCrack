@@ -5,7 +5,7 @@
 #include "commons.cuh"
 
 
-int parallelized_hash(Password *h_passwords) {
+Digest * parallelized_hash(Password *h_passwords) {
 
     auto numberOfPass = memoryAnalysis();
     int batchSize = computeBatchSize(numberOfPass);
@@ -39,14 +39,11 @@ int parallelized_hash(Password *h_passwords) {
     printf("HASH RATE : %f MH/s\n",
            (PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000);
 
-    // Cleanup
-    free(h_results);
-
     // End and compute total time
     program_end = clock();
     program_time_used =
         ((double)(program_end - program_start)) / CLOCKS_PER_SEC;
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 
-    return 0;
+    return h_results;
 }

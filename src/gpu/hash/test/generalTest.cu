@@ -34,6 +34,8 @@ int main() {
 
     Password * passwords = generatePasswords();
 
-    return(parallelized_hash(passwords));
+    parallelized_hash(passwords);
+
+    return(0);
 
 }
