@@ -5,7 +5,9 @@
 #include "../constants.cuh"
 #include "commons.cuh"
 
+
 int parallelized_hash(Password *h_passwords) {
+
     auto numberOfPass = memoryAnalysis();
     int batchSize = computeBatchSize(numberOfPass);
 
