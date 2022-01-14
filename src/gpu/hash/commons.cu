@@ -5,8 +5,6 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "../constants.cuh"
-
 #include "../hash_functions/cudaMd5.cuh"
 #include "../hash_functions/ntlm.cuh"
 

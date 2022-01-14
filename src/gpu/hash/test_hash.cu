@@ -7,7 +7,6 @@
 
 #define REFERENCE_SENTENCE1 "The quick brown fox jumps over the lazy dog"
 #define REFERENCE_RESULT1 "9e107d9d372bb6826bd81d3542a419d6"
-#define PASSWORD_LENGTH 43
 #define NUMBER_OF_PASSWORD 1
 
 int main() {

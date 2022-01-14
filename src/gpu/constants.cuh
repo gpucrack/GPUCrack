@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_CUH
 #define CONSTANTS_CUH
 
-#include <stdint.h>
+#include <cstdint>
 
 // The length of the hash function.
 #define HASH_LENGTH 16
