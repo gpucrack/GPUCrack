@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "constants.cuh"
-#include "hash/commons.cuh"
+#include "../constants.cuh"
+#include "commons.cuh"
 
 #define NUMBER_OF_TEST 10
 #define MAX_THREAD_NUMBER 1024
