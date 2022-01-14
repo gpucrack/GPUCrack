@@ -61,18 +61,18 @@ long test_function_collision(char *hash) {
   return count;
 }
 
-int main(int argc, char **argv) {
-  char *hash = "8846f7eaee8fb117ad06bdd830b7586c"; // the hash will remain the
-                                                   // same for every iterations
-  long collisions = test_function_collision(hash);
-  double time = test_function_speed(hash);
-  printf("%d reductions of %d characters have been performed in %f "
-         "seconds.\nThe character set used contains %d characters.\n",
-         NB_REDUCTIONS, PLAIN_LENGTH, time, CHARSET_LENGTH);
+int main() {
+    char *hash = "8846f7eeee8fb117ad06bdd830b7586c"; // the hash will remain the
+    // same for every iteration
+    long collisions = test_function_collision(hash);
+    double time = test_function_speed(hash);
+    printf("%d reductions of %d characters have been performed in %f "
+           "seconds.\nThe character set used contains %d characters.\n",
+           NB_REDUCTIONS, PLAIN_LENGTH, time, CHARSET_LENGTH);
 
-  printf("%d reductions of %d characters have been performed in %f seconds "
-         "with %ld collision(s).\n",
-         NB_REDUCTIONS, PLAIN_LENGTH, time, collisions);
+    printf("%d reductions of %d characters have been performed in %f seconds "
+           "with %ld collision(s).\n",
+           NB_REDUCTIONS, PLAIN_LENGTH, time, collisions);
 
   return 0;
 }
