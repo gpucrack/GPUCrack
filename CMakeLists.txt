@@ -25,7 +25,6 @@ add_executable(generalTest
         src/gpu/hash/commons.cuh
         src/gpu/hash/test/generalTest.cu
         src/gpu/hash/test/generalTest.cuh
-        src/gpu/hash/parallelized_hash.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash_functions/ntlm.cuh)
 

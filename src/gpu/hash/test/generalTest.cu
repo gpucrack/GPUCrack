@@ -19,10 +19,10 @@ __host__ Password * generatePasswords() {
         }
 
         // Debug
-        for (unsigned char byte : currentPassword.bytes) {
-            printf("%x", byte);
-        }
-        printf("\n");
+        //for (unsigned char byte : currentPassword.bytes) {
+        //    printf("%x", byte);
+        //}
+        //printf("\n");
 
         result[j] = currentPassword;
     }
@@ -31,5 +31,9 @@ __host__ Password * generatePasswords() {
 }
 
 int main() {
-    generatePasswords();
+
+    Password * passwords = generatePasswords();
+
+    return(parallelized_hash(passwords));
+
 }

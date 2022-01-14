@@ -89,11 +89,8 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
         // Device copies
-        cudaMemcpy(d_passwords, h_passwords, sizeof(Password) * batchSize,
+        cudaMemcpy(d_passwords, *h_passwords, sizeof(Password) * batchSize,
                    cudaMemcpyHostToDevice);
-
-        // Cleanup
-        free(h_passwords);
 
         // If the currentIndex to save result is greater than the number of
         // password we must stop

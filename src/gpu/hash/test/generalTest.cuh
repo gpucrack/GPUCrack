@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include "../parallelized_hash.cu"
 
 __host__ Password * generatePasswords();
 

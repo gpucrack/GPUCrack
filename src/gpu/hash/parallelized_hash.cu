@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "../constants.cuh"
 #include "commons.cuh"
 
 
@@ -22,6 +21,8 @@ int parallelized_hash(Password *h_passwords) {
     float milliseconds = 0;
 
     kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords);
+
+    free(h_passwords);
 
     printf("HASH RETRIEVED @ %f seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
