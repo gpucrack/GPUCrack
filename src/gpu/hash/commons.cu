@@ -1,14 +1,6 @@
 #include "commons.cuh"
-#include <cuda_runtime.h>
 
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-
-#include "../hash_functions/cudaMd5.cuh"
-#include "../hash_functions/ntlm.cuh"
-
-// Return the number of batch that we need to do
+// Returns the number of batch that we need to do
 __host__ double memoryAnalysis() {
     // Checking available memory on the device, store free memory into freeMem
     // and total memory into totalMem
@@ -66,49 +58,9 @@ __host__ int computeBatchSize(double numberOfPass) {
     return batchSize;
 }
 
-__host__ void readPasswords(const Password *h_passwords, const int batchSize) {
-    // We use a constant password for now
-    const BYTE test_password[7] = {'1', '2', '3', '4', '5', '6', '7'};
-
-    // file_buffer = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
-
-    // Opening the file with passwords to hash
-    // FILE *fp = fopen("passwords.txt", "r");
-
-    // Checking for errors when opening the file
-    // if (fp == nullptr) {
-    //     perror("Error while opening the file\n");
-    //     exit(EXIT_FAILURE);
-    // }
-
-    for (int n = 0; n < batchSize; n++) {
-        // Reading lines from the file
-        // fgets((char*)file_buffer[n],MAX_PASSWORD_LENGTH,fp);
-
-        // Copying the constant password
-        strcpy((char *)h_passwords[n].bytes, (char *)test_password);
-
-        // To test inputs
-        // printf("%s\n",file_buffer[n]);
-    }
-
-    // Copy data from file buffer reader to password array
-    // for (int i = 0; i < PASSWORD_NUMBER; i++) {
-    //    cudaMemcpy(passwords_to_hash[i], file_buffer[i],
-    //               PASSWORD_LENGTH * sizeof(BYTE), cudaMemcpyHostToDevice);
-    //}
-
-    // Close the file
-    // fclose(fp);
-
-}
-
 __host__ void kernel(const double numberOfPass, int batchSize,
                      float *milliseconds, const clock_t *program_start,
-                     Digest **h_results) {
-    // Host copies
-    Password *h_passwords;
-    // Password *file_buffer;
+                     Digest **h_results, Password **h_passwords) {
 
     *h_results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
 
@@ -132,21 +84,13 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         // Temporary variable to measure GPU time inside this loop
         float tempMilli = 0;
 
-        // We store everything inside a big array into host memory first
-        h_passwords = (Password *)malloc(sizeof(Password) * batchSize);
-
-        readPasswords(h_passwords, batchSize);
-
         // GPU Malloc for the password array, size is batchSize
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
         // Device copies
-        cudaMemcpy(d_passwords, h_passwords, sizeof(Password) * batchSize,
+        cudaMemcpy(d_passwords, *h_passwords, sizeof(Password) * batchSize,
                    cudaMemcpyHostToDevice);
-
-        // Cleanup
-        free(h_passwords);
 
         // If the currentIndex to save result is greater than the number of
         // password we must stop
