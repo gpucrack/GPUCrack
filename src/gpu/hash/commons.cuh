@@ -2,6 +2,14 @@
 #define CUDA_NAIVE_EXHAUSTIVE_SEARCH_COMMONS_CUH
 
 #include "../constants.cuh"
+#include <cuda_runtime.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+
+#include "../hash_functions/cudaMd5.cuh"
+#include "../hash_functions/ntlm.cuh"
 
 __host__ double memoryAnalysis();
 __host__ int computeBatchSize(double numberOfPass);

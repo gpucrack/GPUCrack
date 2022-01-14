@@ -1,6 +1,9 @@
 #ifndef MYMD5_CUH
 #define MYMD5_CUH
 
+#include <cstdio>
+#include "../../constants.cuh"
+
 typedef unsigned char BYTE;  // 8-bit byte
 typedef unsigned int WORD;  // 32-bit word, change to "long" for 16-bit machines
 

@@ -1,12 +1,4 @@
 #include "commons.cuh"
-#include <cuda_runtime.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-
-#include "../hash_functions/cudaMd5.cuh"
-#include "../hash_functions/ntlm.cuh"
 
 // Return the number of batch that we need to do
 __host__ double memoryAnalysis() {
@@ -69,17 +61,6 @@ __host__ int computeBatchSize(double numberOfPass) {
 __host__ void readPasswords(const Password *h_passwords, const int batchSize) {
     // We use a constant password for now
     const BYTE test_password[7] = {'1', '2', '3', '4', '5', '6', '7'};
-
-    // file_buffer = (Password *)malloc(sizeof(Password) * PASSWORD_NUMBER);
-
-    // Opening the file with passwords to hash
-    // FILE *fp = fopen("passwords.txt", "r");
-
-    // Checking for errors when opening the file
-    // if (fp == nullptr) {
-    //     perror("Error while opening the file\n");
-    //     exit(EXIT_FAILURE);
-    // }
 
     for (int n = 0; n < batchSize; n++) {
         // Reading lines from the file

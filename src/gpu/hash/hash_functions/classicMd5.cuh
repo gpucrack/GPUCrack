@@ -10,7 +10,7 @@
 #define MD5_H
 
 /*************************** HEADER FILES ***************************/
-#include <stddef.h>
+#include <cstddef>
 
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;  // 8-bit byte

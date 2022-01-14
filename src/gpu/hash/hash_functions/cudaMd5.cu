@@ -23,10 +23,6 @@
  */
 
 /*************************** HEADER FILES ***************************/
-#include <cstdio>
-#include <cstdlib>
-
-#include "../../constants.cuh"
 #include "cudaMd5.cuh"
 
 /****************************** MACROS ******************************/

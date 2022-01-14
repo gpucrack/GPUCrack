@@ -1,0 +1,10 @@
+#ifndef GPU_CRACK_GENERALTEST_CUH
+#define GPU_CRACK_GENERALTEST_CUH
+
+
+class generalTest {
+
+};
+
+
+#endif //GPU_CRACK_GENERALTEST_CUH
