@@ -9,8 +9,8 @@
 // The length of a password.
 #define PASSWORD_LENGTH 7
 
-// The number of password to hash.
-#define PASSWORD_NUMBER 1073741824
+// The number of password to hash. (2^27)
+#define PASSWORD_NUMBER 4258315
 
 // How many thread per block to launch the kernel
 #define THREAD_PER_BLOCK 332

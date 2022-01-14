@@ -6,7 +6,6 @@
 #include "commons.cuh"
 
 int main() {
-
     auto numberOfPass = memoryAnalysis();
     int batchSize = computeBatchSize(numberOfPass);
 
