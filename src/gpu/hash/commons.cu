@@ -1,7 +1,7 @@
 #include "commons.cuh"
 
 // Returns the number of batch that we need to do
-__host__ double memoryAnalysis() {
+__host__ double memoryAnalysis(long passwordNumber) {
     // Checking available memory on the device, store free memory into freeMem
     // and total memory into totalMem
     size_t freeMem;
@@ -21,8 +21,8 @@ __host__ double memoryAnalysis() {
     printf("MEMORY AVAILABLE : %ld Megabytes\n", (freeMem / 1000000));
 
     // Computing memory used by password and result array
-    size_t memResult = sizeof(Digest) * PASSWORD_NUMBER;
-    size_t memPasswords = sizeof(Password) * PASSWORD_NUMBER;
+    size_t memResult = sizeof(Digest) * passwordNumber;
+    size_t memPasswords = sizeof(Password) * passwordNumber;
     size_t memUsed = memPasswords + memResult;
 
     printf("MEMORY USED BY RESULT ARRAY : %ld Megabytes\n",
@@ -42,27 +42,27 @@ __host__ double memoryAnalysis() {
     return numberOfPass;
 }
 
-__host__ int computeBatchSize(double numberOfPass) {
+__host__ int computeBatchSize(double numberOfPass, long passwordNumber) {
     int batchSize;
 
     // Formula to round down is : result = ((number + multiple/2) / multiple) *
     // multiple;
     if (numberOfPass > 1)
-        batchSize = ((((int)(PASSWORD_NUMBER / numberOfPass)) + 1) / 2) * 2;
+        batchSize = ((((int)(passwordNumber / numberOfPass)) + 1) / 2) * 2;
 
     // If we have less than 1 round then the batch size is the number of
     // passwords
     else
-        batchSize = PASSWORD_NUMBER;
+        batchSize = passwordNumber;
 
     return batchSize;
 }
 
 __host__ void kernel(const double numberOfPass, int batchSize,
                      float *milliseconds, const clock_t *program_start,
-                     Digest **h_results, Password **h_passwords) {
+                     Digest **h_results, Password **h_passwords, long passwordNumber) {
 
-    *h_results = (Digest *)malloc(PASSWORD_NUMBER * sizeof(Digest));
+    *h_results = (Digest *)malloc(passwordNumber * sizeof(Digest));
 
     // Device copies
     Digest *d_results;
@@ -73,7 +73,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
     cudaEventCreate(&start);
     cudaEventCreate(&end);
 
-    int passwordRemaining = PASSWORD_NUMBER;
+    int passwordRemaining = passwordNumber;
     int currentIndex = 0;
 
     printf("FIRST BATCH SIZE : %d\n", batchSize);
@@ -95,7 +95,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
         // If the currentIndex to save result is greater than the number of
         // password we must stop
-        if (currentIndex >= PASSWORD_NUMBER) break;
+        if (currentIndex >= passwordNumber) break;
 
         // If we have less than batchSize password to hash, then hash them all
         // but modify the batchSize to avoid index errors

@@ -1,8 +1,8 @@
 #include "generalTest.cuh"
 
-__host__ Password * generatePasswords() {
+__host__ Password * generatePasswords(long passwordNumber) {
 
-    auto * result = (Password*) malloc(PASSWORD_NUMBER*sizeof(Password));
+    auto * result = (Password*) malloc(passwordNumber*sizeof(Password));
     int random;
 
     std::random_device rd; // obtain a random number from hardware
@@ -10,7 +10,7 @@ __host__ Password * generatePasswords() {
     std::uniform_int_distribution<> distr(0, 9); // define the range
 
     // Generate all passwords
-    for(int j=0; j<PASSWORD_NUMBER; j++) {
+    for(int j=0; j<passwordNumber; j++) {
         Password currentPassword = *((Password*) malloc(sizeof(Password)));
         // Generate one password
         for (unsigned char & byte : currentPassword.bytes) {
@@ -32,9 +32,11 @@ __host__ Password * generatePasswords() {
 
 int main() {
 
-    Password * passwords = generatePasswords();
+    long passwordNumber = 134217728;
 
-    parallelized_hash(passwords);
+    Password * passwords = generatePasswords(passwordNumber);
+
+    parallelized_hash(passwords, passwordNumber);
 
     return(0);
 

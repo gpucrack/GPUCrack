@@ -11,10 +11,10 @@
 #include "../hash_functions/cudaMd5.cuh"
 #include "../hash_functions/ntlm.cuh"
 
-__host__ double memoryAnalysis();
-__host__ int computeBatchSize(double numberOfPass);
+__host__ double memoryAnalysis(long passwordNumber);
+__host__ int computeBatchSize(double numberOfPass, long passwordNumber);
 __host__ void kernel(double numberOfPass, int batchSize, float * milliseconds, const clock_t * program_start,
-                     Digest ** h_results, Password **h_passwords);
+                     Digest ** h_results, Password **h_passwords, long passwordNumber);
 
 
 #endif //CUDA_NAIVE_EXHAUSTIVE_SEARCH_COMMONS_CUH

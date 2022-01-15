@@ -5,10 +5,11 @@
 
 int main() {
 
-    auto * passwords = (Password*) malloc(PASSWORD_NUMBER*sizeof(Password));
+    long passwordNumber = 134217728;
+    auto * passwords = (Password*) malloc(passwordNumber*sizeof(Password));
 
     // Fill passwords with reference sentence
-    for (int j=0; j<PASSWORD_NUMBER; j++) {
+    for (int j=0; j<passwordNumber; j++) {
         for (int i = 0; i < strlen(REFERENCE_SENTENCE1); i++) {
             passwords[j].bytes[i] = REFERENCE_SENTENCE1[i];
         }
@@ -20,7 +21,7 @@ int main() {
     }
     printf("\n");
 
-    auto * result = parallelized_hash(passwords);
+    auto * result = parallelized_hash(passwords, passwordNumber);
 
     printf("RESULTS FROM BASE FUNCTION : ");
     for (unsigned char i : REFERENCE_RESULT) {
@@ -34,7 +35,7 @@ int main() {
     }
     printf("\n");
 
-    for(int i=0; i<PASSWORD_NUMBER; i++) {
+    for(int i=0; i<passwordNumber; i++) {
         for(int j=0;j<HASH_LENGTH;j++){
             if (!strcmp(REFERENCE_RESULT, (char*)result[i].bytes)) {
                 printf("TEST FAILED ! @ %d @ %d", i, j);

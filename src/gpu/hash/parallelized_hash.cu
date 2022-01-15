@@ -5,10 +5,10 @@
 #include "commons.cuh"
 
 
-Digest * parallelized_hash(Password *h_passwords) {
+Digest * parallelized_hash(Password *h_passwords, long passwordNumber) {
 
-    auto numberOfPass = memoryAnalysis();
-    int batchSize = computeBatchSize(numberOfPass);
+    auto numberOfPass = memoryAnalysis(passwordNumber);
+    int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     // Measure global time
     double program_time_used;
@@ -20,7 +20,7 @@ Digest * parallelized_hash(Password *h_passwords) {
 
     float milliseconds = 0;
 
-    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords);
+    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber);
 
     free(h_passwords);
 
@@ -37,7 +37,7 @@ Digest * parallelized_hash(Password *h_passwords) {
     // Compute GPU time and hash rate
     printf("GPU PARALLEL HASH TIME : %f milliseconds\n", milliseconds);
     printf("HASH RATE : %f MH/s\n",
-           (PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000);
+           (passwordNumber / (milliseconds / 1000)) / 1000000);
 
     // End and compute total time
     program_end = clock();
