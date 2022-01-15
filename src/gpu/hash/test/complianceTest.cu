@@ -3,9 +3,8 @@
 
 #include "complianceTest.cuh"
 
-int main() {
+int compliance(int passwordNumber) {
 
-    long passwordNumber = 134217728;
     auto * passwords = (Password*) malloc(passwordNumber*sizeof(Password));
 
     // Fill passwords with reference sentence
@@ -14,15 +13,15 @@ int main() {
             passwords[j].bytes[i] = REFERENCE_SENTENCE1[i];
         }
     }
-
     printf("PASSWORD INSIDE PASSWORDS: ");
     for (unsigned char i : passwords[0].bytes) {
         printf("%c", i);
     }
-    printf("\n");
+    printf("\n\n");
 
     auto * result = parallelized_hash(passwords, passwordNumber);
 
+    printf("==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : ");
     for (unsigned char i : REFERENCE_RESULT) {
         if(i != '\0') printf("%c", i);
@@ -35,6 +34,8 @@ int main() {
     }
     printf("\n");
 
+    printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
+
     for(int i=0; i<passwordNumber; i++) {
         for(int j=0;j<HASH_LENGTH;j++){
             if (!strcmp(REFERENCE_RESULT, (char*)result[i].bytes)) {
@@ -45,6 +46,14 @@ int main() {
     }
 
     printf("TEST PASSED !");
+    printf("\n");
+
+    free(result);
 
     return 0;
+}
+
+int main(){
+    compliance(268435456);
+    //compliance(536870912);
 }

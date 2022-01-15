@@ -1,7 +1,9 @@
 #include "commons.cuh"
 
 // Returns the number of batch that we need to do
-__host__ double memoryAnalysis(long passwordNumber) {
+__host__ double memoryAnalysis(int passwordNumber) {
+
+    setbuf(stdout, NULL);
     // Checking available memory on the device, store free memory into freeMem
     // and total memory into totalMem
     size_t freeMem;
@@ -42,7 +44,7 @@ __host__ double memoryAnalysis(long passwordNumber) {
     return numberOfPass;
 }
 
-__host__ int computeBatchSize(double numberOfPass, long passwordNumber) {
+__host__ int computeBatchSize(double numberOfPass, int passwordNumber) {
     int batchSize;
 
     // Formula to round down is : result = ((number + multiple/2) / multiple) *
@@ -60,7 +62,7 @@ __host__ int computeBatchSize(double numberOfPass, long passwordNumber) {
 
 __host__ void kernel(const double numberOfPass, int batchSize,
                      float *milliseconds, const clock_t *program_start,
-                     Digest **h_results, Password **h_passwords, long passwordNumber) {
+                     Digest **h_results, Password **h_passwords, int passwordNumber) {
 
     *h_results = (Digest *)malloc(passwordNumber * sizeof(Digest));
 
@@ -80,7 +82,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
-    for (long i = 0; i < (int)numberOfPass + 1; i++) {
+    for (int i = 0; i < (int)numberOfPass + 1; i++) {
         // Temporary variable to measure GPU time inside this loop
         float tempMilli = 0;
 
@@ -117,7 +119,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         cudaEventElapsedTime(&tempMilli, start, end);
         *milliseconds += tempMilli;
 
-        printf("KERNEL #%ld DONE @ %f seconds\n", i,
+        printf("KERNEL #%d DONE @ %f seconds\n", i,
                (double)(clock() - *program_start) / CLOCKS_PER_SEC);
 
         // Check for errors during kernel execution
@@ -130,8 +132,9 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
         Digest *destination = *h_results;
         // Device to host copy
+        printf("Current: %d\n", currentIndex);
         cudaMemcpy(&destination[currentIndex], d_results,
-                   sizeof(Password) * batchSize, cudaMemcpyDeviceToHost);
+                   sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost);
 
         // Fix the index because array begin at index 0, not 1
         if (i == 0) currentIndex += batchSize - 1;
