@@ -8,7 +8,7 @@ __host__ Password * generatePasswords(long passwordNumber) {
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<> distr(0, 9); // define the range
 
-    printf("==========GENERATING PASSWORDS==========\n");
+    printf("\n==========GENERATING PASSWORDS==========\n");
     // Generate all passwords
     for(int j=0; j<passwordNumber; j++) {
         auto * currentPassword = (Password *) malloc(sizeof(Password));

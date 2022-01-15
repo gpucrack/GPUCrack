@@ -13,15 +13,17 @@ int compliance(int passwordNumber) {
             passwords[j].bytes[i] = REFERENCE_SENTENCE1[i];
         }
     }
-    printf("PASSWORD INSIDE PASSWORDS: ");
-    for (unsigned char i : passwords[0].bytes) {
-        printf("%c", i);
-    }
-    printf("\n\n");
+
+    //Debug
+    //printf("\nPASSWORD INSIDE PASSWORDS: ");
+    //for (unsigned char i : passwords[0].bytes) {
+    //    printf("%c", i);
+    //}
+    //printf("\n\n");
 
     auto * result = parallelized_hash(passwords, passwordNumber);
 
-    printf("==========COMPLIANCE TEST==========\n");
+    printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : ");
     for (unsigned char i : REFERENCE_RESULT) {
         if(i != '\0') printf("%c", i);
@@ -38,7 +40,7 @@ int compliance(int passwordNumber) {
 
     for(int i=0; i<passwordNumber; i++) {
         for(int j=0;j<HASH_LENGTH;j++){
-            if (!strcmp(REFERENCE_RESULT, (char*)result[i].bytes)) {
+            if ((strcmp(REFERENCE_RESULT, (char*)result[i].bytes)) == 0) {
                 printf("TEST FAILED ! @ %d @ %d", i, j);
                 exit(1);
             }
@@ -50,10 +52,12 @@ int compliance(int passwordNumber) {
 
     free(result);
 
+    printf("====================\n");
+
     return 0;
 }
 
 int main(){
-    //compliance(268435456);
+    compliance(268435456);
     compliance(536870912);
 }

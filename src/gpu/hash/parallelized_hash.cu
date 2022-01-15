@@ -45,5 +45,8 @@ Digest * parallelized_hash(Password *h_passwords, int passwordNumber) {
         ((double)(program_end - program_start)) / CLOCKS_PER_SEC;
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 
+    printf("====================\n");
+
+
     return h_results;
 }

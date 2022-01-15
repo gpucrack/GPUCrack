@@ -3,7 +3,7 @@
 // Returns the number of batch that we need to do
 __host__ double memoryAnalysis(int passwordNumber) {
 
-    setbuf(stdout, NULL);
+    printf("\n==========MEMORY ANALYSIS==========\n");
     // Checking available memory on the device, store free memory into freeMem
     // and total memory into totalMem
     size_t freeMem;
@@ -41,6 +41,8 @@ __host__ double memoryAnalysis(int passwordNumber) {
 
     printf("NUMBER OF PASS : %f\n", numberOfPass);
 
+    printf("====================\n");
+
     return numberOfPass;
 }
 
@@ -64,12 +66,9 @@ __host__ void kernel(const double numberOfPass, int batchSize,
                      float *milliseconds, const clock_t *program_start,
                      Digest **h_results, Password **h_passwords, int passwordNumber) {
 
-    *h_results = (Digest *)malloc(passwordNumber * sizeof(Digest));
+    printf("\n==========LAUNCHING KERNEL==========\n");
 
-    if (*h_results == nullptr) {
-        printf("ERROR WHILE ALLOCATING RESULT ARRAY !");
-        exit(1);
-    }
+    *h_results = (Digest *)malloc(passwordNumber * sizeof(Digest));
 
     // Device copies
     Digest *d_results;
