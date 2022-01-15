@@ -54,6 +54,6 @@ int compliance(int passwordNumber) {
 }
 
 int main(){
-    compliance(268435456);
-    //compliance(536870912);
+    //compliance(268435456);
+    compliance(536870912);
 }

@@ -34,14 +34,14 @@ __host__ Password * generatePasswords(long passwordNumber) {
 
     }
 
-    printf("\n");
+    printf("====================\n");
 
     return result;
 }
 
 int main() {
 
-    int passwordNumber = 268435456;
+    int passwordNumber = 536870912;
 
     Password * passwords = generatePasswords(passwordNumber);
 

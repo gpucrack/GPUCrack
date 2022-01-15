@@ -66,6 +66,11 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
     *h_results = (Digest *)malloc(passwordNumber * sizeof(Digest));
 
+    if (*h_results == nullptr) {
+        printf("ERROR WHILE ALLOCATING RESULT ARRAY !");
+        exit(1);
+    }
+
     // Device copies
     Digest *d_results;
     Password *d_passwords;
@@ -90,11 +95,6 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
-        Password *source = *h_passwords;
-        // Device copies
-        cudaMemcpy(d_passwords, &source[currentIndex], sizeof(Password) * batchSize,
-                   cudaMemcpyHostToDevice);
-
         // If the currentIndex to save result is greater than the number of
         // password we must stop
         if (currentIndex >= passwordNumber) break;
@@ -107,6 +107,11 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         // printf("PASSWORD REMAINING : %d, BATCH SIZE : %d\n",
         // passwordRemaining, batchSize); printf("CURRENT INDEX : %d\n",
         // currentIndex);
+
+        Password *source = *h_passwords;
+        // Device copies
+        cudaMemcpy(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+                   cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
         ntlm_kernel<<<batchSize / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(
@@ -132,8 +137,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
         Digest *destination = *h_results;
         // Device to host copy
-        printf("Current: %d\n", currentIndex);
-        cudaMemcpy(&destination[currentIndex], d_results,
+        cudaMemcpy(&(destination[currentIndex]), d_results,
                    sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost);
 
         // Fix the index because array begin at index 0, not 1
