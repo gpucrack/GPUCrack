@@ -5,7 +5,7 @@
 #include "commons.cuh"
 
 
-Digest * parallelized_hash(Password *h_passwords, int passwordNumber) {
+Digest * parallelized_hash(Password *h_passwords, int passwordNumber, int passwordPerKernel) {
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
@@ -20,7 +20,8 @@ Digest * parallelized_hash(Password *h_passwords, int passwordNumber) {
 
     float milliseconds = 0;
 
-    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber);
+    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
+           passwordPerKernel);
 
     free(h_passwords);
 

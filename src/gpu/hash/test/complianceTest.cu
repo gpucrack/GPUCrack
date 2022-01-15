@@ -1,9 +1,8 @@
 #define REFERENCE_SENTENCE1 "1234567"
-#define REFERENCE_RESULT "328727b81ca0585a68ef26acb252039"
-
+#define REFERENCE_RESULT "328727b81Ca05805a68ef26acb252039"
 #include "complianceTest.cuh"
 
-int compliance(int passwordNumber) {
+int compliance(int passwordNumber, int passwordPerKernel) {
 
     auto * passwords = (Password*) malloc(passwordNumber*sizeof(Password));
 
@@ -21,7 +20,7 @@ int compliance(int passwordNumber) {
     //}
     //printf("\n\n");
 
-    auto * result = parallelized_hash(passwords, passwordNumber);
+    auto * result = parallelized_hash(passwords, passwordNumber, passwordPerKernel);
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : ");
@@ -39,11 +38,10 @@ int compliance(int passwordNumber) {
     printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
 
     for(int i=0; i<passwordNumber; i++) {
-        for(int j=0;j<HASH_LENGTH;j++){
-            if ((strcmp(REFERENCE_RESULT, (char*)result[i].bytes)) == 0) {
-                printf("TEST FAILED ! @ %d @ %d", i, j);
-                exit(1);
-            }
+        int comparison = strcmp((const char *)result[i].bytes, REFERENCE_RESULT);
+        if((comparison) != 0){
+            printf("TEST FAILED %d !\n", comparison);
+            exit(1);
         }
     }
 
@@ -58,6 +56,5 @@ int compliance(int passwordNumber) {
 }
 
 int main(){
-    compliance(268435456);
-    compliance(536870912);
+    compliance(536870912, 2);
 }

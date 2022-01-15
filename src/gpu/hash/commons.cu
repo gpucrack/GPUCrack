@@ -64,7 +64,7 @@ __host__ int computeBatchSize(double numberOfPass, int passwordNumber) {
 
 __host__ void kernel(const double numberOfPass, int batchSize,
                      float *milliseconds, const clock_t *program_start,
-                     Digest **h_results, Password **h_passwords, int passwordNumber) {
+                     Digest **h_results, Password **h_passwords, int passwordNumber, int passwordPerKernel) {
 
     printf("\n==========LAUNCHING KERNEL==========\n");
 
@@ -113,8 +113,8 @@ __host__ void kernel(const double numberOfPass, int batchSize,
                    cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
-        ntlm_kernel<<<batchSize / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(
-            d_passwords, d_results);
+        ntlm_kernel<<<((batchSize / THREAD_PER_BLOCK) / passwordPerKernel), THREAD_PER_BLOCK>>>(
+            d_passwords, d_results, passwordPerKernel);
         cudaEventRecord(end);
 
         // Necessary procedure to record time and store the elasped time in
