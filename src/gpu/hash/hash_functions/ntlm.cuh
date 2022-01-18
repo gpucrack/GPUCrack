@@ -48,7 +48,7 @@ typedef enum md4_constants {
     `passwords` is the array containing all passwords to hash.
     `digests` contains all hashed passwords.
 */
-__global__ void ntlm_kernel(Password* passwords, Digest* digests, int passwordPerKernel);
+__global__ void ntlm_kernel(Password* passwords, Digest* digests);
 
 /*
     A NTLM hash function.

@@ -1162,13 +1162,7 @@ __device__ void ntlm(Password* password, Digest* digest) {
     digest->i[3] = ctx.h[3];
 }
 
-__global__ void ntlm_kernel(Password* passwords, Digest* digests, int passwordPerKernel) {
+__global__ void ntlm_kernel(Password* passwords, Digest* digests) {
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (passwordPerKernel != 1) {
-        for (int i = 0; i <= passwordPerKernel; i++) {
-            ntlm(&passwords[index + i], &digests[index + i]);
-        }
-    }else{
-        ntlm(&passwords[index], &digests[index]);
-    }
+    ntlm(&passwords[index], &digests[index]);
 }

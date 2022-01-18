@@ -1,7 +1,7 @@
 #define REFERENCE_SENTENCE1 "1234567"
 #include "complianceTest.cuh"
 
-int compliance(int passwordNumber, int passwordPerKernel) {
+int compliance(int passwordNumber) {
 
     char REFERENCE_RESULT[32] = {'3','2','8','7','2','7','b','8','1','c','a','0','5','8','0','5'
                                ,'a','6','8','e','f','2','6','a','c','b','2','5','2','0','3','9'};
@@ -22,22 +22,22 @@ int compliance(int passwordNumber, int passwordPerKernel) {
     //}
     //printf("\n\n");
 
-    auto * result = parallelized_hash(passwords, passwordNumber, passwordPerKernel);
+    auto * result = parallelized_hash(passwords, passwordNumber);
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : \n");
     for (int i=0; i<32; i++) {
         printf("%c", REFERENCE_RESULT[i]);
     }
-    printf("\n");
+    printf("\n\n");
 
     printf("SAMPLE RESULT FROM GPU FUNCTION : \n");
     for(int i=0; i<HASH_LENGTH; i++) {
         printf("%x", result[0].bytes[i]);
     }
-    printf("\n");
+    printf("\n\n");
 
-    printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
+    printf("COMPARING ALL RESULTS TO REFERENCE RESULT:\n");
 
     for(int i=0; i<passwordNumber; i++){
         for(int j=0; j<HASH_LENGTH-1; j++){
@@ -65,5 +65,5 @@ int compliance(int passwordNumber, int passwordPerKernel) {
 }
 
 int main(){
-    compliance(536870912, 1);
+    compliance(268435456);
 }

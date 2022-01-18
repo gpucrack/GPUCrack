@@ -45,7 +45,7 @@ int main() {
 
     Password * passwords = generatePasswords(passwordNumber);
 
-    auto * result = parallelized_hash(passwords, passwordNumber, 5);
+    auto * result = parallelized_hash(passwords, passwordNumber);
 
     free(result);
 
