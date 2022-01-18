@@ -11,8 +11,8 @@ add_executable(Chains
         src/gpu/rainbow.cu
         src/gpu/hash/commons.cu)
 
-add_executable(Benchmark_executable
-        src/gpu/hash/benchmark.cu
+add_executable(benchmarkTest
+        src/gpu/hash/test/benchmarkTest.cu
         src/gpu/hash/hash_functions/cudaMd5.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/commons.cu
@@ -40,7 +40,7 @@ add_executable(complianceTest
 set_target_properties(Chains PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(Benchmark_executable PROPERTIES
+set_target_properties(benchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(generalTest PROPERTIES

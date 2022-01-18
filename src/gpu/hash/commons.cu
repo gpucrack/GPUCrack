@@ -1,5 +1,31 @@
 #include "commons.cuh"
 
+__host__ Password * generatePasswords(long passwordNumber) {
+
+    auto * result = (Password*) malloc(passwordNumber*sizeof(Password));
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 9); // define the range
+
+    printf("\n==========GENERATING PASSWORDS==========\n");
+    // Generate all passwords
+    for(int j=0; j<passwordNumber; j++) {
+        auto * currentPassword = (Password *) malloc(sizeof(Password));
+        // Generate one password
+        for (unsigned char &byte: (*currentPassword).bytes) {
+            byte = distr(gen);
+        }
+
+        result[j] = *(currentPassword);
+        free(currentPassword);
+    }
+    printf("DONE\n");
+    printf("====================\n");
+
+    return result;
+}
+
 // Returns the number of batch that we need to do
 __host__ double memoryAnalysis(int passwordNumber) {
 
@@ -153,4 +179,5 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         cudaFree(d_passwords);
         cudaFree(d_results);
     }
+    printf("====================\n");
 }

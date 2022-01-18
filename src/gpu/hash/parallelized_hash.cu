@@ -22,8 +22,6 @@ Digest * parallelized_hash(Password *h_passwords, int passwordNumber) {
 
     kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber);
 
-    free(h_passwords);
-
     printf("HASH RETRIEVED @ %f seconds\n",
            (double)(clock() - program_start) / CLOCKS_PER_SEC);
 

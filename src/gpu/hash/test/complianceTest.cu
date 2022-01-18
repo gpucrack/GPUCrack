@@ -15,14 +15,9 @@ int compliance(int passwordNumber) {
         }
     }
 
-    //Debug
-    //printf("\nPASSWORD INSIDE PASSWORDS: ");
-    //for (unsigned char i : passwords[0].bytes) {
-    //    printf("%c", i);
-    //}
-    //printf("\n\n");
-
     auto * result = parallelized_hash(passwords, passwordNumber);
+
+    free(passwords);
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : \n");
@@ -65,5 +60,5 @@ int compliance(int passwordNumber) {
 }
 
 int main(){
-    compliance(268435456);
+    compliance(524288);
 }

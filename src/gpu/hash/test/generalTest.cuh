@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <random>
 #include "../parallelized_hash.cu"
-
-__host__ Password * generatePasswords(long passwordNumber);
+#include "../commons.cuh"
 
 #endif //GPU_CRACK_GENERALTEST_CUH
