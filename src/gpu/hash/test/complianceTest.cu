@@ -1,8 +1,10 @@
 #define REFERENCE_SENTENCE1 "1234567"
-#define REFERENCE_RESULT "328727b81Ca05805a68ef26acb252039"
 #include "complianceTest.cuh"
 
 int compliance(int passwordNumber, int passwordPerKernel) {
+
+    char REFERENCE_RESULT[32] = {'3','2','8','7','2','7','b','8','1','c','a','0','5','8','0','5'
+                               ,'a','6','8','e','f','2','6','a','c','b','2','5','2','0','3','9'};
 
     auto * passwords = (Password*) malloc(passwordNumber*sizeof(Password));
 
@@ -23,30 +25,37 @@ int compliance(int passwordNumber, int passwordPerKernel) {
     auto * result = parallelized_hash(passwords, passwordNumber, passwordPerKernel);
 
     printf("\n==========COMPLIANCE TEST==========\n");
-    printf("RESULTS FROM BASE FUNCTION : ");
-    for (unsigned char i : REFERENCE_RESULT) {
-        if(i != '\0') printf("%c", i);
+    printf("RESULTS FROM BASE FUNCTION : \n");
+    for (int i=0; i<32; i++) {
+        printf("%c", REFERENCE_RESULT[i]);
     }
     printf("\n");
 
-    printf("SAMPLE RESULT FROM GPU FUNCTION : ");
-    for (unsigned char i : result[0].bytes) {
-        printf("%x", i);
+    printf("SAMPLE RESULT FROM GPU FUNCTION : \n");
+    for(int i=0; i<HASH_LENGTH; i++) {
+        printf("%x", result[0].bytes[i]);
     }
     printf("\n");
 
     printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
 
-    for(int i=0; i<passwordNumber; i++) {
-        int comparison = strcmp((const char *)result[i].bytes, REFERENCE_RESULT);
-        if((comparison) != 0){
-            printf("TEST FAILED %d !\n", comparison);
-            exit(1);
+    for(int i=0; i<passwordNumber; i++){
+        for(int j=0; j<HASH_LENGTH-1; j++){
+            int comparison = memcmp(REFERENCE_RESULT, result[i].bytes, 16);
+            if(comparison != 1) {
+                printf("TEST FAILED !\n");
+                printf("FAILED @ DIGEST N°%d, CHARACTER N°%d\n", i, j);
+                printf("THIS IS THE FAIL SAMPLE: ");
+                for(int n=0; n<HASH_LENGTH; n++) {
+                    printf("%x", result[i].bytes[n]);
+                }
+                printf("\n");
+                exit(1);
+            }
         }
     }
 
-    printf("TEST PASSED !");
-    printf("\n");
+    printf("TEST PASSED !\n");
 
     free(result);
 
@@ -56,5 +65,5 @@ int compliance(int passwordNumber, int passwordPerKernel) {
 }
 
 int main(){
-    compliance(536870912, 2);
+    compliance(536870912, 1);
 }
