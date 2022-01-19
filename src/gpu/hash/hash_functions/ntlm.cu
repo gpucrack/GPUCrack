@@ -1147,6 +1147,7 @@ __device__ void md4_final_vector(md4_ctx_vector_t* ctx) {
 
 __device__ void ntlm(Password* password, Digest* digest) {
     uint32_t w[16] = {0};
+
     for (uint32_t i = 0, idx = 0; i < PASSWORD_LENGTH; i += 4, idx += 1) {
         w[idx] = password->i[idx];
     }
