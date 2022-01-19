@@ -4,9 +4,12 @@ __host__ Password * generatePasswords(long passwordNumber) {
 
     auto * result = (Password*) malloc(passwordNumber*sizeof(Password));
 
+    char charSet[62] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x',
+                      'y','z','1','2','3','4','5','6','7','8','9','0','A','B','C','D','E','F','G','H','I','J','K'
+    ,'L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(0, 9); // define the range
+    std::uniform_int_distribution<> distr(0, 61); // define the range
 
     printf("\n==========GENERATING PASSWORDS==========\n");
     // Generate all passwords
@@ -14,7 +17,7 @@ __host__ Password * generatePasswords(long passwordNumber) {
         auto * currentPassword = (Password *) malloc(sizeof(Password));
         // Generate one password
         for (unsigned char &byte: (*currentPassword).bytes) {
-            byte = distr(gen);
+            byte = charSet[distr(gen)];
         }
 
         result[j] = *(currentPassword);
@@ -140,19 +143,20 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
         Password *source = *h_passwords;
         // Device copies
-        cudaMemcpy(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+        cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
                    cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
         ntlm_kernel<<<(batchSize / THREAD_PER_BLOCK), THREAD_PER_BLOCK>>>(
             d_passwords, d_results);
         cudaEventRecord(end);
-
+        cudaEventSynchronize(end);
         // Necessary procedure to record time and store the elasped time in
         // tempMilli
-        cudaEventSynchronize(end);
         cudaEventElapsedTime(&tempMilli, start, end);
         *milliseconds += tempMilli;
+        cudaEventDestroy(start);
+        cudaEventDestroy(end);
 
         printf("KERNEL #%d DONE @ %f seconds\n", i,
                (double)(clock() - *program_start) / CLOCKS_PER_SEC);
