@@ -30,8 +30,13 @@ __host__ Password * generatePasswords(long passwordNumber) {
 __host__ double memoryAnalysis(int passwordNumber) {
 
     printf("\n==========MEMORY ANALYSIS==========\n");
-    // Checking available memory on the device, store free memory into freeMem
-    // and total memory into totalMem
+
+    // Checking if THREAD_PER_BLOCK is a power of 2 because we will have memory problems otherwise
+    if ((ceil(log2(THREAD_PER_BLOCK)) != floor(log2(THREAD_PER_BLOCK)))){
+        printf("THREAD PER BLOCK VALUE IS NOT A POWER OF 2 !\n");
+        exit(1);
+    }
+
     size_t freeMem;
     size_t totalMem;
     cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
