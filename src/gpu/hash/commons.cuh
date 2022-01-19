@@ -12,8 +12,7 @@
 #include <cstdlib>
 #include <random>
 
-#include "../hash_functions/cudaMd5.cuh"
-#include "../hash_functions/ntlm.cuh"
+#include "./hash_functions/ntlm.cuh"
 
 __host__ double memoryAnalysis(int passwordNumber);
 __host__ int computeBatchSize(double numberOfPass, int passwordNumber);

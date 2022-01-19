@@ -16,7 +16,7 @@ add_executable(benchmarkTest
         src/gpu/hash/hash_functions/cudaMd5.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/commons.cu
-        src/gpu/hash/commons.cuh)
+        src/gpu/hash/commons.cuh src/gpu/hash/parallelized_hash.cuh)
 
 add_executable(generalTest
         src/gpu/hash/commons.cu
@@ -24,7 +24,7 @@ add_executable(generalTest
         src/gpu/hash/test/generalTest.cu
         src/gpu/hash/test/generalTest.cuh
         src/gpu/hash/hash_functions/ntlm.cu
-        src/gpu/hash/hash_functions/ntlm.cuh)
+        src/gpu/hash/hash_functions/ntlm.cuh src/gpu/hash/parallelized_hash.cuh)
 
 add_executable(complianceTest
         src/gpu/hash/commons.cu
@@ -34,7 +34,7 @@ add_executable(complianceTest
         src/gpu/hash/test/complianceTest.cu
         src/gpu/hash/test/complianceTest.cuh
         src/gpu/hash/hash_functions/ntlm.cu
-        src/gpu/hash/hash_functions/ntlm.cuh)
+        src/gpu/hash/hash_functions/ntlm.cuh src/gpu/hash/parallelized_hash.cuh)
 
 
 set_target_properties(Chains PROPERTIES

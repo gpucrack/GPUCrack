@@ -1,9 +1,4 @@
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-
-#include "commons.cuh"
-
+#include "parallelized_hash.cuh"
 
 Digest * parallelized_hash(Password *h_passwords, int passwordNumber) {
 
