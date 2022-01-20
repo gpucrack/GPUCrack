@@ -15,7 +15,7 @@
 
 /*
     The maximality factor, such as the number of chains at the end of the
-    offline phase is alpha*mtmax, where mtmax is the expected maximum number of
+    offline phase is alpha*mtMax, where mtMax is the expected maximum number of
     chains in a rainbow table.
 */
 #define TABLE_ALPHA 0.952
@@ -42,7 +42,7 @@ typedef struct {
     functions.
 */
 typedef struct {
-    RainbowChain* chains;
+    RainbowChain *chains;
     unsigned long length;
     unsigned char number;
 } RainbowTable;
@@ -50,17 +50,17 @@ typedef struct {
 /*
     A way of comparing two chains to sort them by ascending endpoints.
 */
-__device__ int compare_rainbow_chains(const void* p1, const void* p2);
+__device__ int compare_rainbow_chains(const void *p1, const void *p2);
 
 /*
     Helper function to compare passwords.
 */
-__device__ inline int pwdcmp(Password* p1, Password* p2);
+__device__ inline int pwdcmp(Password *p1, Password *p2);
 
 /*
     Helper function to copy passwords.
 */
-__device__ inline void pwdcpy(Password* p1, const Password* p2);
+__device__ inline void pwdcpy(Password *p1, const Password *p2);
 
 /*
    Returns a char in the [a-zA-Z0-9_-] range given a parameter in the [0-63]
@@ -76,34 +76,34 @@ __device__ char char_in_range(unsigned char n);
     reduction. The `table number` is to discriminate different tables.
     Implementation inspired by https://github.com/jtesta/rainbowcrackalack.
 */
-__device__ void reduce_digest(Digest* digest, unsigned long iteration,
-                              unsigned char table_number, Password* plain_text);
+__device__ void reduce_digest(Digest *digest, unsigned long iteration,
+                              unsigned char table_number, Password *plain_text);
 
 /*
     Transforms a startpoint from a counter to a valid password.
 */
-__device__ void create_startpoint(unsigned long counter, Password* plain_text);
+__device__ void create_startpoint(unsigned long counter, Password *plain_text);
 
 /*
-    Deduplicates endpoints in-place, given a sorted rainbow table.
+    Removes duplicate endpoints in-place, given a sorted rainbow table.
     O(n) complexity.
 */
-__device__ void dedup_endpoints(RainbowTable* table);
+__device__ void dedup_endpoints(RainbowTable *table);
 
 /*
     Searches the rainbow table for a chain with a specific endpoint using
    binary search, since the endpoints are sorted. O(log n) complexity.
 */
-__device__ RainbowChain* binary_search(RainbowTable* table, Password* endpoint);
+__device__ RainbowChain *binary_search(RainbowTable *table, Password *endpoint);
 
 /*
     Kernel to generate all the chains.
 */
-__global__ void ntlm_chain_kernel(RainbowTable* table);
+__global__ void ntlm_chain_kernel(RainbowTable *table);
 
 /*
     Pretty prints a rainbow table.
 */
-__host__ void print_table(const RainbowTable* table);
+__host__ void print_table(const RainbowTable *table);
 
 #endif

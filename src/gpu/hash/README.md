@@ -1,10 +1,10 @@
 # How to hash passwords
 
 Very easy to use, first you'll need an array of type Password. <br><br>
-Then you'll need to check the length of your passwords, if it's 6 for example, modify
-the value "PASSWORD_LENGTH" inside constants.cuh. <br> <br>
-Once these things are done, you're good to go.
-If you want to hash without using a time variable to retrieve execution time type: <br>
+Then you'll need to check the length of your passwords, if it's 6 for example, modify the value "PASSWORD_LENGTH" inside
+constants.cuh. <br> <br>
+Once these things are done, you're good to go. If you want to hash without using a time variable to retrieve execution
+time type: <br>
 <code>auto * result = parallelized_hash(passwords, passwordNumber);
 </code> <br>
 All the digests will be retrieved inside result, you don't even need to malloc it. <br> <br>

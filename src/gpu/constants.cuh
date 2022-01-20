@@ -18,7 +18,7 @@
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
 
-// A password put into an union. This is easier to use with mallocs and crypto
+// A password put into a union. This is easier to use with malloc and crypto
 // functions.
 typedef union {
     uint8_t bytes[PASSWORD_LENGTH];

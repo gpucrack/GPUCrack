@@ -14,10 +14,15 @@ typedef struct {
     WORD state[4];
 } CUDA_MD5_CTX;
 
-__device__ void cuda_md5_transform(CUDA_MD5_CTX* ctx, const BYTE data[]);
-__device__ void cuda_md5_init(CUDA_MD5_CTX* ctx);
-__device__ void cuda_md5_update(CUDA_MD5_CTX* ctx, const BYTE data[],
+__device__ void cuda_md5_transform(CUDA_MD5_CTX *ctx, const BYTE data[]);
+
+__device__ void cuda_md5_init(CUDA_MD5_CTX *ctx);
+
+__device__ void cuda_md5_update(CUDA_MD5_CTX *ctx, const BYTE data[],
                                 size_t len);
-__device__ void cuda_md5_final(CUDA_MD5_CTX* ctx, BYTE hash[]);
-__global__ void kernel_md5_hash(Password* indata, Digest* outdata);
+
+__device__ void cuda_md5_final(CUDA_MD5_CTX *ctx, BYTE hash[]);
+
+__global__ void kernel_md5_hash(Password *indata, Digest *outdata);
+
 #endif  // MYMD5_CUH

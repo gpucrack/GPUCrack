@@ -20,15 +20,15 @@ __device__ uint32_t hc_bytealign(const uint32_t a, const uint32_t b,
     const int c_mod_4 = c & 3;
     const int c_minus_4 = 4 - c_mod_4;
     const uint32_t r =
-        hc_byte_perm(a, b, (0x76543210 >> (c_minus_4 * 4)) & 0xffff);
+            hc_byte_perm(a, b, (0x76543210 >> (c_minus_4 * 4)) & 0xffff);
 
     return r;
 }
 
-__device__ void switch_buffer_by_offset_carry_le(uint32_t* w0, uint32_t* w1,
-                                                 uint32_t* w2, uint32_t* w3,
-                                                 uint32_t* c0, uint32_t* c1,
-                                                 uint32_t* c2, uint32_t* c3,
+__device__ void switch_buffer_by_offset_carry_le(uint32_t *w0, uint32_t *w1,
+                                                 uint32_t *w2, uint32_t *w3,
+                                                 uint32_t *c0, uint32_t *c1,
+                                                 uint32_t *c2, uint32_t *c3,
                                                  const uint32_t offset) {
     const int offset_switch = offset / 4;
     switch (offset_switch) {
@@ -490,8 +490,8 @@ __device__ void switch_buffer_by_offset_carry_le(uint32_t* w0, uint32_t* w1,
     }
 }
 
-__device__ void switch_buffer_by_offset_le(uint32_t* w0, uint32_t* w1,
-                                           uint32_t* w2, uint32_t* w3,
+__device__ void switch_buffer_by_offset_le(uint32_t *w0, uint32_t *w1,
+                                           uint32_t *w2, uint32_t *w3,
                                            const uint32_t offset) {
     const int offset_switch = offset / 4;
     const int offset_mod_4 = offset & 3;
@@ -821,8 +821,8 @@ __device__ void switch_buffer_by_offset_le(uint32_t* w0, uint32_t* w1,
     }
 }
 
-__device__ void make_utf16le(const uint32_t* in, uint32_t* out1,
-                             uint32_t* out2) {
+__device__ void make_utf16le(const uint32_t *in, uint32_t *out1,
+                             uint32_t *out2) {
     out2[3] = hc_byte_perm(in[3], 0, 0x7372);
     out2[2] = hc_byte_perm(in[3], 0, 0x7170);
     out2[1] = hc_byte_perm(in[2], 0, 0x7372);
@@ -833,7 +833,7 @@ __device__ void make_utf16le(const uint32_t* in, uint32_t* out1,
     out1[0] = hc_byte_perm(in[0], 0, 0x7170);
 }
 
-__device__ void md4_init_vector(md4_ctx_vector_t* ctx) {
+__device__ void md4_init_vector(md4_ctx_vector_t *ctx) {
     ctx->h[0] = MD4M_A;
     ctx->h[1] = MD4M_B;
     ctx->h[2] = MD4M_C;
@@ -859,9 +859,9 @@ __device__ void md4_init_vector(md4_ctx_vector_t* ctx) {
     ctx->len = 0;
 }
 
-__device__ void md4_transform_vector(const uint32_t* w0, const uint32_t* w1,
-                                     uint32_t* w2, const uint32_t* w3,
-                                     uint32_t* digest) {
+__device__ void md4_transform_vector(const uint32_t *w0, const uint32_t *w1,
+                                     uint32_t *w2, const uint32_t *w3,
+                                     uint32_t *digest) {
     uint32_t a = digest[0];
     uint32_t b = digest[1];
     uint32_t c = digest[2];
@@ -924,8 +924,8 @@ __device__ void md4_transform_vector(const uint32_t* w0, const uint32_t* w1,
     digest[3] += d;
 }
 
-__device__ void md4_update_vector_64(md4_ctx_vector_t* ctx, uint32_t* w0,
-                                     uint32_t* w1, uint32_t* w2, uint32_t* w3,
+__device__ void md4_update_vector_64(md4_ctx_vector_t *ctx, uint32_t *w0,
+                                     uint32_t *w1, uint32_t *w2, uint32_t *w3,
                                      const int len) {
     if (len == 0) return;
 
@@ -1039,8 +1039,8 @@ __device__ void md4_update_vector_64(md4_ctx_vector_t* ctx, uint32_t* w0,
     }
 }
 
-__device__ void md4_update_vector_utf16le(md4_ctx_vector_t* ctx,
-                                          const uint32_t* w) {
+__device__ void md4_update_vector_utf16le(md4_ctx_vector_t *ctx,
+                                          const uint32_t *w) {
     uint32_t w0[4];
     uint32_t w1[4];
     uint32_t w2[4];
@@ -1081,15 +1081,15 @@ __device__ void md4_update_vector_utf16le(md4_ctx_vector_t* ctx,
     md4_update_vector_64(ctx, w0, w1, w2, w3, (PASSWORD_LENGTH - pos1) * 2);
 }
 
-__device__ void append_helper_1x4(uint32_t* r, const uint32_t v,
-                                  const uint32_t* m) {
+__device__ void append_helper_1x4(uint32_t *r, const uint32_t v,
+                                  const uint32_t *m) {
     r[0] |= v & m[0];
     r[1] |= v & m[1];
     r[2] |= v & m[2];
     r[3] |= v & m[3];
 }
 
-__device__ void set_mark_1x4(uint32_t* v, const uint32_t offset) {
+__device__ void set_mark_1x4(uint32_t *v, const uint32_t offset) {
     const uint32_t c = (offset & 15) / 4;
     const uint32_t r = 0xff << ((offset & 3) * 8);
 
@@ -1099,8 +1099,8 @@ __device__ void set_mark_1x4(uint32_t* v, const uint32_t offset) {
     v[3] = (c == 3) ? r : 0;
 }
 
-__device__ void append_0x80_4x4(uint32_t* w0, uint32_t* w1, uint32_t* w2,
-                                uint32_t* w3, const uint32_t offset) {
+__device__ void append_0x80_4x4(uint32_t *w0, uint32_t *w1, uint32_t *w2,
+                                uint32_t *w3, const uint32_t offset) {
     uint32_t v[4];
 
     set_mark_1x4(v, offset);
@@ -1113,7 +1113,7 @@ __device__ void append_0x80_4x4(uint32_t* w0, uint32_t* w1, uint32_t* w2,
     append_helper_1x4(w3, ((offset16 == 3) ? 0x80808080 : 0), v);
 }
 
-__device__ void md4_final_vector(md4_ctx_vector_t* ctx) {
+__device__ void md4_final_vector(md4_ctx_vector_t *ctx) {
     const int pos = ctx->len & 63;
 
     append_0x80_4x4(ctx->w0, ctx->w1, ctx->w2, ctx->w3, pos);
@@ -1145,7 +1145,7 @@ __device__ void md4_final_vector(md4_ctx_vector_t* ctx) {
     md4_transform_vector(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
-__device__ void ntlm(Password* password, Digest* digest) {
+__device__ void ntlm(Password *password, Digest *digest) {
     uint32_t w[16] = {0};
 
     for (uint32_t i = 0, idx = 0; i < PASSWORD_LENGTH; i += 4, idx += 1) {
@@ -1163,7 +1163,7 @@ __device__ void ntlm(Password* password, Digest* digest) {
     digest->i[3] = ctx.h[3];
 }
 
-__global__ void ntlm_kernel(Password* passwords, Digest* digests) {
+__global__ void ntlm_kernel(Password *passwords, Digest *digests) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     ntlm(&passwords[index], &digests[index]);

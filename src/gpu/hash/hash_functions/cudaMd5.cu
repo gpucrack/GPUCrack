@@ -60,7 +60,7 @@
     }
 
 /*********************** FUNCTION DEFINITIONS ***********************/
-__device__ void cuda_md5_transform(CUDA_MD5_CTX* ctx, const BYTE data[]) {
+__device__ void cuda_md5_transform(CUDA_MD5_CTX *ctx, const BYTE data[]) {
     WORD a, b, c, d, m[16], i, j;
 
     // MD5 specifies big endian byte order, but this implementation assumes a
@@ -149,7 +149,7 @@ __device__ void cuda_md5_transform(CUDA_MD5_CTX* ctx, const BYTE data[]) {
     ctx->state[3] += d;
 }
 
-__device__ void cuda_md5_init(CUDA_MD5_CTX* ctx) {
+__device__ void cuda_md5_init(CUDA_MD5_CTX *ctx) {
     ctx->datalen = 0;
     ctx->bitlen = 0;
     ctx->state[0] = 0x67452301;
@@ -158,7 +158,7 @@ __device__ void cuda_md5_init(CUDA_MD5_CTX* ctx) {
     ctx->state[3] = 0x10325476;
 }
 
-__device__ void cuda_md5_update(CUDA_MD5_CTX* ctx, const BYTE data[],
+__device__ void cuda_md5_update(CUDA_MD5_CTX *ctx, const BYTE data[],
                                 size_t len) {
     size_t i;
 
@@ -173,7 +173,7 @@ __device__ void cuda_md5_update(CUDA_MD5_CTX* ctx, const BYTE data[],
     }
 }
 
-__device__ void cuda_md5_final(CUDA_MD5_CTX* ctx, BYTE hash[]) {
+__device__ void cuda_md5_final(CUDA_MD5_CTX *ctx, BYTE hash[]) {
     size_t i;
 
     i = ctx->datalen;
@@ -212,7 +212,7 @@ __device__ void cuda_md5_final(CUDA_MD5_CTX* ctx, BYTE hash[]) {
     }
 }
 
-__global__ void kernel_md5_hash(Password* indata, Digest* outdata) {
+__global__ void kernel_md5_hash(Password *indata, Digest *outdata) {
     WORD index = blockIdx.x * blockDim.x + threadIdx.x;
     CUDA_MD5_CTX ctx;
 

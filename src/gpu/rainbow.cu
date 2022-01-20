@@ -2,7 +2,7 @@
 #include "hash_functions/ntlm.cuh"
 #include "rainbow.cuh"
 
-__device__ inline int pwdcmp(Password* p1, Password* p2) {
+__device__ inline int pwdcmp(Password *p1, Password *p2) {
     for (int i = 0; i < CEILING(PASSWORD_LENGTH, 4); i++) {
         if (p1->i[i] != p2->i[i]) {
             return false;
@@ -12,26 +12,26 @@ __device__ inline int pwdcmp(Password* p1, Password* p2) {
     return true;
 }
 
-__device__ inline void pwdcpy(Password* p1, const Password* p2) {
+__device__ inline void pwdcpy(Password *p1, const Password *p2) {
     memcpy(p1, p2, PASSWORD_LENGTH);
 }
 
-__device__ int compare_rainbow_chains(const void* p1, const void* p2) {
-    RainbowChain* chain1 = (RainbowChain*)p1;
-    RainbowChain* chain2 = (RainbowChain*)p2;
+__device__ int compare_rainbow_chains(const void *p1, const void *p2) {
+    RainbowChain *chain1 = (RainbowChain *) p1;
+    RainbowChain *chain2 = (RainbowChain *) p2;
     return pwdcmp(&chain1->endpoint, &chain2->endpoint);
 }
 
 __device__ char char_in_range(unsigned char n) {
-    static const char* chars =
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
+    static const char *chars =
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
     return chars[n];
 }
 
-__device__ void reduce_digest(Digest* digest, unsigned long iteration,
+__device__ void reduce_digest(Digest *digest, unsigned long iteration,
                               unsigned char table_number,
-                              Password* plain_text) {
+                              Password *plain_text) {
     // pseudo-random counter based on the hash
     unsigned long counter = digest->bytes[7];
     for (char i = 6; i >= 0; i--) {
@@ -53,15 +53,15 @@ __device__ void reduce_digest(Digest* digest, unsigned long iteration,
     create_startpoint(counter + iteration * table_number, plain_text);
 }
 
-__device__ void create_startpoint(unsigned long counter, Password* plain_text) {
+__device__ void create_startpoint(unsigned long counter, Password *plain_text) {
     for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
         plain_text->bytes[i] = char_in_range(counter % 64);
         counter /= 64;
     }
 }
 
-__device__ RainbowChain* binary_search(RainbowTable* table,
-                                       Password* endpoint) {
+__device__ RainbowChain *binary_search(RainbowTable *table,
+                                       Password *endpoint) {
     int start = 0;
     int end = table->length - 1;
     while (start <= end) {
@@ -79,7 +79,7 @@ __device__ RainbowChain* binary_search(RainbowTable* table,
     return NULL;
 }
 
-__device__ void dedup_endpoints(RainbowTable* table) {
+__device__ void dedup_endpoints(RainbowTable *table) {
     unsigned long dedup_index = 1;
     for (unsigned long i = 1; i < table->length; i++) {
         if (pwdcmp(&table->chains[i - 1].endpoint,
@@ -92,7 +92,7 @@ __device__ void dedup_endpoints(RainbowTable* table) {
     table->length = dedup_index;
 }
 
-__global__ void ntlm_chain_kernel(RainbowTable* table) {
+__global__ void ntlm_chain_kernel(RainbowTable *table) {
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // generate the chain
@@ -118,7 +118,7 @@ __global__ void ntlm_chain_kernel(RainbowTable* table) {
     pwdcpy(&table->chains[index].startpoint, &startpoint);
 }
 
-__host__ void print_table(const RainbowTable* table) {
+__host__ void print_table(const RainbowTable *table) {
     for (unsigned long i = 0; i < table->length; i++) {
         printf("%.*s -> ... -> %.*s\n", PASSWORD_LENGTH,
                table->chains[i].startpoint.bytes, PASSWORD_LENGTH,

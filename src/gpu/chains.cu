@@ -25,7 +25,7 @@ int main() {
     RainbowTable table;
     table.length = PASSWORD_NUMBER;
     cudaMalloc(&table.chains, sizeof(RainbowChain) * PASSWORD_NUMBER);
-    RainbowChain* d_chains = table.chains;
+    RainbowChain *d_chains = table.chains;
 
     /*
         See https://stackoverflow.com/a/31135377 for struct allocation with
@@ -34,12 +34,12 @@ int main() {
         We could also only pass the chains, and pass the length as a separate
         argument.
     */
-    RainbowTable* d_table;
+    RainbowTable *d_table;
     cudaMalloc(&d_table, sizeof(RainbowTable));
     cudaMemcpy(d_table, &table, sizeof(RainbowTable), cudaMemcpyHostToDevice);
 
     printf("MEMORY ALLOCATED IN GPU IN %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
+           (double) (clock() - program_start) / CLOCKS_PER_SEC);
 
     // Measure time
     cudaEvent_t start, end;
@@ -49,19 +49,19 @@ int main() {
     cudaEventRecord(start);
 
     ntlm_chain_kernel<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(
-        d_table);
+            d_table);
     cudaEventRecord(end);
 
     // Check for errors during kernel execution
-    cudaError_t cudaerr = cudaDeviceSynchronize();
-    if (cudaerr != cudaSuccess) {
+    cudaError_t cudaError = cudaDeviceSynchronize();
+    if (cudaError != cudaSuccess) {
         printf("kernel launch failed with error \"%s\".\n",
-               cudaGetErrorString(cudaerr));
+               cudaGetErrorString(cudaError));
         return 1;
     }
 
     printf("KERNEL DONE in %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
+           (double) (clock() - program_start) / CLOCKS_PER_SEC);
 
     cudaEventSynchronize(end);
     float milliseconds = 0;
@@ -71,12 +71,12 @@ int main() {
     cudaMemcpy(&table, d_table, sizeof(RainbowTable), cudaMemcpyDeviceToHost);
 
     table.chains =
-        (RainbowChain*)malloc(PASSWORD_NUMBER * sizeof(RainbowChain));
+            (RainbowChain *) malloc(PASSWORD_NUMBER * sizeof(RainbowChain));
     cudaMemcpy(table.chains, d_chains, sizeof(RainbowChain) * PASSWORD_NUMBER,
                cudaMemcpyDeviceToHost);
 
     printf("CHAINS RETRIEVED IN %f seconds\n",
-           (double)(clock() - program_start) / CLOCKS_PER_SEC);
+           (double) (clock() - program_start) / CLOCKS_PER_SEC);
 
     printf("SAMPLE OF OUTPUT :\n");
     // only show 10 lines
@@ -94,7 +94,7 @@ int main() {
 
     program_end = clock();
     program_time_used =
-        ((double)(program_end - program_start)) / CLOCKS_PER_SEC;
+            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 
     return 0;

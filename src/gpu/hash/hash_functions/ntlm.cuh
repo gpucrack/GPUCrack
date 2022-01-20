@@ -48,7 +48,7 @@ typedef enum md4_constants {
     `passwords` is the array containing all passwords to hash.
     `digests` contains all hashed passwords.
 */
-__global__ void ntlm_kernel(Password* passwords, Digest* digests);
+__global__ void ntlm_kernel(Password *passwords, Digest *digests);
 
 /*
     A NTLM hash function.
@@ -58,34 +58,43 @@ __global__ void ntlm_kernel(Password* passwords, Digest* digests);
     `password` contains the password to hash.
     `digest` contains the hashed password.
 */
-__device__ void ntlm(Password* password, Digest* digest);
+__device__ void ntlm(Password *password, Digest *digest);
 
 __device__ uint32_t rotl32(const uint32_t a, const int n);
+
 __device__ uint32_t rotr32(const uint32_t a, const int n);
+
 __device__ uint32_t hc_bytealign(const uint32_t a, const uint32_t b,
                                  const int c);
-__device__ void switch_buffer_by_offset_carry_le(uint32_t* w0, uint32_t* w1,
-                                                 uint32_t* w2, uint32_t* w3,
-                                                 uint32_t* c0, uint32_t* c1,
-                                                 uint32_t* c2, uint32_t* c3,
+
+__device__ void switch_buffer_by_offset_carry_le(uint32_t *w0, uint32_t *w1,
+                                                 uint32_t *w2, uint32_t *w3,
+                                                 uint32_t *c0, uint32_t *c1,
+                                                 uint32_t *c2, uint32_t *c3,
                                                  const uint32_t offset);
 
-__device__ void switch_buffer_by_offset_le(uint32_t* w0, uint32_t* w1,
-                                           uint32_t* w2, uint32_t* w3,
+__device__ void switch_buffer_by_offset_le(uint32_t *w0, uint32_t *w1,
+                                           uint32_t *w2, uint32_t *w3,
                                            const uint32_t offset);
-__device__ void make_utf16le(const uint32_t* in, uint32_t* out1,
-                             uint32_t* out2);
-__device__ void md4_init_vector(md4_ctx_vector_t* ctx);
-__device__ void md4_transform_vector(const uint32_t* w0, const uint32_t* w1,
-                                     uint32_t* w2, const uint32_t* w3,
-                                     uint32_t* digest);
-__device__ void md4_update_vector_64(md4_ctx_vector_t* ctx, uint32_t* w0,
-                                     uint32_t* w1, uint32_t* w2, uint32_t* w3,
+
+__device__ void make_utf16le(const uint32_t *in, uint32_t *out1,
+                             uint32_t *out2);
+
+__device__ void md4_init_vector(md4_ctx_vector_t *ctx);
+
+__device__ void md4_transform_vector(const uint32_t *w0, const uint32_t *w1,
+                                     uint32_t *w2, const uint32_t *w3,
+                                     uint32_t *digest);
+
+__device__ void md4_update_vector_64(md4_ctx_vector_t *ctx, uint32_t *w0,
+                                     uint32_t *w1, uint32_t *w2, uint32_t *w3,
                                      const int len);
-__device__ void md4_update_vector_utf16le(md4_ctx_vector_t* ctx,
-                                          const uint32_t* w);
-__device__ void append_helper_1x4(uint32_t* r, const uint32_t v,
-                                  const uint32_t* m);
+
+__device__ void md4_update_vector_utf16le(md4_ctx_vector_t *ctx,
+                                          const uint32_t *w);
+
+__device__ void append_helper_1x4(uint32_t *r, const uint32_t v,
+                                  const uint32_t *m);
 
 #define MD4_F_S(x, y, z) (((x) & (y)) | ((~(x)) & (z)))
 #define MD4_G_S(x, y, z) (((x) & (y)) | ((x) & (z)) | ((y) & (z)))
