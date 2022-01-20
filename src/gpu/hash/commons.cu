@@ -1,6 +1,6 @@
 #include "commons.cuh"
 
-__host__ Password * generatePasswords(long passwordNumber) {
+__host__ Password * generatePasswords(int passwordNumber) {
 
     auto * result = (Password*) malloc(passwordNumber*sizeof(Password));
 
@@ -23,7 +23,7 @@ __host__ Password * generatePasswords(long passwordNumber) {
         result[j] = *(currentPassword);
         free(currentPassword);
     }
-    printf("DONE\n");
+    printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
     printf("====================\n");
 
     return result;
@@ -143,7 +143,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
         Password *source = *h_passwords;
         // Device copies
-        cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+        cudaMemcpy(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
                    cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);

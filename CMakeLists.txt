@@ -34,11 +34,11 @@ add_executable(complianceTest
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash_functions/ntlm.cuh src/gpu/hash/parallelized_hash.cuh)
 
-add_executable(doubloonTest
+add_executable(collisionTest
         src/gpu/hash/commons.cu
         src/gpu/hash/commons.cuh
-        src/gpu/hash/test/doubloonTest.cu
-        src/gpu/hash/test/doubloonTest.cuh
+        src/gpu/hash/test/collisionTest.cu
+        src/gpu/hash/test/collisionTest.cuh
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash_functions/ntlm.cuh src/gpu/hash/parallelized_hash.cuh)
 
@@ -55,6 +55,6 @@ set_target_properties(generalTest PROPERTIES
 set_target_properties(complianceTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(doubloonTest PROPERTIES
+set_target_properties(collisionTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 

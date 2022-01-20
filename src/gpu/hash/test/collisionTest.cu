@@ -1,6 +1,6 @@
-#include "doubloonTest.cuh"
+#include "collisionTest.cuh"
 
-int doubloon(int passwordNumber) {
+int collision(int passwordNumber) {
 
     auto * passwords = generatePasswords(passwordNumber);
 
@@ -9,16 +9,17 @@ int doubloon(int passwordNumber) {
     free(passwords);
 
     for(int i=0; i<passwordNumber; i++) {
+        printf("%d\n", i);
         for(int j=0; j<passwordNumber; j++) {
             if ((i != j) && (memcmp(result[i].bytes, result[j].bytes, 16) == 0)) {
                 printf("TEST FAILED ! COLLISION @ %d, %d\n", i, j);
 
-                for(int n=0; n<HASH_LENGTH; n++){
-                    printf("%x",result[i].bytes[n]);
+                for(unsigned char byte : result[i].bytes){
+                    printf("%x",byte);
                 }
                 printf("\n");
-                for(int n=0; n<HASH_LENGTH; n++){
-                    printf("%x",result[j].bytes[n]);
+                for(unsigned char byte : result[j].bytes){
+                    printf("%x",byte);
                 }
                 printf("\n");
 
@@ -35,5 +36,5 @@ int doubloon(int passwordNumber) {
 }
 
 int main(){
-    return doubloon(134217728);
+    return collision(67108864);
 }
