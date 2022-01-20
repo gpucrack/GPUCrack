@@ -80,14 +80,19 @@ __host__ double memoryAnalysis(int passwordNumber) {
     return numberOfPass;
 }
 
-__host__ int computeBatchSize(double numberOfPass, int passwordNumber) {
+__host__ int computeBatchSize(double initialNumberOfPass, int passwordNumber) {
     int batchSize;
 
     // Formula to round down is : result = ((number + multiple/2) / multiple) *
     // multiple;
-    if (numberOfPass > 1)
-        batchSize = ((((int)(passwordNumber / numberOfPass)) + 1) / 2) * 2;
+    initialNumberOfPass += 0.5;
+    int numberOfPass = (int)initialNumberOfPass;
+    if ((numberOfPass % 2) != 0) numberOfPass++;
+    printf("%d\n", (int)numberOfPass);
 
+
+    if ((int)numberOfPass > 1)
+        batchSize = ((int)(passwordNumber / (int)numberOfPass));
     // If we have less than 1 round then the batch size is the number of
     // passwords
     else
@@ -134,7 +139,8 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
         // If we have less than batchSize password to hash, then hash them all
         // but modify the batchSize to avoid index errors
-        if (passwordRemaining < batchSize) batchSize = passwordRemaining;
+        if (passwordRemaining <= batchSize) batchSize = passwordRemaining;
+        printf("BATCHSIZE: %d\n", batchSize);
 
         // Debug print
         // printf("PASSWORD REMAINING : %d, BATCH SIZE : %d\n",
@@ -147,7 +153,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
                    cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
-        ntlm_kernel<<<(batchSize / THREAD_PER_BLOCK), THREAD_PER_BLOCK>>>(
+        ntlm_kernel<<<((batchSize) / THREAD_PER_BLOCK), THREAD_PER_BLOCK>>>(
             d_passwords, d_results);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -181,6 +187,7 @@ __host__ void kernel(const double numberOfPass, int batchSize,
             currentIndex += batchSize;
         passwordRemaining -= batchSize;
 
+        printf("CURRENT INDEX: %d\n", currentIndex);
         // Debug
         // printf("NEW CURRENT INDEX : %d\n", currentIndex);
 

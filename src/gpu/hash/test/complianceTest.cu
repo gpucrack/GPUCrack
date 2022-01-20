@@ -21,18 +21,18 @@ int compliance(int passwordNumber) {
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : \n");
-    for (int i=0; i<32; i++) {
-        printf("%c", REFERENCE_RESULT[i]);
+    for (char i : REFERENCE_RESULT) {
+        printf("%c", i);
     }
     printf("\n\n");
 
     printf("SAMPLE RESULT FROM GPU FUNCTION : \n");
-    for(int i=0; i<HASH_LENGTH; i++) {
-        printf("%x", result[0].bytes[i]);
+    for(unsigned char byte : result[0].bytes) {
+        printf("%x", byte);
     }
     printf("\n\n");
 
-    printf("COMPARING ALL RESULTS TO REFERENCE RESULT:\n");
+    printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
 
     for(int i=0; i<passwordNumber; i++){
         for(int j=0; j<HASH_LENGTH-1; j++){
@@ -41,8 +41,8 @@ int compliance(int passwordNumber) {
                 printf("TEST FAILED !\n");
                 printf("FAILED @ DIGEST N°%d, CHARACTER N°%d\n", i, j);
                 printf("THIS IS THE FAIL SAMPLE: ");
-                for(int n=0; n<HASH_LENGTH; n++) {
-                    printf("%x", result[i].bytes[n]);
+                for(unsigned char byte : result[i].bytes) {
+                    printf("%x", byte);
                 }
                 printf("\n");
                 exit(1);
@@ -60,5 +60,7 @@ int compliance(int passwordNumber) {
 }
 
 int main(){
+    compliance(134217728);
+    //compliance(536870912);
     compliance(DEFAULT_PASSWORD_NUMBER);
 }

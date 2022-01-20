@@ -1164,6 +1164,7 @@ __device__ void ntlm(Password* password, Digest* digest) {
 }
 
 __global__ void ntlm_kernel(Password* passwords, Digest* digests) {
-    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+
     ntlm(&passwords[index], &digests[index]);
 }
