@@ -11,7 +11,7 @@ All the digests will be retrieved inside result, you don't even need to malloc i
 Don't forget to free the memory ! Function is not handling it ! <br> Type: <br>
 <code>free(passwords); <br>
 free(result);</code> <br>
-Where passwords is the array that you created before. <br> <br>
+Where *passwords* is the array that you created before. <br> <br>
 If you want to use a time variable, you can pass it to the function as a pointer: <br>
 <code>auto * result = parallelized_hash(passwords, passwordNumber, &timeVariable);
 </code> <br><br>
@@ -20,11 +20,11 @@ If you want to use a time variable, you can pass it to the function as a pointer
 # Testing results
 
 If you modify any part of this code, you'll need to test it. <br><br>
-For compliance (a.k.a the result is what you expected): <br>
+For compliance (a.k.a. the result is what you expected): <br>
 Just run complianceTest executable.<br><br>
 
 For a general test (a.k.a runs in a normal scenario): <br>
 Just run generalTest executable.<br><br>
 
-For performance (a.k.a find the best Thread/Block value for performance): <br>
+For performance (a.k.a. find the best Thread/Block value for performance): <br>
 Just run benchmarkTest executable.<br><br>
