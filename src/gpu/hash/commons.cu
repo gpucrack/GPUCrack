@@ -140,7 +140,6 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         // If we have less than batchSize password to hash, then hash them all
         // but modify the batchSize to avoid index errors
         if (passwordRemaining <= batchSize) batchSize = passwordRemaining;
-        printf("BATCHSIZE: %d\n", batchSize);
 
         // Debug print
         // printf("PASSWORD REMAINING : %d, BATCH SIZE : %d\n",
@@ -180,16 +179,8 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         cudaMemcpy(&(destination[currentIndex]), d_results,
                    sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost);
 
-        // Fix the index because array begin at index 0, not 1
-        if (i == 0) currentIndex += batchSize - 1;
-        // If we don't have to fix it then just add batchSize
-        else
-            currentIndex += batchSize;
+        currentIndex += batchSize;
         passwordRemaining -= batchSize;
-
-        printf("CURRENT INDEX: %d\n", currentIndex);
-        // Debug
-        // printf("NEW CURRENT INDEX : %d\n", currentIndex);
 
         // Cleanup before next loop to free memory
         cudaFree(d_passwords);
