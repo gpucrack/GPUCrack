@@ -10,23 +10,23 @@ int main() {
     double maxHashRate;
     int bestValue;
 
-    Password * passwords = generatePasswords(DEFAULT_PASSWORD_NUMBER);
+    Password *passwords = generatePasswords(DEFAULT_PASSWORD_NUMBER);
 
     printf("\n==========LAUNCHING BENCHMARK==========\n");
 
-    for(int k=2;k<=MAX_THREAD_NUMBER;k=k*2) {
+    for (int k = 2; k <= MAX_THREAD_NUMBER; k = k * 2) {
         printf("\n==========TEST K= %d==========\n", k);
-        for (int i=0; i<NUMBER_OF_TEST; i++) {
+        for (int i = 0; i < NUMBER_OF_TEST; i++) {
 
             float milliseconds = 0;
 
             // Host copies
-            auto * result = parallelized_hash_time(passwords, DEFAULT_PASSWORD_NUMBER, &milliseconds);
+            auto *result = parallelized_hash_time(passwords, DEFAULT_PASSWORD_NUMBER, &milliseconds);
 
             free(result);
             double hashrate = (DEFAULT_PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000;
 
-            if(hashrate > maxHashRate){
+            if (hashrate > maxHashRate) {
                 maxHashRate = hashrate;
                 bestValue = k;
             }

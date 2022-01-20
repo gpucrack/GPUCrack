@@ -5,9 +5,9 @@ int main() {
     int passwordNumber = 268435456;
 
     // Simulate when we send password as input
-    Password * passwords = generatePasswords(passwordNumber);
+    Password *passwords = generatePasswords(passwordNumber);
 
-    auto * result = parallelized_hash(passwords, passwordNumber);
+    auto *result = parallelized_hash(passwords, passwordNumber);
 
     free(passwords);
     free(result);
@@ -22,5 +22,5 @@ int main() {
     free(passwords);
     free(result);
 
-    return(0);
+    return (0);
 }
