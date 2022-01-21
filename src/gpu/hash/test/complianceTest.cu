@@ -2,16 +2,10 @@
 
 #include "complianceTest.cuh"
 
-int compliance(int passwordNumber) {
+int compliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass) {
 
     char REFERENCE_RESULT[32] = {'3', '2', '8', '7', '2', '7', 'b', '8', '1', 'c', 'a', '0', '5', '8', '0', '5', 'a',
                                  '6', '8', 'e', 'f', '2', '6', 'a', 'c', 'b', '2', '5', '2', '0', '3', '9'};
-
-    Password * passwords;
-
-    cudaError_t status = cudaMallocHost(&(passwords), passwordNumber * sizeof(Password));
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
 
     // Fill passwords with reference sentence
     for (int j = 0; j < passwordNumber; j++) {
@@ -20,17 +14,7 @@ int compliance(int passwordNumber) {
         }
     }
 
-    Digest * result;
-
-    status = cudaMallocHost(&result, passwordNumber * sizeof(Digest));
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
-    auto numberOfPass = memoryAnalysis(passwordNumber);
-
     parallelized_hash(passwords, result, passwordNumber, numberOfPass);
-
-    cudaFreeHost(passwords);
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : \n");
@@ -64,16 +48,35 @@ int compliance(int passwordNumber) {
     }
 
     printf("TEST PASSED !\n");
-
-    cudaFreeHost(result);
-
     printf("====================\n");
 
     return 0;
 }
 
 int main() {
+
+    auto passwordNumber = DEFAULT_PASSWORD_NUMBER;
+
+    Password * passwords;
+
+    cudaError_t status = cudaMallocHost(&(passwords), passwordNumber * sizeof(Password));
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
+    Digest * result;
+
+    status = cudaMallocHost(&result, passwordNumber * sizeof(Digest));
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
+    auto numberOfPass = memoryAnalysis(passwordNumber);
+
     //compliance(134217728);
     //compliance(536870912);
-    compliance(DEFAULT_PASSWORD_NUMBER);
+    for(int i=0; i<5; i++) {
+        compliance(DEFAULT_PASSWORD_NUMBER, passwords, result, numberOfPass);
+    }
+
+    cudaFreeHost(result);
+    cudaFreeHost(passwords);
 }
