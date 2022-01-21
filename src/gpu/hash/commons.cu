@@ -2,7 +2,11 @@
 
 __host__ Password *generatePasswords(int passwordNumber) {
 
-    auto *result = (Password *) malloc(passwordNumber * sizeof(Password));
+    Password * result;
+
+    cudaError_t status = cudaMallocHost(&(result), passwordNumber * sizeof(Password));
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
 
     char charSet[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
                         't', 'u', 'v', 'w', 'x',
@@ -15,14 +19,10 @@ __host__ Password *generatePasswords(int passwordNumber) {
     printf("\n==========GENERATING PASSWORDS==========\n");
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
-        auto *currentPassword = (Password *) malloc(sizeof(Password));
         // Generate one password
-        for (unsigned char &byte: (*currentPassword).bytes) {
+        for (unsigned char &byte: result[j].bytes) {
             byte = charSet[distr(gen)];
         }
-
-        result[j] = *(currentPassword);
-        free(currentPassword);
     }
     printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
     printf("====================\n");
@@ -31,7 +31,7 @@ __host__ Password *generatePasswords(int passwordNumber) {
 }
 
 // Returns the number of batch that we need to do
-__host__ double memoryAnalysis(int passwordNumber) {
+__host__ int memoryAnalysis(int passwordNumber) {
 
     printf("\n==========MEMORY ANALYSIS==========\n");
 
@@ -74,26 +74,23 @@ __host__ double memoryAnalysis(int passwordNumber) {
     // We need to compute the batch size as well
     auto numberOfPass = (double) ((double) memUsed / (double) freeMem);
 
-    printf("NUMBER OF PASS : %f\n", numberOfPass);
+    numberOfPass += 0.5;
+
+    int finalNumberOfPass = (int) numberOfPass;
+    if ((finalNumberOfPass % 2) != 0) finalNumberOfPass++;
+
+    printf("NUMBER OF PASS : %d\n", finalNumberOfPass);
 
     printf("====================\n");
 
-    return numberOfPass;
+    return finalNumberOfPass;
 }
 
-__host__ int computeBatchSize(double initialNumberOfPass, int passwordNumber) {
+__host__ int computeBatchSize(int numberOfPass, int passwordNumber) {
     int batchSize;
 
-    // Formula to round down is : result = ((number + multiple/2) / multiple) *
-    // multiple;
-    initialNumberOfPass += 0.5;
-    int numberOfPass = (int) initialNumberOfPass;
-    if ((numberOfPass % 2) != 0) numberOfPass++;
-    printf("%d\n", (int) numberOfPass);
-
-
-    if ((int) numberOfPass > 1)
-        batchSize = ((int) (passwordNumber / (int) numberOfPass));
+    if (numberOfPass > 1)
+        batchSize = (passwordNumber / numberOfPass);
         // If we have less than 1 round then the batch size is the number of
         // passwords
     else
@@ -102,13 +99,12 @@ __host__ int computeBatchSize(double initialNumberOfPass, int passwordNumber) {
     return batchSize;
 }
 
-__host__ void kernel(const double numberOfPass, int batchSize,
+__host__ void kernel(const int numberOfPass, int batchSize,
                      float *milliseconds, const clock_t *program_start,
-                     Digest **h_results, Password **h_passwords, int passwordNumber) {
+                     Digest **h_results, Password **h_passwords, int passwordNumber,
+                     int threadPerBlock) {
 
     printf("\n==========LAUNCHING KERNEL==========\n");
-
-    *h_results = (Digest *) malloc(passwordNumber * sizeof(Digest));
 
     // Device copies
     Digest *d_results;
@@ -126,13 +122,9 @@ __host__ void kernel(const double numberOfPass, int batchSize,
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
-    for (int i = 0; i < (int) numberOfPass + 1; i++) {
+    for (int i = 0; i<numberOfPass; i++) {
         // Temporary variable to measure GPU time inside this loop
         float tempMilli = 0;
-
-        // GPU Malloc for the password array, size is batchSize
-        cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
-        cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
         // If the currentIndex to save result is greater than the number of
         // password we must stop
@@ -142,10 +134,9 @@ __host__ void kernel(const double numberOfPass, int batchSize,
         // but modify the batchSize to avoid index errors
         if (passwordRemaining <= batchSize) batchSize = passwordRemaining;
 
-        // Debug print
-        // printf("PASSWORD REMAINING : %d, BATCH SIZE : %d\n",
-        // passwordRemaining, batchSize); printf("CURRENT INDEX : %d\n",
-        // currentIndex);
+        // GPU Malloc for the password array, size is batchSize
+        cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
+        cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
         Password *source = *h_passwords;
         // Device copies
@@ -153,10 +144,11 @@ __host__ void kernel(const double numberOfPass, int batchSize,
                    cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
-        ntlm_kernel<<<((batchSize) / THREAD_PER_BLOCK), THREAD_PER_BLOCK>>>(
+        ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock>>>(
                 d_passwords, d_results);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
+
         // Necessary procedure to record time and store the elasped time in
         // tempMilli
         cudaEventElapsedTime(&tempMilli, start, end);

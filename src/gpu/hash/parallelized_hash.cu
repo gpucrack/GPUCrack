@@ -1,8 +1,7 @@
 #include "parallelized_hash.cuh"
 
-Digest *parallelized_hash(Password *h_passwords, int passwordNumber) {
+void parallelized_hash(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass) {
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     // Measure global time
@@ -10,12 +9,10 @@ Digest *parallelized_hash(Password *h_passwords, int passwordNumber) {
     clock_t program_start, program_end;
     program_start = clock();
 
-    // Host copies
-    Digest *h_results;
-
     float milliseconds = 0;
 
-    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber);
+    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
+           THREAD_PER_BLOCK);
 
     printf("HASH RETRIEVED @ %f seconds\n",
            (double) (clock() - program_start) / CLOCKS_PER_SEC);
@@ -39,15 +36,13 @@ Digest *parallelized_hash(Password *h_passwords, int passwordNumber) {
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 
     printf("====================\n");
-
-
-    return h_results;
 }
 
 
 // Another version using a time variable, so we can retrieve its value
-Digest *parallelized_hash_time(Password *h_passwords, int passwordNumber, float *milliseconds) {
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+void parallelized_hash_time(Password *h_passwords, Digest * h_results, int passwordNumber, float *milliseconds,
+                            int threadPerBlock, int numberOfPass) {
+
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     // Measure global time
@@ -55,10 +50,8 @@ Digest *parallelized_hash_time(Password *h_passwords, int passwordNumber, float 
     clock_t program_start, program_end;
     program_start = clock();
 
-    // Host copies
-    Digest *h_results;
-
-    kernel(numberOfPass, batchSize, milliseconds, &program_start, &h_results, &h_passwords, passwordNumber);
+    kernel(numberOfPass, batchSize, milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
+           threadPerBlock);
 
     printf("HASH RETRIEVED @ %f seconds\n",
            (double) (clock() - program_start) / CLOCKS_PER_SEC);
@@ -82,7 +75,4 @@ Digest *parallelized_hash_time(Password *h_passwords, int passwordNumber, float 
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 
     printf("====================\n");
-
-
-    return h_results;
 }

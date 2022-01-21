@@ -6,8 +6,9 @@
 
 #include "commons.cuh"
 
-Digest *parallelized_hash(Password *h_passwords, int passwordNumber);
+void parallelized_hash(Password *h_passwords, Digest * h_results, int passwordNumber, int numberOfPass);
 
-Digest *parallelized_hash_time(Password *h_passwords, int passwordNumber, float *milliseconds);
+void parallelized_hash_time(Password *h_passwords, Digest * h_results, int passwordNumber, float *milliseconds,
+                            int threadPerBlock, int numberOfPass);
 
 #endif //GPU_CRACK_PARALLELIZED_HASH_CUH

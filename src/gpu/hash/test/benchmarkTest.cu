@@ -10,7 +10,15 @@ int main() {
     double maxHashRate;
     int bestValue;
 
-    Password *passwords = generatePasswords(DEFAULT_PASSWORD_NUMBER);
+    Password * passwords = generatePasswords(DEFAULT_PASSWORD_NUMBER);
+
+    Digest * result;
+
+    cudaError_t status = cudaMallocHost(&result, DEFAULT_PASSWORD_NUMBER * sizeof(Digest));
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
+    auto numberOfPass = memoryAnalysis(DEFAULT_PASSWORD_NUMBER);
 
     printf("\n==========LAUNCHING BENCHMARK==========\n");
 
@@ -20,10 +28,9 @@ int main() {
 
             float milliseconds = 0;
 
-            // Host copies
-            auto *result = parallelized_hash_time(passwords, DEFAULT_PASSWORD_NUMBER, &milliseconds);
+            parallelized_hash_time(passwords, result, DEFAULT_PASSWORD_NUMBER, &milliseconds, k,
+                                   numberOfPass);
 
-            free(result);
             double hashrate = (DEFAULT_PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000;
 
             if (hashrate > maxHashRate) {
@@ -37,6 +44,8 @@ int main() {
     printf("BEST THREAD PER BLOCK VALUE : %d\n", bestValue);
     printf("====================\n");
 
+    cudaFreeHost(passwords);
+    cudaFreeHost(result);
 
     return 0;
 }

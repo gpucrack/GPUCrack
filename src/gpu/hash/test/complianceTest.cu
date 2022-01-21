@@ -7,7 +7,11 @@ int compliance(int passwordNumber) {
     char REFERENCE_RESULT[32] = {'3', '2', '8', '7', '2', '7', 'b', '8', '1', 'c', 'a', '0', '5', '8', '0', '5', 'a',
                                  '6', '8', 'e', 'f', '2', '6', 'a', 'c', 'b', '2', '5', '2', '0', '3', '9'};
 
-    auto *passwords = (Password *) malloc(passwordNumber * sizeof(Password));
+    Password * passwords;
+
+    cudaError_t status = cudaMallocHost(&(passwords), passwordNumber * sizeof(Password));
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
 
     // Fill passwords with reference sentence
     for (int j = 0; j < passwordNumber; j++) {
@@ -16,9 +20,17 @@ int compliance(int passwordNumber) {
         }
     }
 
-    auto *result = parallelized_hash(passwords, passwordNumber);
+    Digest * result;
 
-    free(passwords);
+    status = cudaMallocHost(&result, passwordNumber * sizeof(Digest));
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
+    auto numberOfPass = memoryAnalysis(passwordNumber);
+
+    parallelized_hash(passwords, result, passwordNumber, numberOfPass);
+
+    cudaFreeHost(passwords);
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : \n");
@@ -53,7 +65,7 @@ int compliance(int passwordNumber) {
 
     printf("TEST PASSED !\n");
 
-    free(result);
+    cudaFreeHost(result);
 
     printf("====================\n");
 
@@ -61,7 +73,7 @@ int compliance(int passwordNumber) {
 }
 
 int main() {
-    compliance(134217728);
+    //compliance(134217728);
     //compliance(536870912);
     compliance(DEFAULT_PASSWORD_NUMBER);
 }
