@@ -1,30 +1,34 @@
-#define REFERENCE_SENTENCE1 "1234567"
-
 #include "complianceTest.cuh"
 
-int compliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass) {
+int compliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass,
+               const unsigned char * referencePassword, unsigned char * referenceResult) {
 
-    char REFERENCE_RESULT[32] = {'3', '2', '8', '7', '2', '7', 'b', '8', '1', 'c', 'a', '0', '5', '8', '0', '5', 'a',
-                                 '6', '8', 'e', 'f', '2', '6', 'a', 'c', 'b', '2', '5', '2', '0', '3', '9'};
+    printf("\n==========FILLING PASSWORD ARRAY WITH REFERENCE PASSWORD==========\n");
 
     // Fill passwords with reference sentence
     for (int j = 0; j < passwordNumber; j++) {
-        for (int i = 0; i < strlen(REFERENCE_SENTENCE1); i++) {
-            passwords[j].bytes[i] = REFERENCE_SENTENCE1[i];
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+            passwords[j].bytes[i] = referencePassword[i];
         }
     }
 
-    parallelized_hash(passwords, result, passwordNumber, numberOfPass);
+    hash(passwords, result, passwordNumber, numberOfPass);
+
+    printf("SAMPLE RESULT: \n");
+    for (unsigned char byte: passwords[2500].bytes) {
+        printf("%c", byte);
+    }
+    printf("\n====================\n");
 
     printf("\n==========COMPLIANCE TEST==========\n");
     printf("RESULTS FROM BASE FUNCTION : \n");
-    for (char i: REFERENCE_RESULT) {
-        printf("%c", i);
+    for (int i=0; i<HASH_LENGTH*2; i++) {
+        printf("%c", referenceResult[i]);
     }
     printf("\n\n");
 
     printf("SAMPLE RESULT FROM GPU FUNCTION : \n");
-    for (unsigned char byte: result[0].bytes) {
+    for (unsigned char byte: result[666].bytes) {
         printf("%x", byte);
     }
     printf("\n\n");
@@ -32,18 +36,17 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
     printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
 
     for (int i = 0; i < passwordNumber; i++) {
-        for (int j = 0; j < HASH_LENGTH - 1; j++) {
-            int comparison = memcmp(REFERENCE_RESULT, result[i].bytes, 16);
-            if (comparison != 1) {
-                printf("TEST FAILED !\n");
-                printf("FAILED @ DIGEST N°%d, CHARACTER N°%d\n", i, j);
-                printf("THIS IS THE FAIL SAMPLE: ");
-                for (unsigned char byte: result[i].bytes) {
-                    printf("%x", byte);
-                }
-                printf("\n");
-                exit(1);
+        int comparison = memcmp(referenceResult, result[i].bytes, HASH_LENGTH);
+        // reference results of comparison
+        if (comparison != -2 & comparison != 1) {
+            printf("TEST FAILED ! %d\n", comparison);
+            printf("FAILED @ DIGEST N°%d, CHARACTER N°%d\n", i);
+            printf("THIS IS THE FAIL SAMPLE: ");
+            for (unsigned char byte: result[i].bytes) {
+                printf("%x", byte);
             }
+            printf("\n");
+            exit(1);
         }
     }
 
@@ -55,27 +58,30 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
 
 int main() {
 
-    auto passwordNumber = DEFAULT_PASSWORD_NUMBER;
+    int passwordNumber = DEFAULT_PASSWORD_NUMBER;
 
     Password * passwords;
-
-    cudaError_t status = cudaMallocHost(&(passwords), passwordNumber * sizeof(Password));
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
     Digest * result;
 
-    status = cudaMallocHost(&result, passwordNumber * sizeof(Digest));
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
+    initEmptyArrays(&passwords, &result, passwordNumber);
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    //compliance(134217728);
-    //compliance(536870912);
-    for(int i=0; i<5; i++) {
-        compliance(DEFAULT_PASSWORD_NUMBER, passwords, result, numberOfPass);
-    }
+    unsigned char REFERENCE_PASSWORD2[PASSWORD_LENGTH] = {'a','b','c','d','e','f','g'};
+
+    unsigned char REFERENCE_RESULT2[HASH_LENGTH*2] = {'3','5','2','d','f','e','5','5','1','d','6','2','4',
+                                             '5','9','b','2','0','3','4','9','b','7','8','a',
+                                             '2','1','a','2','f','3','7'};
+
+    compliance(passwordNumber, passwords, result, numberOfPass, REFERENCE_PASSWORD2, REFERENCE_RESULT2);
+
+    unsigned char REFERENCE_PASSWORD1[PASSWORD_LENGTH] = {'1','2','3','4','5','6','7'};
+
+    unsigned char REFERENCE_RESULT1[HASH_LENGTH*2] = {'3', '2', '8', '7', '2', '7', 'b', '8', '1', 'c', 'a',
+                                             '0', '5', '8', '0', '5', 'a','6', '8', 'e', 'f', '2',
+                                             '6', 'a', 'c', 'b', '2', '5', '2', '0', '3', '9'};
+
+    compliance(passwordNumber, passwords, result, numberOfPass, REFERENCE_PASSWORD1, REFERENCE_RESULT1);
 
     cudaFreeHost(result);
     cudaFreeHost(passwords);

@@ -2,7 +2,7 @@
  * Author: Maxime Missichini
  * Email: missichini.maxime@gmail.com
  * -----
- * File: parallelized_hash.cu
+ * File: hash.cu
  * Created Date: 28/09/2021
  * -----
  *

@@ -1,24 +1,21 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "../parallelized_hash.cu"
+#include "../hash.cu"
 
 #define NUMBER_OF_TEST 10
 #define MAX_THREAD_NUMBER 1024
 
-int main() {
+void benchmark(int passwordNumber) {
     double maxHashRate;
     int bestValue;
 
-    Password * passwords = generatePasswords(DEFAULT_PASSWORD_NUMBER);
-
+    Password * passwords;
     Digest * result;
 
-    cudaError_t status = cudaMallocHost(&result, DEFAULT_PASSWORD_NUMBER * sizeof(Digest));
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
+    initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(DEFAULT_PASSWORD_NUMBER);
+    auto numberOfPass = memoryAnalysis(passwordNumber);
 
     printf("\n==========LAUNCHING BENCHMARK==========\n");
 
@@ -28,10 +25,10 @@ int main() {
 
             float milliseconds = 0;
 
-            parallelized_hash_time(passwords, result, DEFAULT_PASSWORD_NUMBER, &milliseconds, k,
-                                   numberOfPass);
+            hashTime(passwords, result, passwordNumber, &milliseconds, k,
+                     numberOfPass);
 
-            double hashrate = (DEFAULT_PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000;
+            double hashrate = (passwordNumber / (milliseconds / 1000)) / 1000000;
 
             if (hashrate > maxHashRate) {
                 maxHashRate = hashrate;
@@ -46,6 +43,11 @@ int main() {
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);
+}
+
+int main() {
+
+    benchmark(DEFAULT_PASSWORD_NUMBER);
 
     return 0;
 }

@@ -26,7 +26,13 @@ __host__ void kernel(int numberOfPass, int batchSize, float *milliseconds, const
 
 // Generates passwordNumber random passwords, using a 62 character alphanumeric charset.
 // The charset contains [a-zA-Z0-9].
-__host__ Password *generatePasswords(int passwordNumber);
+__host__ void generateNewPasswords(Password ** result, int passwordNumber);
+
+__host__ void generatePasswords(Password ** result, int passwordNumber);
+
+__host__ void initEmptyArrays(Password ** passwords, Digest ** results, int passwordNumber);
+
+__host__ void initArrays(Password ** passwords, Digest ** results, int passwordNumber);
 
 
 #endif //CUDA_NAIVE_EXHAUSTIVE_SEARCH_COMMONS_CUH
