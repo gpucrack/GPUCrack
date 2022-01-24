@@ -83,33 +83,3 @@ int main() {;
 
     return(0);
 }
-
-    /*
-}
-
-    // Generate 1000 random hashes
-    int passwordNumber = 1000;
-    Password * randomPwd = generatePasswords(passwordNumber);
-    Digest * randomHashes;
-    auto numberOfPass = memoryAnalysis(passwordNumber);
-    cudaError_t status = cudaMallocHost(&randomHashes, passwordNumber * sizeof(Digest));
-    if (status != cudaSuccess)
-        printf("Error when allocating pinned host memory.\n");
-    parallelized_hash(randomPwd, randomHashes, passwordNumber, numberOfPass);
-
-    // Wait for hashes to be computed...
-    cudaDeviceSynchronize();
-
-    Password * results;
-    cudaError_t status2 = cudaMallocHost(&results, passwordNumber * sizeof(Password));
-    if (status2 != cudaSuccess)
-        printf("Error when allocating pinned host memory.\n");
-
-    reduce_kernel<<<1, 1>>>(1, randomHashes, results);
-
-    cudaFreeHost(randomPwd);
-    cudaFreeHost(randomHashes);
-    cudaFreeHost(results);/*
-
-    return (0);
-}*/

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "../constants.cuh"
 #include "../hash/commons.cuh"
 #include "../hash/parallelized_hash.cuh"
