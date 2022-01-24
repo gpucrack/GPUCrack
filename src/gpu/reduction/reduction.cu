@@ -1,6 +1,6 @@
 #include "reduction.cuh"
 
-// char *charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";   // the characters to be used in the generated plain text
+//char *charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";   // the characters to be used in the generated plain text
 
 static void HandleError(	cudaError_t err,
                             const char *file,
@@ -26,16 +26,50 @@ void reduce(unsigned long int index, const char *hash, char *plain) {
     for (unsigned long int i = 0; i < PLAIN_LENGTH; i++, plain++, hash++)
         *plain = charset[(unsigned char) (*hash ^ index) % CHARSET_LENGTH];
 }*/
+__device__ char char_in_range(unsigned char n) {
+    const char *chars =
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
-__global__ void reduce_kernel(unsigned long int index, Digest * hashes, Password * plains) {
-    printf("Hey");
+    return chars[n];
 }
 
+__device__ void create_startpoint(unsigned long counter, Password *plain_text) {
+    for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
+        plain_text->bytes[i] = char_in_range(counter % 64);
+        counter /= 64;
+    }
+}
+
+__global__ void reduce_digest(unsigned long iteration, Digest **digests, Password **plain_texts) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // pseudo-random counter based on the hash
+    unsigned long counter = digests[idx]->bytes[7];
+    for (char i = 6; i >= 0; i--) {
+        counter <<= 8;
+        counter |= digests[idx]->bytes[i];
+    }
+    create_startpoint(counter + iteration, plain_texts[idx]);
+}
+
+
+/*
+__global__ void reduce_kernel(int index, Digest * hashes, Password * plains) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Est-ce que cette vérification est nécéssaire ?
+    if (idx < DEFAULT_PASSWORD_NUMBER)
+    {
+        for (int i = 0; i < PASSWORD_LENGTH; i++, plains[idx]++, hashes[idx]++)
+            *plains[idx] = charset[(unsigned char) (*hashes[idx] ^ index) % CHARSET_LENGTH];
+    }
+}
+*/
 /*
  * Tests the reduction and displays it in the console.
  */
 int main() {;
-    int N = 1000;
+    int N = DEFAULT_PASSWORD_NUMBER;
 
     // Tableau CPU
     Digest * pHashes = NULL;
@@ -56,30 +90,39 @@ int main() {;
     // Initialisation des hashes
     for(int i = 0; i < N; i++)
     {
-        pHashes[i] = "8846F7EAEE8FB117AD06BDD830B7586C";
-        pPasswords[i] = "PASSWD";
+        for (unsigned char &byte: pHashes[i].bytes) {
+            byte = 'h';
+        }
+        for (unsigned char &byte: pPasswords[i].bytes) {
+            byte = 'p';
+        }
     }
 
     // Copie des tableaux sur le GPU
     HANDLE_ERROR(cudaMemcpy(dHashes, pHashes, sizeof(Digest) * N, cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(dPasswords, pPasswords, sizeof(Password) * N, cudaMemcpyHostToDevice));
 
-    // int block_size = 256;
-    // int grid_size = ((N + block_size) / block_size);
-    reduce_kernel<<<1, 1>>>(1, dHashes, dPasswords);
+    int block_size = 256;
+    int grid_size = ((N + block_size) / block_size);
+    reduce_digest<<<grid_size, block_size>>>(1, &dHashes, &dPasswords);
 
     // Copie des données du GPU sur le CPU
     pPasswords = (Password*)malloc(sizeof(Password) * N);
-    HANDLE_ERROR(cudaMemcpy(pPasswords, dPasswords, sizeof(Password) * N, cudaMemcpyDeviceToHost));
+    //HANDLE_ERROR(cudaMemcpy(pPasswords, dPasswords, sizeof(Password) * N, cudaMemcpyDeviceToHost));
 
-    // On affiche la première sortie du résultat :
-    std::cout << "First value in CPU buffer : " << pPasswords[0][0] << std::endl;
+    for(int i=0; i<N; i++) {
+        // On affiche la première sortie du résultat :
+        for (unsigned char byte: pPasswords[i].bytes) {
+            printf("%x", byte);
+        }
+        printf("\n");
+    }
 
     // Libération de la mémoire
     free(pHashes);
     free(pPasswords);
-    HANDLE_ERROR(cudaFree(dHashes));
-    HANDLE_ERROR(cudaFree(dPasswords));
+    //HANDLE_ERROR(cudaFree(dHashes));
+    //HANDLE_ERROR(cudaFree(dPasswords));
 
     return(0);
 }
