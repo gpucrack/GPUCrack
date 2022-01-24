@@ -1,6 +1,6 @@
-#include "parallelized_hash.cuh"
+#include "hash.cuh"
 
-void parallelized_hash(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass) {
+void hash(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass) {
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
@@ -34,14 +34,15 @@ void parallelized_hash(Password * h_passwords, Digest * h_results, int passwordN
     program_time_used =
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
-
+    printf("ONE LOOP HASHRATE : %f MH/s\n",
+           (passwordNumber / (program_time_used)) / 1000000);
     printf("====================\n");
 }
 
 
 // Another version using a time variable, so we can retrieve its value
-void parallelized_hash_time(Password *h_passwords, Digest * h_results, int passwordNumber, float *milliseconds,
-                            int threadPerBlock, int numberOfPass) {
+void hashTime(Password *h_passwords, Digest * h_results, int passwordNumber, float *milliseconds,
+              int threadPerBlock, int numberOfPass) {
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
@@ -73,6 +74,7 @@ void parallelized_hash_time(Password *h_passwords, Digest * h_results, int passw
     program_time_used =
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
-
+    printf("ONE LOOP HASHRATE : %f MH/s\n",
+           (passwordNumber / (program_time_used)) / 1000000);
     printf("====================\n");
 }

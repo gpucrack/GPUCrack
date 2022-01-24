@@ -5,7 +5,7 @@ Then you'll need to check the length of your passwords, if it's 6 for example, m
 constants.cuh. <br> <br>
 Once these things are done, you're good to go. If you want to hash without using a time variable to retrieve execution
 time type: <br>
-<code>auto * result = parallelized_hash(passwords, passwordNumber);
+<code>auto * result = hash(passwords, passwordNumber);
 </code> <br>
 All the digests will be retrieved inside result, you don't even need to malloc it. <br> <br>
 Don't forget to free the memory ! Function is not handling it ! <br> Type: <br>
@@ -13,7 +13,7 @@ Don't forget to free the memory ! Function is not handling it ! <br> Type: <br>
 free(result);</code> <br>
 Where *passwords* is the array that you created before. <br> <br>
 If you want to use a time variable, you can pass it to the function as a pointer: <br>
-<code>auto * result = parallelized_hash(passwords, passwordNumber, &timeVariable);
+<code>auto * result = hash(passwords, passwordNumber, &timeVariable);
 </code> <br><br>
 <strong>timeVariable MUST be of type float.</strong>
 

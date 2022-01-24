@@ -1,17 +1,21 @@
 #include "commons.cuh"
 
-__host__ Password *generatePasswords(int passwordNumber) {
+__host__ void generatePasswords(Password ** result, int passwordNumber) {
 
-    Password * result;
-
-    cudaError_t status = cudaMallocHost(&(result), passwordNumber * sizeof(Password));
+    cudaError_t status = cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault);
     if (status != cudaSuccess)
         printf("Error allocating pinned host memory\n");
+
+    generateNewPasswords(result, passwordNumber);
+}
+
+__host__ void generateNewPasswords(Password ** result, int passwordNumber) {
 
     char charSet[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
                         't', 'u', 'v', 'w', 'x',
                         'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
                         'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<> distr(0, 61); // define the range
@@ -20,14 +24,12 @@ __host__ Password *generatePasswords(int passwordNumber) {
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
-        for (unsigned char &byte: result[j].bytes) {
-            byte = charSet[distr(gen)];
+        for (int i=0; i<PASSWORD_LENGTH; i++) {
+            (*result)[j].bytes[i] = charSet[distr(gen)];
         }
     }
     printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
     printf("====================\n");
-
-    return result;
 }
 
 // Returns the number of batch that we need to do
@@ -73,6 +75,7 @@ __host__ int memoryAnalysis(int passwordNumber) {
     // We need to determine how many batch we'll do to hash all passwords
     // We need to compute the batch size as well
     auto numberOfPass = (double) ((double) memUsed / (double) freeMem);
+    if (numberOfPass < 1) return 1;
 
     numberOfPass += 0.5;
 
@@ -97,6 +100,28 @@ __host__ int computeBatchSize(int numberOfPass, int passwordNumber) {
         batchSize = passwordNumber;
 
     return batchSize;
+}
+
+__host__ void initEmptyArrays(Password ** passwords, Digest ** results, int passwordNumber) {
+
+    cudaError_t status = cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault);
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
+    status = cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault);
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
+}
+
+__host__ void initArrays(Password ** passwords, Digest ** results, int passwordNumber) {
+
+    generatePasswords(passwords, passwordNumber);
+
+    cudaError_t status = cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault);
+    if (status != cudaSuccess)
+        printf("Error allocating pinned host memory\n");
+
 }
 
 __host__ void kernel(const int numberOfPass, int batchSize,
@@ -139,6 +164,7 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
         Password *source = *h_passwords;
+
         // Device copies
         cudaMemcpy(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
                    cudaMemcpyHostToDevice);
@@ -169,6 +195,7 @@ __host__ void kernel(const int numberOfPass, int batchSize,
 
         Digest *destination = *h_results;
         // Device to host copy
+
         cudaMemcpy(&(destination[currentIndex]), d_results,
                    sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost);
 

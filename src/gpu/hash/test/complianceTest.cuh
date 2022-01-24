@@ -3,11 +3,11 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <ntlm.cuh>
-#include "../parallelized_hash.cu"
-#include "cudaMd5.cuh"
-#include "complianceTest.cuh"
-#include <classicMd5.cuh>
+#include <ctype.h>
 
+#include "../hash_functions/ntlm.cuh"
+#include "../hash.cu"
+#include "../hash_functions/cudaMd5.cuh"
+#include "../hash_functions/classicMd5.cuh"
 
 #endif //GPU_CRACK_COMPLIANCETEST_CUH

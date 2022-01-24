@@ -4,18 +4,18 @@ int main() {
 
     int passwordNumber = DEFAULT_PASSWORD_NUMBER;
 
-    // Simulate when we send password as input
-    Password * passwords = generatePasswords(passwordNumber);
-
+    Password * passwords;
     Digest * result;
 
-    cudaError_t status = cudaMallocHost(&result, passwordNumber * sizeof(Digest));
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
+    initArrays(&passwords, &result, passwordNumber);
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    parallelized_hash(passwords, result, passwordNumber, numberOfPass);
+    hash(passwords, result, passwordNumber, numberOfPass);
+
+    generateNewPasswords(&passwords, passwordNumber);
+
+    hash(passwords, result, passwordNumber, numberOfPass);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);
