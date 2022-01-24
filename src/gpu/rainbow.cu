@@ -110,7 +110,8 @@ __global__ void ntlm_chain_kernel(RainbowTable *table) {
     for (unsigned long j = 0; j < TABLE_T - 1; j++) {
         Digest digest;
         ntlm(&last_plain_text, &digest);
-        // TODO : CHANGE 0 TO TABLE NUMBER
+        // TODO : CHANGE 0 TO TABLE NUMBER 
+        // OR USE DORIAN'S FUNCTION
         reduce_digest(&digest, j, 0, &last_plain_text);
     }
 
