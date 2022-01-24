@@ -140,6 +140,10 @@ __host__ void kernel(const int numberOfPass, int batchSize,
     cudaEventCreate(&start);
     cudaEventCreate(&end);
 
+    cudaStream_t stream1;
+
+    cudaStreamCreate(&stream1);
+
     int passwordRemaining = passwordNumber;
     int currentIndex = 0;
 
@@ -166,11 +170,11 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         Password *source = *h_passwords;
 
         // Device copies
-        cudaMemcpy(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
-                   cudaMemcpyHostToDevice);
+        cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+                   cudaMemcpyHostToDevice, stream1);
 
         cudaEventRecord(start);
-        ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock>>>(
+        ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
                 d_passwords, d_results);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -196,8 +200,8 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         Digest *destination = *h_results;
         // Device to host copy
 
-        cudaMemcpy(&(destination[currentIndex]), d_results,
-                   sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost);
+        cudaMemcpyAsync(&(destination[currentIndex]), d_results,
+                   sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
 
         currentIndex += batchSize;
         passwordRemaining -= batchSize;
