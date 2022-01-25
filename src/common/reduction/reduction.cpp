@@ -150,7 +150,7 @@ inline int pwdcmp(Password &p1, Password &p2) {
 int count_duplicates(Password **passwords, bool debug = false) {
     int count = 0;
     for (int i = 0; i < DEFAULT_PASSWORD_NUMBER; i++) {
-        if debug printf("Searching for duplicate of password number %d...\n", i);
+        if (debug) printf("Searching for duplicate of password number %d...\n", i);
         for (int j = i + 1; j < DEFAULT_PASSWORD_NUMBER; j++) {
             // Increment count by 1 if duplicate found
             if (pwdcmp((*passwords)[i], (*passwords)[j])) {
