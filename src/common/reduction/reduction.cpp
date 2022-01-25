@@ -196,7 +196,7 @@ int main() {
            time_taken, reduce_rate);
 
     int dup = count_duplicates(&passwords);
-    printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, DEFAULT_PASSWORD_NUMBER
+    printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, DEFAULT_PASSWORD_NUMBER,
            (double) dup / DEFAULT_PASSWORD_NUMBER);
 
     //display_passwords(&passwords);
