@@ -21,8 +21,9 @@
 
 // One billion 1000000000
 // One hundred million 100000000
+// Ten millions 10000000
 // One thousand 1000
-#define DEFAULT_PASSWORD_NUMBER 1000
+#define DEFAULT_PASSWORD_NUMBER 10000000
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
@@ -60,6 +61,12 @@ void display_password(const Password *pwd);
 void display_passwords(Password **passwords);
 
 /*
+ * Displays a single digest properly.
+ * digest: the digest to display.
+ */
+void display_digest(Digest &digest)
+
+/*
  * Displays a digest array properly with chars.
  * digests: the digest array to display.
  */
@@ -93,6 +100,13 @@ void generate_digest(unsigned long counter, Digest &hash);
  * n: the number of digests to be generated.
  */
 void generate_digests(Digest **digests, int n);
+
+/*
+ * Reduces a digest into a plain text.
+ * digest: the digest to reduce
+ * plain_text: the generated reduction
+ */
+void reduce_digest(unsigned long index, Digest &digest, Password &plain_text);
 
 /*
  * Reduces every digest of an array into plain texts.
