@@ -38,5 +38,63 @@ typedef union {
     uint32_t i[CEILING(HASH_LENGTH, 4)];
 } Digest;
 
-// Reduces a hash into a plain text of length PLAIN_LENGTH.
-void reduce(unsigned long int index, const char *hash, char *plain);
+/*
+ * Generates a password given a char array.
+ * text: literal to be put into the password
+ * password: result
+*/
+void generate_pwd_from_text(char text[], Password *password)
+
+/*
+ * Displays a single password properly, char by char.
+ * pwd: the password to display.
+ */
+void display_password(const Password *pwd)
+
+/*
+ * Displays a password array properly with chars.
+ * passwords: the password array to display.
+ */
+void display_passwords(Password **passwords)
+
+/*
+ * Displays a digest array properly with chars.
+ * digests: the digest array to display.
+ */
+void display_digests(Digest **digests)
+
+/*
+ * Generates a password corresponding to a given number.
+ * Used to create the start points of the rainbow table.
+ * counter: number corresponding to the chain's index
+ * plain_text: password corresponding to its counter
+*/
+void generate_password(unsigned long counter, Password &plain_text)
+
+/*
+ * Fills passwords with n generated passwords.
+ * passwords: the password array to fill.
+ * n: the number of passwords to be generated.
+ */
+void generate_passwords(Password **passwords, int n)
+
+/*
+ * Generates a pseudo-random digest.
+ * counter: this of it as a seed
+ * hash: result digest
+*/
+void generate_digest(unsigned long counter, Digest &hash)
+
+/*
+ * Fills digests with n generated digests.
+ * digests: the digest array to fill.
+ * n: the number of digests to be generated.
+ */
+void generate_digests(Digest **digests, int n)
+
+/*
+ * Reduces every digest of an array into plain texts.
+ * digests: the digest array to reduce
+ * plain_texts: the generated reductions
+ */
+void reduce_digests(Digest **digests, Password **plain_texts)
