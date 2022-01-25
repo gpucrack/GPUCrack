@@ -23,7 +23,7 @@
 // One hundred million 100000000
 // Ten millions 10000000
 // One thousand 1000
-#define DEFAULT_PASSWORD_NUMBER 10000000
+#define DEFAULT_PASSWORD_NUMBER 1000000
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
@@ -64,7 +64,7 @@ void display_passwords(Password **passwords);
  * Displays a single digest properly.
  * digest: the digest to display.
  */
-void display_digest(Digest &digest)
+void display_digest(Digest &digest);
 
 /*
  * Displays a digest array properly with chars.
@@ -114,3 +114,14 @@ void reduce_digest(unsigned long index, Digest &digest, Password &plain_text);
  * plain_texts: the generated reductions
  */
 void reduce_digests(Digest **digests, Password **plain_texts);
+
+/*
+ * Compares two passwords.
+ * return true if they are equal, false otherwise.
+ */
+inline int pwdcmp(Password &p1, Password &p2);
+
+/*
+ * Finds the number of duplicates in a password array
+ */
+int count_duplicates(Password **passwords);
