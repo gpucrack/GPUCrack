@@ -14,12 +14,12 @@ void reduce(unsigned long int index, const char *hash, char *plain) {
         *plain = charset[(unsigned char) (*hash ^ index) % CHARSET_LENGTH];
 }
 
-// May be useless tbh
-char char_in_range(unsigned char n) {
-    return charset[n];
-}
-
-// Generate passwords
+/*
+ * Generates a password corresponding to a given number.
+ * Used to create the start points of the rainbow table.
+ * counter: number corresponding to the chain's index
+ * plain_text: password corresponding to its counter
+*/
 void create_startpoint(unsigned long counter, Password *plain_text) {
     for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
         plain_text->bytes[i] = charset[counter % CHARSET_LENGTH];
@@ -27,9 +27,10 @@ void create_startpoint(unsigned long counter, Password *plain_text) {
     }
 }
 
-/* Generates a password given a char array.
-* text: cypher text to be reduced
-* plain: result of the reduction
+/*
+ * Generates a password given a char array.
+ * text: literal to be put into the password
+ * password: result
 */
 void generate_pwd(char text[], Password *password) {
     for (int i = 0; i < PASSWORD_LENGTH; i++) {
@@ -47,23 +48,31 @@ void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_
 }
 
 /*
+ * Displays a password properly, char by char.
+ * pwd: the password to display.
+ */
+void display_password(const Password *pwd) {
+    for (unsigned char byte: pwd->bytes) {
+        printf("%c", (char) byte);
+    }
+    printf("\n");
+}
+
+/*
  * Tests the reduction and displays it in the console.
  */
 int main() {
     Password *pwd = NULL;
     pwd = (Password *) malloc(sizeof(Password));
 
-    char test[] = "123456789";
+    // Generate one billion passwords
+    for(unsigned long i = 0; i<DEFAULT_PASSWORD_NUMBER; i++) {
 
-    printf("%lu\n", sizeof test);
-
-    generate_pwd(test, pwd);
-
-
-    for (unsigned char byte: pwd->bytes) {
-        printf("%c", (char) byte);
     }
-    printf("\n");
+
+    create_startpoint(1, pwd);
+
+    display_password(pwd);
 
     return 0;
 }
