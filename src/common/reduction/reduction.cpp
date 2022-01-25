@@ -195,8 +195,8 @@ int main() {
     printf("Reduction of %d digests ended after %f seconds.\nReduction rate: %f MR/s.\n", DEFAULT_PASSWORD_NUMBER,
            time_taken, reduce_rate);
 
-    int dup = count_duplicates(&passwords, true);
-    printf("Found %d duplicate(s) among reduced passwords (%f percent).\n", dup,
+    int dup = count_duplicates(&passwords);
+    printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, DEFAULT_PASSWORD_NUMBER
            (double) dup / DEFAULT_PASSWORD_NUMBER);
 
     //display_passwords(&passwords);
