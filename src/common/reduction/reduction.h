@@ -18,8 +18,8 @@
 // MUST BE A POWER OF 2
 #define THREAD_PER_BLOCK 512
 
-// One hundred million
-#define DEFAULT_PASSWORD_NUMBER 100000000
+// One hundred million 100000000
+#define DEFAULT_PASSWORD_NUMBER 10
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))

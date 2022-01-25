@@ -3,7 +3,8 @@
 // The character set used for passwords.
 static const char *charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 // The character set used for digests (NTLM hashes).
-static const char hashset[16] = {0x88,0x46,0xF7,0xEA,0xEE,0x8F,0xB1,0x17,0xAD,0x06,0xBD,0xD8,0x30,0xB7,0x58,0x6C};
+static const char hashset[16] = {0x88, 0x46, 0xF7, 0xEA, 0xEE, 0x8F, 0xB1, 0x17, 0xAD, 0x06, 0xBD, 0xD8, 0x30, 0xB7,
+                                 0x58, 0x6C};
 
 /*
  * Reduces a hash into a plain text of length PLAIN_LENGTH.
@@ -14,16 +15,6 @@ static const char hashset[16] = {0x88,0x46,0xF7,0xEA,0xEE,0x8F,0xB1,0x17,0xAD,0x
 void reduce(unsigned long int index, const char *hash, char *plain) {
     for (unsigned long int i = 0; i < PASSWORD_LENGTH; i++, plain++, hash++)
         *plain = charset[(unsigned char) (*hash ^ index) % CHARSET_LENGTH];
-}
-
-void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_number, Password *plain_text) {
-    // pseudo-random counter based on the hash
-    unsigned long counter = digest->bytes[7];
-    for (char i = 6; i >= 0; i--) {
-        counter <<= 8;
-        counter |= digest->bytes[i];
-    }
-    generate_pwd
 }
 
 /*
@@ -119,19 +110,44 @@ void generate_digests(Digest **digests, int n) {
     }
 }
 
+void reduce_digest(Digest *digest, unsigned long iteration, Password *plain_text) {
+    // pseudo-random counter based on the hash
+    unsigned long counter = digest->bytes[7];
+    for (char i = HASH_LENGTH; i >= 0; i--) {
+        counter <<= 8;
+        counter |= digest->bytes[i];
+    }
+    generate_password(iteration + counter, plain_text);
+}
+
+
+void reduce_digests(Digest **digests, Password **plain_texts) {
+    for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
+        unsigned long counter = (*digests)[j].bytes[HASH_LENGTH-1];
+        printf("%lu ----- ", counter);
+        for (char i = HASH_LENGTH; i >= 0; i--) {
+            counter <<= 1;
+            //counter |= (*digests)[j].bytes[i];
+        }
+        printf("%lu\n", counter);
+        generate_password(j + counter, (plain_texts)[j]);
+    }
+}
+
 /*
  * Tests the reduction and displays it in the console.
  */
 int main() {
 
-/*    // Initialize a password array
+    // Initialize a password array
     Password *passwords = NULL;
     passwords = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
 
     // Generate DEFAULT_PASSWORD_NUMBER passwords
-    generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
-    display_passwords(&passwords);*/
+    // generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
+    // display_passwords(&passwords);
 
+/*
     // Initialize a digest array
     Digest *digests = NULL;
     digests = (Digest *) malloc(sizeof(Digest) * DEFAULT_PASSWORD_NUMBER);
@@ -140,6 +156,9 @@ int main() {
     generate_digests(&digests, DEFAULT_PASSWORD_NUMBER);
     //display_digests(&digests);
     printf("Digest generation done.\n");
+
+    reduce_digests(&digests, &passwords);*/
+
 
     return 0;
 }
