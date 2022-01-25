@@ -132,7 +132,36 @@ void reduce_digests(Digest **digests, Password **plain_texts) {
 }
 
 /*
- * Tests the reduction speed.
+ * Compares two passwords.
+ * return true if they are equal, false otherwise.
+ */
+inline int pwdcmp(Password &p1, Password &p2) {
+    for (int i = 0; i < CEILING(PASSWORD_LENGTH, 4); i++) {
+        if (p1.i[i] != p2.i[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+ * Finds the number of duplicates in a password array
+ */
+int count_duplicates(Password **passwords) {
+    int count = 0;
+    for (int i = 0; i < DEFAULT_PASSWORD_NUMBER; i++) {
+        for (int j = i + 1; j < DEFAULT_PASSWORD_NUMBER; j++) {
+            // Increment count by 1 if duplicate found
+            if (pwdcmp((*passwords)[i], (*passwords)[j])) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+/*
+ * Tests the reduction speed and searches for duplicates in reduced hashes.
  */
 int main() {
 
@@ -162,8 +191,12 @@ int main() {
     double time_taken = ((double) t) / CLOCKS_PER_SEC; // in seconds
     double reduce_rate = (DEFAULT_PASSWORD_NUMBER / 1000000) / time_taken;
 
-    printf("Reduction of %d digests ended after %f seconds.\nReduction rate: %f MR/s\n", DEFAULT_PASSWORD_NUMBER,
+    printf("Reduction of %d digests ended after %f seconds.\nReduction rate: %f MR/s.\n", DEFAULT_PASSWORD_NUMBER,
            time_taken, reduce_rate);
+
+    int dup = count_duplicates(&passwords);
+    printf("Found %d duplicate(s) among reduced passwords (%f percent).\n", dup,
+           (double) dup / DEFAULT_PASSWORD_NUMBER);
 
     //display_passwords(&passwords);
     return 0;
