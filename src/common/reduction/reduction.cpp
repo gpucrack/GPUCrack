@@ -143,14 +143,25 @@ int main() {
     digests = (Digest *) malloc(sizeof(Digest) * DEFAULT_PASSWORD_NUMBER);
 
     // Generate DEFAULT_PASSWORD_NUMBER digests
+    printf("Generating digests...\n");
     generate_digests(&digests, DEFAULT_PASSWORD_NUMBER);
     //display_digests(&digests);
-    printf("Digest generation done.\n");
+    printf("Digest generation done.\nEngaging reduction...\n");
+
+    // Start the chronometer...
+    clock_t t;
+    t = clock();
 
     // Reduce all those digests into passwords
     reduce_digests(&digests, &passwords);
-    display_passwords(&passwords);
 
+    // End the chronometer!
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+    double reduce_rate = (DEFAULT_PASSWORD_NUMBER/1000000)/time_taken;
 
+    printf("Reduction of %d digests ended after %f seconds.\n Reduction rate: %f MR/s", DEFAULT_PASSWORD_NUMBER, time_taken, reduce_rate);
+
+    //display_passwords(&passwords);
     return 0;
 }
