@@ -23,6 +23,7 @@ void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_
         counter <<= 8;
         counter |= digest->bytes[i];
     }
+    generate_pwd
 }
 
 /*
@@ -30,7 +31,7 @@ void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_
  * text: literal to be put into the password
  * password: result
 */
-void generate_pwd(char text[], Password *password) {
+void generate_pwd_from_text(char text[], Password *password) {
     for (int i = 0; i < PASSWORD_LENGTH; i++) {
         password->bytes[i] = text[i];
     }
@@ -123,13 +124,13 @@ void generate_digests(Digest **digests, int n) {
  */
 int main() {
 
-    // Initialize a password array
+/*    // Initialize a password array
     Password *passwords = NULL;
     passwords = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
 
     // Generate DEFAULT_PASSWORD_NUMBER passwords
     generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
-    display_passwords(&passwords);
+    display_passwords(&passwords);*/
 
     // Initialize a digest array
     Digest *digests = NULL;
@@ -137,8 +138,8 @@ int main() {
 
     // Generate DEFAULT_PASSWORD_NUMBER digests
     generate_digests(&digests, DEFAULT_PASSWORD_NUMBER);
-    display_digests(&digests);
-
+    //display_digests(&digests);
+    printf("Digest generation done.\n");
 
     return 0;
 }
