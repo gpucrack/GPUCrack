@@ -1,7 +1,9 @@
 #include "reduction.h"
 
-// The character set used.
+// The character set used for passwords.
 static const char *charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
+// The character set used for digests (NTLM hashes).
+static const char hashset[16] = {0x88,0x46,0xF7,0xEA,0xEE,0x8F,0xB1,0x17,0xAD,0x06,0xBD,0xD8,0x30,0xB7,0x58,0x6C};
 
 /*
  * Reduces a hash into a plain text of length PLAIN_LENGTH.
@@ -13,8 +15,6 @@ void reduce(unsigned long int index, const char *hash, char *plain) {
     for (unsigned long int i = 0; i < PASSWORD_LENGTH; i++, plain++, hash++)
         *plain = charset[(unsigned char) (*hash ^ index) % CHARSET_LENGTH];
 }
-
-
 
 void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_number, Password *plain_text) {
     // pseudo-random counter based on the hash
@@ -61,6 +61,19 @@ void display_passwords(Password **passwords) {
 }
 
 /*
+ * Displays a digest array properly with chars.
+ * digests: the digest array to display.
+ */
+void display_digests(Digest **digests) {
+    for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
+        for (unsigned char byte: (*digests)[j].bytes) {
+            printf("%02X", byte);
+        }
+        printf("\n");
+    }
+}
+
+/*
  * Generates a password corresponding to a given number.
  * Used to create the start points of the rainbow table.
  * counter: number corresponding to the chain's index
@@ -90,6 +103,22 @@ void generate_passwords(Password **passwords, int n) {
 }
 
 /*
+ * Fills digests with n generated digests.
+ * digests: the digests array to fill.
+ * n: the number of digests to be generated.
+ */
+void generate_digests(Digest **digests, int n) {
+    unsigned long counter;
+    for (int j = 0; j < n; j++) {
+        counter = j;
+        for (int i = HASH_LENGTH - 1; i >= 0; i--) {
+            (*digests)[j].bytes[i] = hashset[counter % DIGEST_CHARSET_LENGTH];
+            counter /= DIGEST_CHARSET_LENGTH;
+        }
+    }
+}
+
+/*
  * Tests the reduction and displays it in the console.
  */
 int main() {
@@ -98,8 +127,18 @@ int main() {
     Password *passwords = NULL;
     passwords = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
 
+    // Generate DEFAULT_PASSWORD_NUMBER passwords
     generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
     display_passwords(&passwords);
+
+    // Initialize a digest array
+    Digest *digests = NULL;
+    digests = (Digest *) malloc(sizeof(Digest) * DEFAULT_PASSWORD_NUMBER);
+
+    // Generate DEFAULT_PASSWORD_NUMBER digests
+    generate_digests(&digests, DEFAULT_PASSWORD_NUMBER);
+    display_digests(&digests);
+
 
     return 0;
 }
