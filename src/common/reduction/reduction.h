@@ -124,4 +124,4 @@ inline int pwdcmp(Password &p1, Password &p2);
 /*
  * Finds the number of duplicates in a password array
  */
-int count_duplicates(Password **passwords, bool debug = false);
+int count_duplicates(Password **passwords, bool debug);
