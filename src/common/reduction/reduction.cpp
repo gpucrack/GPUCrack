@@ -71,9 +71,9 @@ void display_digests(Digest **digests) {
  * counter: number corresponding to the chain's index
  * plain_text: password corresponding to its counter
 */
-void generate_password(unsigned long counter, Password *plain_text) {
+void generate_password(unsigned long counter, Password &plain_text) {
     for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
-        plain_text->bytes[i] = charset[counter % CHARSET_LENGTH];
+        plain_text.bytes[i] = charset[counter % CHARSET_LENGTH];
         counter /= CHARSET_LENGTH;
     }
 }
@@ -84,6 +84,17 @@ void generate_password(unsigned long counter, Password *plain_text) {
  * n: the number of passwords to be generated.
  */
 void generate_passwords(Password **passwords, int n) {
+    for (int j = 0; j < n; j++) {
+        generate_password(j, (*passwords)[j]);
+    }
+}
+
+/*
+ * Fills passwords with n generated passwords.
+ * passwords: the password array to fill.
+ * n: the number of passwords to be generated.
+ *//*
+void generate_passwords(Password **passwords, int n) {
     unsigned long counter;
     for (int j = 0; j < n; j++) {
         counter = j;
@@ -92,7 +103,7 @@ void generate_passwords(Password **passwords, int n) {
             counter /= CHARSET_LENGTH;
         }
     }
-}
+}*/
 
 /*
  * Fills digests with n generated digests.
@@ -117,7 +128,7 @@ void reduce_digest(Digest *digest, unsigned long iteration, Password *plain_text
         counter <<= 8;
         counter |= digest->bytes[i];
     }
-    generate_password(iteration + counter, plain_text);
+    //generate_password(iteration + counter, plain_text);
 }
 
 
@@ -130,7 +141,7 @@ void reduce_digests(Digest **digests, Password **plain_texts) {
             //counter |= (*digests)[j].bytes[i];
         }
         printf("%lu\n", counter);
-        generate_password(j + counter, (plain_texts)[j]);
+        //generate_password(j + counter, (plain_texts)[j]);
     }
 }
 
@@ -144,8 +155,8 @@ int main() {
     passwords = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
 
     // Generate DEFAULT_PASSWORD_NUMBER passwords
-    // generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
-    // display_passwords(&passwords);
+    generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
+    display_passwords(&passwords);
 
 /*
     // Initialize a digest array
