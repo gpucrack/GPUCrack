@@ -129,7 +129,7 @@ __host__ void kernel(const int numberOfPass, int batchSize,
                      Digest **h_results, Password **h_passwords, int passwordNumber,
                      int threadPerBlock) {
 
-    printf("\n==========LAUNCHING KERNEL==========\n");
+    //printf("\n==========LAUNCHING KERNEL==========\n");
 
     // Device copies
     Digest *d_results;
@@ -147,7 +147,7 @@ __host__ void kernel(const int numberOfPass, int batchSize,
     int passwordRemaining = passwordNumber;
     int currentIndex = 0;
 
-    printf("FIRST BATCH SIZE : %d\n", batchSize);
+    //printf("FIRST BATCH SIZE : %d\n", batchSize);
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
@@ -186,8 +186,8 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         cudaEventDestroy(start);
         cudaEventDestroy(end);
 
-        printf("KERNEL #%d DONE @ %f seconds\n", i,
-               (double) (clock() - *program_start) / CLOCKS_PER_SEC);
+        //printf("KERNEL #%d DONE @ %f seconds\n", i,
+        //       (double) (clock() - *program_start) / CLOCKS_PER_SEC);
 
         // Check for errors during kernel execution
         cudaError_t cudaerr = cudaDeviceSynchronize();
@@ -210,5 +210,5 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         cudaFree(d_passwords);
         cudaFree(d_results);
     }
-    printf("====================\n");
+    //printf("====================\n");
 }
