@@ -14,16 +14,14 @@ void reduce(unsigned long int index, const char *hash, char *plain) {
         *plain = charset[(unsigned char) (*hash ^ index) % CHARSET_LENGTH];
 }
 
-/*
- * Generates a password corresponding to a given number.
- * Used to create the start points of the rainbow table.
- * counter: number corresponding to the chain's index
- * plain_text: password corresponding to its counter
-*/
-void create_startpoint(unsigned long counter, Password *plain_text) {
-    for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
-        plain_text->bytes[i] = charset[counter % CHARSET_LENGTH];
-        counter /= CHARSET_LENGTH;
+
+
+void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_number, Password *plain_text) {
+    // pseudo-random counter based on the hash
+    unsigned long counter = digest->bytes[7];
+    for (char i = 6; i >= 0; i--) {
+        counter <<= 8;
+        counter |= digest->bytes[i];
     }
 }
 
@@ -38,17 +36,8 @@ void generate_pwd(char text[], Password *password) {
     }
 }
 
-void reduce_digest(Digest *digest, unsigned long iteration, unsigned char table_number, Password *plain_text) {
-    // pseudo-random counter based on the hash
-    unsigned long counter = digest->bytes[7];
-    for (char i = 6; i >= 0; i--) {
-        counter <<= 8;
-        counter |= digest->bytes[i];
-    }
-}
-
 /*
- * Displays a password properly, char by char.
+ * Displays a single password properly, char by char.
  * pwd: the password to display.
  */
 void display_password(const Password *pwd) {
@@ -59,20 +48,58 @@ void display_password(const Password *pwd) {
 }
 
 /*
+ * Displays a password array properly with chars.
+ * passwords: the password array to display.
+ */
+void display_passwords(Password **passwords) {
+    for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
+        for (unsigned char byte: (*passwords)[j].bytes) {
+            printf("%c", (char) byte);
+        }
+        printf("\n");
+    }
+}
+
+/*
+ * Generates a password corresponding to a given number.
+ * Used to create the start points of the rainbow table.
+ * counter: number corresponding to the chain's index
+ * plain_text: password corresponding to its counter
+*/
+void generate_password(unsigned long counter, Password *plain_text) {
+    for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
+        plain_text->bytes[i] = charset[counter % CHARSET_LENGTH];
+        counter /= CHARSET_LENGTH;
+    }
+}
+
+/*
+ * Fills passwords with n generated passwords.
+ * passwords: the password array to fill.
+ * n: the number of passwords to be generated.
+ */
+void generate_passwords(Password **passwords, int n) {
+    unsigned long counter;
+    for (int j = 0; j < n; j++) {
+        counter = j;
+        for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
+            (*passwords)[j].bytes[i] = charset[counter % CHARSET_LENGTH];
+            counter /= CHARSET_LENGTH;
+        }
+    }
+}
+
+/*
  * Tests the reduction and displays it in the console.
  */
 int main() {
-    Password *pwd = NULL;
-    pwd = (Password *) malloc(sizeof(Password));
 
-    // Generate one billion passwords
-    for(unsigned long i = 0; i<DEFAULT_PASSWORD_NUMBER; i++) {
+    // Initialize a password array
+    Password *passwords = NULL;
+    passwords = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
 
-    }
-
-    create_startpoint(1, pwd);
-
-    display_password(pwd);
+    generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
+    display_passwords(&passwords);
 
     return 0;
 }
