@@ -147,9 +147,10 @@ inline int pwdcmp(Password &p1, Password &p2) {
 /*
  * Finds the number of duplicates in a password array
  */
-int count_duplicates(Password **passwords) {
+int count_duplicates(Password **passwords, bool debug = false) {
     int count = 0;
     for (int i = 0; i < DEFAULT_PASSWORD_NUMBER; i++) {
+        if debug printf("Searching for duplicate of password number %d...\n", i);
         for (int j = i + 1; j < DEFAULT_PASSWORD_NUMBER; j++) {
             // Increment count by 1 if duplicate found
             if (pwdcmp((*passwords)[i], (*passwords)[j])) {
@@ -194,7 +195,7 @@ int main() {
     printf("Reduction of %d digests ended after %f seconds.\nReduction rate: %f MR/s.\n", DEFAULT_PASSWORD_NUMBER,
            time_taken, reduce_rate);
 
-    int dup = count_duplicates(&passwords);
+    int dup = count_duplicates(&passwords, true);
     printf("Found %d duplicate(s) among reduced passwords (%f percent).\n", dup,
            (double) dup / DEFAULT_PASSWORD_NUMBER);
 
