@@ -89,35 +89,21 @@ void generate_passwords(Password **passwords, int n) {
     }
 }
 
-/*
- * Fills passwords with n generated passwords.
- * passwords: the password array to fill.
- * n: the number of passwords to be generated.
- *//*
-void generate_passwords(Password **passwords, int n) {
-    unsigned long counter;
-    for (int j = 0; j < n; j++) {
-        counter = j;
-        for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
-            (*passwords)[j].bytes[i] = charset[counter % CHARSET_LENGTH];
-            counter /= CHARSET_LENGTH;
-        }
-    }
-}*/
 
+void generate_digest(unsigned long counter, Digest &hash) {
+    for (int i = HASH_LENGTH - 1; i >= 0; i--) {
+        hash.bytes[i] = hashset[counter % DIGEST_CHARSET_LENGTH];
+        counter /= DIGEST_CHARSET_LENGTH;
+    }
+}
 /*
  * Fills digests with n generated digests.
  * digests: the digests array to fill.
  * n: the number of digests to be generated.
  */
 void generate_digests(Digest **digests, int n) {
-    unsigned long counter;
     for (int j = 0; j < n; j++) {
-        counter = j;
-        for (int i = HASH_LENGTH - 1; i >= 0; i--) {
-            (*digests)[j].bytes[i] = hashset[counter % DIGEST_CHARSET_LENGTH];
-            counter /= DIGEST_CHARSET_LENGTH;
-        }
+        generate_digest(j, (*digests)[j]);
     }
 }
 
@@ -135,13 +121,11 @@ void reduce_digest(Digest *digest, unsigned long iteration, Password *plain_text
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
         unsigned long counter = (*digests)[j].bytes[HASH_LENGTH-1];
-        printf("%lu ----- ", counter);
         for (char i = HASH_LENGTH; i >= 0; i--) {
             counter <<= 1;
             //counter |= (*digests)[j].bytes[i];
         }
-        printf("%lu\n", counter);
-        //generate_password(j + counter, (plain_texts)[j]);
+        generate_password(j + counter, (*plain_texts)[j]);
     }
 }
 
@@ -150,16 +134,11 @@ void reduce_digests(Digest **digests, Password **plain_texts) {
  */
 int main() {
 
-    // Initialize a password array
+    // Initialize and allocate memory for a password array
     Password *passwords = NULL;
     passwords = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
 
-    // Generate DEFAULT_PASSWORD_NUMBER passwords
-    generate_passwords(&passwords, DEFAULT_PASSWORD_NUMBER);
-    display_passwords(&passwords);
-
-/*
-    // Initialize a digest array
+    // Initialize and allocate memory for a digest array
     Digest *digests = NULL;
     digests = (Digest *) malloc(sizeof(Digest) * DEFAULT_PASSWORD_NUMBER);
 
@@ -168,7 +147,9 @@ int main() {
     //display_digests(&digests);
     printf("Digest generation done.\n");
 
-    reduce_digests(&digests, &passwords);*/
+    // Reduce all those digests into passwords
+    reduce_digests(&digests, &passwords);
+    display_passwords(&passwords);
 
 
     return 0;
