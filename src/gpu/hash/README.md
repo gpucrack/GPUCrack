@@ -1,4 +1,4 @@
-# How to hash passwords
+# How to hash passwords [NOT UPDATED]
 
 Very easy to use, first you'll need an array of type Password. <br><br>
 Then you'll need to check the length of your passwords, if it's 6 for example, modify the value "PASSWORD_LENGTH" inside
