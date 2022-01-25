@@ -21,8 +21,8 @@ void generate_pwd_from_text(char text[], Password *password) {
  * Displays a single password properly, char by char.
  * pwd: the password to display.
  */
-void display_password(const Password *pwd) {
-    for (unsigned char byte: pwd->bytes) {
+void display_password(Password &pwd) {
+    for (unsigned char byte: pwd.bytes) {
         printf("%c", (char) byte);
     }
     printf("\n");
@@ -34,13 +34,21 @@ void display_password(const Password *pwd) {
  */
 void display_passwords(Password **passwords) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        display_password()
-        for (unsigned char byte: (*passwords)[j].bytes) {
-            printf("%c", (char) byte);
-        }
-        printf("\n");
+        display_password((*passwords)[j]);
     }
 }
+
+/*
+ * Displays a single digest properly.
+ * digest: the digest to display.
+ */
+void display_digest(Digest &digest) {
+    for (unsigned char byte: digest.bytes) {
+        printf("%02X", byte);
+    }
+    printf("\n");
+}
+
 
 /*
  * Displays a digest array properly with chars.
@@ -48,10 +56,7 @@ void display_passwords(Password **passwords) {
  */
 void display_digests(Digest **digests) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        for (unsigned char byte: (*digests)[j].bytes) {
-            printf("%02X", byte);
-        }
-        printf("\n");
+        display_digest((*digests)[j]);
     }
 }
 
@@ -103,17 +108,26 @@ void generate_digests(Digest **digests, int n) {
 }
 
 /*
+ * Reduces a digest into a plain text.
+ * digest: the digest to reduce
+ * plain_text: the generated reduction
+ */
+void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
+    unsigned long counter = digest.bytes[HASH_LENGTH - 1];
+    for (char i = HASH_LENGTH; i >= 0; i--) {
+        counter <<= 1;
+    }
+    generate_password(index + counter, plain_text);
+}
+
+/*
  * Reduces every digest of an array into plain texts.
  * digests: the digest array to reduce
  * plain_texts: the generated reductions
  */
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        unsigned long counter = (*digests)[j].bytes[HASH_LENGTH - 1];
-        for (char i = HASH_LENGTH; i >= 0; i--) {
-            counter <<= 1;
-        }
-        generate_password(j + counter, (*plain_texts)[j]);
+        reduce_digest(j, (*digests)[j], (*plain_texts)[j]);
     }
 }
 
