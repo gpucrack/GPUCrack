@@ -7,17 +7,6 @@ static const char hashset[16] = {0x88, 0x46, 0xF7, 0xEA, 0xEE, 0x8F, 0xB1, 0x17,
                                  0x58, 0x6C};
 
 /*
- * Reduces a hash into a plain text of length PLAIN_LENGTH.
- * index: index of the column in the table
- * hash: cypher text to be reduced
- * plain: result of the reduction
- */
-void reduce(unsigned long int index, const char *hash, char *plain) {
-    for (unsigned long int i = 0; i < PASSWORD_LENGTH; i++, plain++, hash++)
-        *plain = charset[(unsigned char) (*hash ^ index) % CHARSET_LENGTH];
-}
-
-/*
  * Generates a password given a char array.
  * text: literal to be put into the password
  * password: result
@@ -45,6 +34,7 @@ void display_password(const Password *pwd) {
  */
 void display_passwords(Password **passwords) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
+        display_password()
         for (unsigned char byte: (*passwords)[j].bytes) {
             printf("%c", (char) byte);
         }
@@ -89,13 +79,18 @@ void generate_passwords(Password **passwords, int n) {
     }
 }
 
-
+/*
+ * Generates a pseudo-random digest.
+ * counter: this of it as a seed
+ * hash: result digest
+*/
 void generate_digest(unsigned long counter, Digest &hash) {
     for (int i = HASH_LENGTH - 1; i >= 0; i--) {
         hash.bytes[i] = hashset[counter % DIGEST_CHARSET_LENGTH];
         counter /= DIGEST_CHARSET_LENGTH;
     }
 }
+
 /*
  * Fills digests with n generated digests.
  * digests: the digests array to fill.
@@ -107,23 +102,12 @@ void generate_digests(Digest **digests, int n) {
     }
 }
 
-void reduce_digest(Digest *digest, unsigned long iteration, Password *plain_text) {
-    // pseudo-random counter based on the hash
-    unsigned long counter = digest->bytes[7];
-    for (char i = HASH_LENGTH; i >= 0; i--) {
-        counter <<= 8;
-        counter |= digest->bytes[i];
-    }
-    //generate_password(iteration + counter, plain_text);
-}
-
 
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        unsigned long counter = (*digests)[j].bytes[HASH_LENGTH-1];
+        unsigned long counter = (*digests)[j].bytes[HASH_LENGTH - 1];
         for (char i = HASH_LENGTH; i >= 0; i--) {
             counter <<= 1;
-            //counter |= (*digests)[j].bytes[i];
         }
         generate_password(j + counter, (*plain_texts)[j]);
     }
@@ -146,7 +130,7 @@ int main() {
     printf("Generating digests...\n");
     generate_digests(&digests, DEFAULT_PASSWORD_NUMBER);
     //display_digests(&digests);
-    printf("Digest generation done.\nEngaging reduction...\n");
+    printf("Digest generation done!\n\nEngaging reduction...\n");
 
     // Start the chronometer...
     clock_t t;
@@ -157,10 +141,11 @@ int main() {
 
     // End the chronometer!
     t = clock() - t;
-    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
-    double reduce_rate = (DEFAULT_PASSWORD_NUMBER/1000000)/time_taken;
+    double time_taken = ((double) t) / CLOCKS_PER_SEC; // in seconds
+    double reduce_rate = (DEFAULT_PASSWORD_NUMBER / 1000000) / time_taken;
 
-    printf("Reduction of %d digests ended after %f seconds.\n Reduction rate: %f MR/s", DEFAULT_PASSWORD_NUMBER, time_taken, reduce_rate);
+    printf("Reduction of %d digests ended after %f seconds.\nReduction rate: %f MR/s\n", DEFAULT_PASSWORD_NUMBER,
+           time_taken, reduce_rate);
 
     //display_passwords(&passwords);
     return 0;
