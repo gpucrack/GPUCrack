@@ -93,7 +93,7 @@ void generate_digest(unsigned long counter, Digest &hash) {
 
 /*
  * Fills digests with n generated digests.
- * digests: the digests array to fill.
+ * digests: the digest array to fill.
  * n: the number of digests to be generated.
  */
 void generate_digests(Digest **digests, int n) {
@@ -102,7 +102,11 @@ void generate_digests(Digest **digests, int n) {
     }
 }
 
-
+/*
+ * Reduces every digest of an array into plain texts.
+ * digests: the digest array to reduce
+ * plain_texts: the generated reductions
+ */
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
         unsigned long counter = (*digests)[j].bytes[HASH_LENGTH - 1];
@@ -114,7 +118,7 @@ void reduce_digests(Digest **digests, Password **plain_texts) {
 }
 
 /*
- * Tests the reduction and displays it in the console.
+ * Tests the reduction speed.
  */
 int main() {
 
