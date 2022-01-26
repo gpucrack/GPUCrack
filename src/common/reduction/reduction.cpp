@@ -85,7 +85,7 @@ void generate_passwords(Password **passwords, int n) {
 }
 
 /*
- * Generates a pseudo-random digest.
+ * Generates a digest, filling it from right to left.
  * counter: this of it as a seed
  * hash: result digest
 */
@@ -96,6 +96,11 @@ void generate_digest(unsigned long counter, Digest &hash) {
     }
 }
 
+/*
+ * Generates a digest, filling it from left to right.
+ * counter: this of it as a seed
+ * hash: result digest
+*/
 void generate_digest_inverse(unsigned long counter, Digest &hash) {
     for (int i = 0; i < HASH_LENGTH - 1; i++) {
         hash.bytes[i] = hashset[counter % DIGEST_CHARSET_LENGTH];

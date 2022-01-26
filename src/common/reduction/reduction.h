@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <time.h>
 
-
 // The length of the hash function.
 #define HASH_LENGTH 16
 
