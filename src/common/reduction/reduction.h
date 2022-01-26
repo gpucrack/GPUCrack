@@ -35,7 +35,7 @@ typedef union {
     uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
 } Password;
 
-// A digest put into an union.
+// A digest put into a union.
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[CEILING(HASH_LENGTH, 4)];
@@ -52,7 +52,7 @@ void generate_pwd_from_text(char text[], Password *password);
  * Displays a single password properly, char by char.
  * pwd: the password to display.
  */
-void display_password(const Password *pwd, bool br);
+void display_password(Password &pwd, bool br = true);
 
 /*
  * Displays a password array properly with chars.
@@ -64,7 +64,7 @@ void display_passwords(Password **passwords);
  * Displays a single digest properly.
  * digest: the digest to display.
  */
-void display_digest(Digest &digest, bool br);
+void display_digest(Digest &digest, bool br = true);
 
 /*
  * Displays a digest array properly with chars.
@@ -88,21 +88,54 @@ void generate_password(unsigned long counter, Password &plain_text);
 void generate_passwords(Password **passwords, int n);
 
 /*
- * Generates a pseudo-random digest.
+ * Generates a digest, filling it from right to left.
  * counter: this of it as a seed
  * hash: result digest
 */
 void generate_digest(unsigned long counter, Digest &hash);
 
 /*
- * Fills digests with n generated digests.
+ * Generates a digest, filling it from left to right.
+ * counter: this of it as a seed
+ * hash: result digest
+*/
+void generate_digest_inverse(unsigned long counter, Digest &hash);
+
+/*
+ * Fills digests with n pseudo-randomly generated digests.
+ * digests: the digest array to fill.
+ * n: the number of digests to be generated.
+ */
+void generate_digests_random(Digest **digests, int n);
+
+/*
+ * Fills digests with n incrementally generated digests.
+ * 88888888, 88888846, 888888F7, 888888EA...
  * digests: the digest array to fill.
  * n: the number of digests to be generated.
  */
 void generate_digests(Digest **digests, int n);
 
+
 /*
- * Reduces a digest into a plain text.
+ * Fills digests with n incrementally inverted generated digests.
+ * 88888888, 46888888, F7888888, EA888888...
+ * digests: the digest array to fill.
+ * n: the number of digests to be generated.
+ */
+void generate_digests_inverse(Digest **digests, int n);
+
+/*
+ * Reduces a digest into a plain text like in Hellman tables, thus not using the column index.
+ * This reduction function yields 0.031 % of duplicates on 100.000
+ * digest: the digest to reduce
+ * plain_text: the generated reduction
+ */
+void reduce_digest_hellman(Digest &digest, Password &plain_text);
+
+/*
+ * Reduces a digest into a plain text using the column index.
+ * index: column index
  * digest: the digest to reduce
  * plain_text: the generated reduction
  */
@@ -124,4 +157,12 @@ inline int pwdcmp(Password &p1, Password &p2);
 /*
  * Finds the number of duplicates in a password array
  */
-int count_duplicates(Password **passwords, bool debug);
+int count_duplicates(Password **passwords, bool debug = false);
+
+/*
+ * Displays a reduction as "DIGEST --> PASSWORD"
+ * digests: the array of digests
+ * passwords: the array of passwords
+ * n (optional): only display the n first reductions
+ */
+void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_PASSWORD_NUMBER);
