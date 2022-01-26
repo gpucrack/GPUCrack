@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <time.h>
 
+
 // The length of the hash function.
 #define HASH_LENGTH 16
 
@@ -23,7 +24,7 @@
 // One hundred million 100000000
 // Ten millions 10000000
 // One thousand 1000
-#define DEFAULT_PASSWORD_NUMBER 20000
+#define DEFAULT_PASSWORD_NUMBER 1000000000
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))

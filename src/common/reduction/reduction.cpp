@@ -104,7 +104,21 @@ void generate_digest_inverse(unsigned long counter, Digest &hash) {
 }
 
 /*
- * Fills digests with n generated digests.
+ * Fills digests with n pseudo-randomly generated digests.
+ * digests: the digest array to fill.
+ * n: the number of digests to be generated.
+ */
+void generate_digests_random(Digest **digests, int n) {
+    for (int j = 0; j < n; j++) {
+        for (int i = HASH_LENGTH - 1; i >= 0; i--) {
+            (*digests)[j].bytes[i] = hashset[rand() % CHARSET_LENGTH];
+        }
+    }
+}
+
+/*
+ * Fills digests with n incrementally generated digests.
+ * 88888888, 88888846, 888888F7, 888888EA...
  * digests: the digest array to fill.
  * n: the number of digests to be generated.
  */
@@ -115,7 +129,8 @@ void generate_digests(Digest **digests, int n) {
 }
 
 /*
- * Fills digests with n generated digests.
+ * Fills digests with n incrementally inverted generated digests.
+ * 88888888, 46888888, F7888888, EA888888...
  * digests: the digest array to fill.
  * n: the number of digests to be generated.
  */
@@ -126,20 +141,26 @@ void generate_digests_inverse(Digest **digests, int n) {
 }
 
 /*
- * Reduces a digest into a plain text.
+ * Reduces a digest into a plain text like in Hellman tables, thus not using the column index.
+ * This reduction function yields 0.031 % of duplicates on 100.000
+ * digest: the digest to reduce
+ * plain_text: the generated reduction
+ */
+void reduce_digest_hellman(unsigned long index, Digest &digest, Password &plain_text) {
+    for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
+        plain_text.bytes[i] = charset[(digest.bytes[i]) % CHARSET_LENGTH];
+    }
+}
+
+/*
+ * Reduces a digest into a plain text using the column index.
+ * index: column index
  * digest: the digest to reduce
  * plain_text: the generated reduction
  */
 void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
-    // unsigned long counter = digest.bytes[HASH_LENGTH - 1];
-    /*for (char i = HASH_LENGTH; i >= 0; i--) {
-        counter <<= 1;
-    }
-    generate_password(index + counter, plain_text);*/
-
-    for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
-        plain_text.bytes[i] = charset[digest.bytes[i] % CHARSET_LENGTH];
-        //counter /= CHARSET_LENGTH;
+    for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
+        plain_text.bytes[i] = charset[(digest.bytes[i] + index) % CHARSET_LENGTH];
     }
 }
 
@@ -177,6 +198,8 @@ int count_duplicates(Password **passwords, bool debug = false) {
         for (int j = i + 1; j < DEFAULT_PASSWORD_NUMBER; j++) {
             // Increment count by 1 if duplicate found
             if (pwdcmp((*passwords)[i], (*passwords)[j])) {
+                printf("Found a duplicate : ");
+                display_password((*passwords)[i]);
                 count++;
             }
         }
@@ -214,7 +237,7 @@ int main() {
 
     // Generate DEFAULT_PASSWORD_NUMBER digests
     printf("Generating digests...\n");
-    generate_digests_inverse(&digests, DEFAULT_PASSWORD_NUMBER);
+    generate_digests_random(&digests, DEFAULT_PASSWORD_NUMBER);
     //display_digests(&digests);
     printf("Digest generation done!\n\nEngaging reduction...\n");
 
@@ -235,9 +258,9 @@ int main() {
 
     display_reductions(&digests, &passwords, 5);
 
-    int dup = count_duplicates(&passwords);
+    /*int dup = count_duplicates(&passwords);
     printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, DEFAULT_PASSWORD_NUMBER,
-           ((double) dup / DEFAULT_PASSWORD_NUMBER)*100);
+           ((double) dup / DEFAULT_PASSWORD_NUMBER) * 100);*/
 
     //display_passwords(&passwords);
     return 0;
