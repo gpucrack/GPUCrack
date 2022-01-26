@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <ctime>
 
-#include "commons.cuh"
+#include "../commons.cuh"
 
 void hash(Password *h_passwords, Digest * h_results, int passwordNumber, int numberOfPass);
 

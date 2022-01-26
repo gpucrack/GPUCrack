@@ -1,7 +1,7 @@
 #ifndef CUDA_NAIVE_EXHAUSTIVE_SEARCH_COMMONS_CUH
 #define CUDA_NAIVE_EXHAUSTIVE_SEARCH_COMMONS_CUH
 
-#include "../constants.cuh"
+#include "constants.cuh"
 #include <cuda_runtime.h>
 
 #include <cstdio>
@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <random>
 
-#include "./hash_functions/ntlm.cuh"
+#include "ntlm.cuh"
 
 // Returns the number of batches that we need to do
 __host__ int memoryAnalysis(int passwordNumber);

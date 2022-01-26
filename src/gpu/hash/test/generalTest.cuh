@@ -7,6 +7,6 @@
 #include <cstdlib>
 #include <random>
 #include "../hash.cu"
-#include "../commons.cuh"
+#include "../../commons.cuh"
 
 #endif //GPU_CRACK_GENERALTEST_CUH
