@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <random>
 
-#include "ntlm.cuh"
+#include "./hash/hash_functions/ntlm.cuh"
 
 // Returns the number of batches that we need to do
 __host__ int memoryAnalysis(int passwordNumber);
