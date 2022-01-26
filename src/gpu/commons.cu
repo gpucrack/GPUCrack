@@ -29,7 +29,6 @@ __host__ void generateNewPasswords(Password ** result, int passwordNumber) {
         }
     }
     printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
-    printf("====================\n");
 }
 
 // Returns the number of batch that we need to do
@@ -84,8 +83,6 @@ __host__ int memoryAnalysis(int passwordNumber) {
 
     printf("NUMBER OF PASS : %d\n", finalNumberOfPass);
 
-    printf("====================\n");
-
     return finalNumberOfPass;
 }
 
@@ -129,8 +126,6 @@ __host__ void kernel(const int numberOfPass, int batchSize,
                      Digest **h_results, Password **h_passwords, int passwordNumber,
                      int threadPerBlock) {
 
-    //printf("\n==========LAUNCHING KERNEL==========\n");
-
     // Device copies
     Digest *d_results;
     Password *d_passwords;
@@ -146,8 +141,6 @@ __host__ void kernel(const int numberOfPass, int batchSize,
 
     int passwordRemaining = passwordNumber;
     int currentIndex = 0;
-
-    //printf("FIRST BATCH SIZE : %d\n", batchSize);
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
@@ -186,9 +179,6 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         cudaEventDestroy(start);
         cudaEventDestroy(end);
 
-        //printf("KERNEL #%d DONE @ %f seconds\n", i,
-        //       (double) (clock() - *program_start) / CLOCKS_PER_SEC);
-
         // Check for errors during kernel execution
         cudaError_t cudaerr = cudaDeviceSynchronize();
         if (cudaerr != cudaSuccess) {
@@ -210,5 +200,20 @@ __host__ void kernel(const int numberOfPass, int batchSize,
         cudaFree(d_passwords);
         cudaFree(d_results);
     }
-    //printf("====================\n");
+}
+
+__host__ void printDigest(Digest * dig) {
+
+    for(unsigned char byte : dig->bytes){
+        printf("%X02", byte);
+    }
+
+    printf("\n");
+}
+
+__host__ void printPassword(Password * pwd) {
+    for(unsigned char byte : pwd->bytes){
+        printf("%c", byte);
+    }
+    printf("\n");
 }
