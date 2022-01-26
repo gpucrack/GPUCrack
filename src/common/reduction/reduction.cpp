@@ -21,11 +21,11 @@ void generate_pwd_from_text(char text[], Password *password) {
  * Displays a single password properly, char by char.
  * pwd: the password to display.
  */
-void display_password(Password &pwd) {
+void display_password(Password &pwd, bool br = true) {
     for (unsigned char byte: pwd.bytes) {
         printf("%c", (char) byte);
     }
-    printf("\n");
+    if (br) printf("\n");
 }
 
 /*
@@ -42,11 +42,11 @@ void display_passwords(Password **passwords) {
  * Displays a single digest properly.
  * digest: the digest to display.
  */
-void display_digest(Digest &digest) {
+void display_digest(Digest &digest, bool br = true) {
     for (unsigned char byte: digest.bytes) {
         printf("%02X", byte);
     }
-    printf("\n");
+    if (br) printf("\n");
 }
 
 
@@ -96,6 +96,13 @@ void generate_digest(unsigned long counter, Digest &hash) {
     }
 }
 
+void generate_digest_inverse(unsigned long counter, Digest &hash) {
+    for (int i = 0; i < HASH_LENGTH - 1; i++) {
+        hash.bytes[i] = hashset[counter % DIGEST_CHARSET_LENGTH];
+        counter /= DIGEST_CHARSET_LENGTH;
+    }
+}
+
 /*
  * Fills digests with n generated digests.
  * digests: the digest array to fill.
@@ -108,16 +115,32 @@ void generate_digests(Digest **digests, int n) {
 }
 
 /*
+ * Fills digests with n generated digests.
+ * digests: the digest array to fill.
+ * n: the number of digests to be generated.
+ */
+void generate_digests_inverse(Digest **digests, int n) {
+    for (int j = 0; j < n; j++) {
+        generate_digest_inverse(j, (*digests)[j]);
+    }
+}
+
+/*
  * Reduces a digest into a plain text.
  * digest: the digest to reduce
  * plain_text: the generated reduction
  */
 void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
-    unsigned long counter = digest.bytes[HASH_LENGTH - 1];
-    for (char i = HASH_LENGTH; i >= 0; i--) {
+    // unsigned long counter = digest.bytes[HASH_LENGTH - 1];
+    /*for (char i = HASH_LENGTH; i >= 0; i--) {
         counter <<= 1;
     }
-    generate_password(index + counter, plain_text);
+    generate_password(index + counter, plain_text);*/
+
+    for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
+        plain_text.bytes[i] = charset[digest.bytes[i] % CHARSET_LENGTH];
+        //counter /= CHARSET_LENGTH;
+    }
 }
 
 /*
@@ -162,6 +185,21 @@ int count_duplicates(Password **passwords, bool debug = false) {
 }
 
 /*
+ * Displays a reduction as "DIGEST --> PASSWORD"
+ * digests: the array of digests
+ * passwords: the array of passwords
+ * n (optional): only display the n first recutions
+ */
+void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_PASSWORD_NUMBER) {
+    for (int i = 0; i < n; i++) {
+        display_digest((*digests)[i], false);
+        printf(" --> ");
+        display_password((*passwords)[i], false);
+        printf("\n");
+    }
+}
+
+/*
  * Tests the reduction speed and searches for duplicates in reduced hashes.
  */
 int main() {
@@ -176,7 +214,7 @@ int main() {
 
     // Generate DEFAULT_PASSWORD_NUMBER digests
     printf("Generating digests...\n");
-    generate_digests(&digests, DEFAULT_PASSWORD_NUMBER);
+    generate_digests_inverse(&digests, DEFAULT_PASSWORD_NUMBER);
     //display_digests(&digests);
     printf("Digest generation done!\n\nEngaging reduction...\n");
 
@@ -195,9 +233,11 @@ int main() {
     printf("Reduction of %d digests ended after %f seconds.\nReduction rate: %f MR/s.\n", DEFAULT_PASSWORD_NUMBER,
            time_taken, reduce_rate);
 
+    display_reductions(&digests, &passwords, 5);
+
     int dup = count_duplicates(&passwords);
     printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, DEFAULT_PASSWORD_NUMBER,
-           (double) dup / DEFAULT_PASSWORD_NUMBER);
+           ((double) dup / DEFAULT_PASSWORD_NUMBER)*100);
 
     //display_passwords(&passwords);
     return 0;

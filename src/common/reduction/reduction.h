@@ -23,7 +23,7 @@
 // One hundred million 100000000
 // Ten millions 10000000
 // One thousand 1000
-#define DEFAULT_PASSWORD_NUMBER 1000000
+#define DEFAULT_PASSWORD_NUMBER 20000
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
@@ -52,7 +52,7 @@ void generate_pwd_from_text(char text[], Password *password);
  * Displays a single password properly, char by char.
  * pwd: the password to display.
  */
-void display_password(const Password *pwd);
+void display_password(const Password *pwd, bool br);
 
 /*
  * Displays a password array properly with chars.
@@ -64,7 +64,7 @@ void display_passwords(Password **passwords);
  * Displays a single digest properly.
  * digest: the digest to display.
  */
-void display_digest(Digest &digest);
+void display_digest(Digest &digest, bool br);
 
 /*
  * Displays a digest array properly with chars.
