@@ -240,6 +240,8 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
+        //TODO: save start points on disk
+
         Password *source = *h_passwords;
 
         // Device copies

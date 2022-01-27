@@ -35,7 +35,9 @@ __host__ void initArrays(Password ** passwords, Digest ** results, int passwordN
 __host__ void hashKernel(const int numberOfPass, int batchSize, float *milliseconds, const clock_t *program_start,
                          Digest **h_results, Password **h_passwords, int passwordNumber, int threadPerBlock);
 
-__host__ void chainKernel();
+__host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
+                          Password ** h_passwords, Digest ** h_results, int threadPerBlock,
+                          int chainLength);
 
 __host__ void printDigest(Digest * dig);
 

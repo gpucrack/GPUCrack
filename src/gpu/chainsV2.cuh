@@ -11,6 +11,7 @@
 #include "rainbow.cuh"
 
 __host__ int generateChains();
-__global__ void ntlm_chain_kernel2(Password * d_passwords, Digest * d_results, int chainLength);
+__global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int chainLength);
+__host__ int generateChains(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass);
 
 #endif //GPU_CRACK_CHAINSV2_CUH
