@@ -202,9 +202,11 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
     }
 }
 
-__host__ void chainKernel() {
+__host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
+                          Password ** h_passwords, Digest ** h_results, int threadPerBlock,
+                          int chainLength) {
 
-    // Device copies
+    // Device copies for endpoints
     Digest *d_results;
     Password *d_passwords;
 
@@ -217,7 +219,7 @@ __host__ void chainKernel() {
 
     cudaStreamCreate(&stream1);
 
-    int passwordRemaining = passwordNumber;
+    int chainsRemaining = passwordNumber;
     int currentIndex = 0;
 
     // Main loop, we add +1 to be sure to do all the batches in case
@@ -232,7 +234,7 @@ __host__ void chainKernel() {
 
         // If we have less than batchSize password to hash, then hash them all
         // but modify the batchSize to avoid index errors
-        if (passwordRemaining <= batchSize) batchSize = passwordRemaining;
+        if (chainsRemaining <= batchSize) batchSize = chainsRemaining;
 
         // GPU Malloc for the password array, size is batchSize
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
@@ -245,8 +247,8 @@ __host__ void chainKernel() {
                         cudaMemcpyHostToDevice, stream1);
 
         cudaEventRecord(start);
-        ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                d_passwords, d_results);
+        ntlm_chain_kernel2<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+                d_passwords, d_results, chainLength);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
@@ -272,7 +274,7 @@ __host__ void chainKernel() {
                         sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
 
         currentIndex += batchSize;
-        passwordRemaining -= batchSize;
+        chainsRemaining -= batchSize;
 
         // Cleanup before next loop to free memory
         cudaFree(d_passwords);
