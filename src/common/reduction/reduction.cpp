@@ -19,8 +19,8 @@ void generate_pwd_from_text(char text[], Password *password) {
 }
 
 void display_password(Password &pwd, bool br = true) {
-    for (unsigned char byte: pwd.bytes) {
-        printf("%c", (char) byte);
+    for(unsigned char i = 0; i < PASSWORD_LENGTH; i++) {
+        printf("%c", (unsigned char) pwd.bytes[i]);
     }
     if (br) printf("\n");
 }
@@ -32,8 +32,8 @@ void display_passwords(Password **passwords) {
 }
 
 void display_digest(Digest &digest, bool br = true) {
-    for (unsigned char byte: digest.bytes) {
-        printf("%02X", byte);
+    for(unsigned char i = 0; i < HASH_LENGTH; i++) {
+        printf("%02X", (unsigned char) digest.bytes[i]);
     }
     if (br) printf("\n");
 }
@@ -107,11 +107,11 @@ void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
 void reduce_digest_2(unsigned long index, Digest &digest, Password &plain_text) {
     uint8_t counter = digest.bytes[7];
     for (char i = 6; i >= 0; i--) {
-        counter <<= 8;
+        counter <<= 7;
         counter |= digest.bytes[i];
     }
     for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
-        plain_text.bytes[i] = charset[counter % CHARSET_LENGTH];
+        plain_text.bytes[i] = charset[(counter + index) % CHARSET_LENGTH];
         counter /= 64;
     }
 }
