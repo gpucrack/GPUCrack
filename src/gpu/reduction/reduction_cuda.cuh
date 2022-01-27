@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <time.h>
 
+
 // The length of the hash function.
 #define HASH_LENGTH 16
 
@@ -35,18 +36,11 @@ typedef union {
     uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
 } Password;
 
-// A digest put into a union.
+// A digest put into an union.
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[CEILING(HASH_LENGTH, 4)];
 } Digest;
-
-/*
- * Generates a password given a char array.
- * text: literal to be put into the password
- * password: result
-*/
-void generate_pwd_from_text(char text[], Password *password);
 
 /*
  * Displays a single password properly, char by char.
@@ -73,35 +67,6 @@ void display_digest(Digest &digest, bool br = true);
 void display_digests(Digest **digests);
 
 /*
- * Generates a password corresponding to a given number.
- * Used to create the start points of the rainbow table.
- * counter: number corresponding to the chain's index
- * plain_text: password corresponding to its counter
-*/
-void generate_password(unsigned long counter, Password &plain_text);
-
-/*
- * Fills passwords with n generated passwords.
- * passwords: the password array to fill.
- * n: the number of passwords to be generated.
- */
-void generate_passwords(Password **passwords, int n);
-
-/*
- * Generates a digest, filling it from right to left.
- * counter: this of it as a seed
- * hash: result digest
-*/
-void generate_digest(unsigned long counter, Digest &hash);
-
-/*
- * Generates a digest, filling it from left to right.
- * counter: this of it as a seed
- * hash: result digest
-*/
-void generate_digest_inverse(unsigned long counter, Digest &hash);
-
-/*
  * Fills digests with n pseudo-randomly generated digests.
  * digests: the digest array to fill.
  * n: the number of digests to be generated.
@@ -109,44 +74,20 @@ void generate_digest_inverse(unsigned long counter, Digest &hash);
 void generate_digests_random(Digest **digests, int n);
 
 /*
- * Fills digests with n incrementally generated digests.
- * 88888888, 88888846, 888888F7, 888888EA...
- * digests: the digest array to fill.
- * n: the number of digests to be generated.
- */
-void generate_digests(Digest **digests, int n);
-
-
-/*
- * Fills digests with n incrementally inverted generated digests.
- * 88888888, 46888888, F7888888, EA888888...
- * digests: the digest array to fill.
- * n: the number of digests to be generated.
- */
-void generate_digests_inverse(Digest **digests, int n);
-
-/*
- * Reduces a digest into a plain text like in Hellman tables, thus not using the column index.
- * This reduction function yields 0.031 % of duplicates on 100.000
- * digest: the digest to reduce
- * plain_text: the generated reduction
- */
-void reduce_digest_hellman(Digest &digest, Password &plain_text);
-
-/*
  * Reduces a digest into a plain text using the column index.
  * index: column index
  * digest: the digest to reduce
  * plain_text: the generated reduction
  */
-void reduce_digest(unsigned long index, Digest &digest, Password &plain_text);
+__device__ void reduce_digest(unsigned long index, Digest &digest, Password &plain_text);
 
 /*
- * Reduces every digest of an array into plain texts.
+ * Reduces every digest of an array into plain texts on GPU.
+ * Every thread of the GPU will compute a single reduction.
  * digests: the digest array to reduce
  * plain_texts: the generated reductions
  */
-void reduce_digests(Digest **digests, Password **plain_texts);
+__global__ void reduce_digests(Digest **digests, Password **plain_texts);
 
 /*
  * Compares two passwords.
@@ -163,6 +104,6 @@ int count_duplicates(Password **passwords, bool debug = false);
  * Displays a reduction as "DIGEST --> PASSWORD"
  * digests: the array of digests
  * passwords: the array of passwords
- * n (optional): only display the n first reductions
+ * n (optional): only display the n first recutions
  */
 void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_PASSWORD_NUMBER);
