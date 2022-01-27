@@ -43,7 +43,7 @@ typedef enum md4_constants {
 } md4_constants_t;
 
 /*
-    A kernel using the NTLM hash function.
+    A hashKernel using the NTLM hash function.
 
     `passwords` is the array containing all passwords to hash.
     `digests` contains all hashed passwords.

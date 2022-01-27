@@ -35,10 +35,10 @@ int main() {
             d_table);
     cudaEventRecord(end);
 
-    // Check for errors during kernel execution
+    // Check for errors during hashKernel execution
     cudaError_t cudaError = cudaDeviceSynchronize();
     if (cudaError != cudaSuccess) {
-        printf("kernel launch failed with error \"%s\".\n",
+        printf("hashKernel launch failed with error \"%s\".\n",
                cudaGetErrorString(cudaError));
         return 1;
     }

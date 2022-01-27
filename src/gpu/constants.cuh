@@ -9,7 +9,7 @@
 // The length of a password.
 #define PASSWORD_LENGTH 7
 
-// How many thread per block to launch the kernel
+// How many thread per block to launch the hashKernel
 // MUST BE A POWER OF 2
 #define THREAD_PER_BLOCK 512
 

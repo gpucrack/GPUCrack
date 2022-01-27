@@ -11,8 +11,8 @@ void hash(Password * h_passwords, Digest * h_results, int passwordNumber, int nu
 
     float milliseconds = 0;
 
-    kernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
-           THREAD_PER_BLOCK);
+    hashKernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
+               THREAD_PER_BLOCK);
 
     // Compute GPU time and hash rate
     printf("GPU PARALLEL HASH TIME : %f milliseconds\n", milliseconds);
@@ -38,8 +38,8 @@ void hashTime(Password *h_passwords, Digest * h_results, int passwordNumber, flo
     clock_t program_start, program_end;
     program_start = clock();
 
-    kernel(numberOfPass, batchSize, milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
-           threadPerBlock);
+    hashKernel(numberOfPass, batchSize, milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
+               threadPerBlock);
 
     // Compute GPU time and hash rate
     printf("GPU PARALLEL HASH TIME : %f milliseconds\n", *milliseconds);

@@ -31,8 +31,10 @@ __host__ void initEmptyArrays(Password ** passwords, Digest ** results, int pass
 __host__ void initArrays(Password ** passwords, Digest ** results, int passwordNumber);
 
 // Launches the ntlm_kernel function (from ./hash_functions/ntlm.cuh), which hashes the specified number of passwords using NTLM.
-__host__ void kernel(int numberOfPass, int batchSize, float *milliseconds, const clock_t *program_start,
-                     Digest **h_results, Password **h_passwords, int passwordNumber, int threadPerBlock);
+__host__ void hashKernel(const int numberOfPass, int batchSize, float *milliseconds, const clock_t *program_start,
+                         Digest **h_results, Password **h_passwords, int passwordNumber, int threadPerBlock);
+
+__host__ void chainKernel();
 
 __host__ void printDigest(Digest * dig);
 

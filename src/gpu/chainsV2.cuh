@@ -11,6 +11,5 @@
 #include "rainbow.cuh"
 
 __host__ int createChain();
-__global__ void ntlm_chain_kernel2(int t);
 
 #endif //GPU_CRACK_CHAINSV2_CUH

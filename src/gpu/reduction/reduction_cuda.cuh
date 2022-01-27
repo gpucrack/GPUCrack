@@ -16,7 +16,7 @@
 // The length of the digest charset
 #define DIGEST_CHARSET_LENGTH 16
 
-// How many thread per block to launch the kernel
+// How many thread per block to launch the hashKernel
 // MUST BE A POWER OF 2
 #define THREAD_PER_BLOCK 512
 
