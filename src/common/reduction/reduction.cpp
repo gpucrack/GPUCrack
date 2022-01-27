@@ -97,9 +97,20 @@ void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
     }
 }
 
+void reduce_digest_noloop(unsigned long index, Digest &digest, Password &plain_text) {
+    plain_text.bytes[0] = charset[(digest.bytes[0] + index) % CHARSET_LENGTH];
+    plain_text.bytes[1] = charset[(digest.bytes[1] + index) % CHARSET_LENGTH];
+    plain_text.bytes[2] = charset[(digest.bytes[2] + index) % CHARSET_LENGTH];
+    plain_text.bytes[3] = charset[(digest.bytes[3] + index) % CHARSET_LENGTH];
+    plain_text.bytes[4] = charset[(digest.bytes[4] + index) % CHARSET_LENGTH];
+    plain_text.bytes[5] = charset[(digest.bytes[5] + index) % CHARSET_LENGTH];
+    plain_text.bytes[6] = charset[(digest.bytes[6] + index) % CHARSET_LENGTH];
+
+}
+
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        reduce_digest(j, (*digests)[j], (*plain_texts)[j]);
+        reduce_digest_noloop(j, (*digests)[j], (*plain_texts)[j]);
     }
 }
 
