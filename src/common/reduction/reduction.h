@@ -52,7 +52,7 @@ void generate_pwd_from_text(char text[], Password *password);
  * Displays a single password properly, char by char.
  * pwd: the password to display.
  */
-void display_password(Password &pwd, bool br = true);
+void display_password(Password &pwd, bool br);
 
 /*
  * Displays a password array properly with chars.
@@ -64,7 +64,7 @@ void display_passwords(Password **passwords);
  * Displays a single digest properly.
  * digest: the digest to display.
  */
-void display_digest(Digest &digest, bool br = true);
+void display_digest(Digest &digest, bool br);
 
 /*
  * Displays a digest array properly with chars.
@@ -157,7 +157,7 @@ inline int pwdcmp(Password &p1, Password &p2);
 /*
  * Finds the number of duplicates in a password array
  */
-int count_duplicates(Password **passwords, bool debug = false);
+int count_duplicates(Password **passwords, bool debug);
 
 /*
  * Displays a reduction as "DIGEST --> PASSWORD"
@@ -165,4 +165,4 @@ int count_duplicates(Password **passwords, bool debug = false);
  * passwords: the array of passwords
  * n (optional): only display the n first reductions
  */
-void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_PASSWORD_NUMBER);
+void display_reductions(Digest **digests, Password **passwords, int n);
