@@ -1,4 +1,4 @@
-#include "reduction.cuh"
+#include "reduction_cuda.cuh"
 
 // Global variables for GPU
 __device__ password_length_gpu = PASSWORD_LENGTH;
