@@ -9,7 +9,7 @@ add_executable(Chains
         src/gpu/chains.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/rainbow.cu
-        src/gpu/commons.cu)
+        src/gpu/commons.cu src/gpu/chainsV2.cu src/gpu/chainsV2.cuh)
 
 add_executable(benchmarkTest
         src/gpu/hash/test/benchmarkTest.cu
