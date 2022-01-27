@@ -116,6 +116,7 @@ void reduce_digest_2(unsigned long index, Digest &digest, Password &plain_text) 
     }
 }
 
+// Just for testing speed
 void reduce_digest_3(Password &plain_text) {
     for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
         plain_text.bytes[i] = (uint8_t) 'a';
