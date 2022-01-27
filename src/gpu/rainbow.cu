@@ -1,5 +1,3 @@
-#include "constants.cuh"
-#include "hash_functions/ntlm.cuh"
 #include "rainbow.cuh"
 
 __device__ inline int pwdcmp(Password *p1, Password *p2) {

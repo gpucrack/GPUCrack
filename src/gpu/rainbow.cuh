@@ -3,13 +3,14 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <assert.h>
-#include <math.h>
-#include <openssl/sha.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cmath>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "constants.cuh"
+#include "./hash/hash_functions/ntlm.cuh"
 
 #include "constants.cuh"
 

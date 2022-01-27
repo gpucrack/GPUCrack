@@ -2,6 +2,8 @@
 
 void benchmark(int passwordNumber) {
     double maxHashRate;
+    double hashRateSum;
+    double bestHashRateMean;
     int bestValue;
 
     Password * passwords;
@@ -11,10 +13,7 @@ void benchmark(int passwordNumber) {
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    //printf("\n==========LAUNCHING BENCHMARK==========\n");
-
     for (int k = 2; k <= MAX_THREAD_NUMBER; k = k * 2) {
-        //printf("\n==========TEST K= %d==========\n", k);
         for (int i = 0; i < NUMBER_OF_TEST; i++) {
 
             float milliseconds = 0;
@@ -22,18 +21,26 @@ void benchmark(int passwordNumber) {
             hashTime(passwords, result, passwordNumber, &milliseconds, k,
                      numberOfPass);
 
-            double hashrate = (passwordNumber / (milliseconds / 1000)) / 1000000;
+            double hashrate = ((float)passwordNumber / (milliseconds / 1000)) / 1000000;
 
             if (hashrate > maxHashRate) {
                 maxHashRate = hashrate;
-                bestValue = k;
             }
+
+            hashRateSum += hashrate;
+        }
+
+        double currentHashRateMean = hashRateSum / NUMBER_OF_TEST;
+        if (currentHashRateMean > bestHashRateMean) {
+            bestValue = k;
+            bestHashRateMean = currentHashRateMean;
         }
     }
 
+
+
     printf("MAX HASHRATE : %f\n", maxHashRate);
-    printf("BEST THREAD PER BLOCK VALUE : %d\n", bestValue);
-    //printf("====================\n");
+    printf("BEST THREAD PER BLOCK VALUE : %d WITH MEAN : %f\n", bestValue, bestHashRateMean);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);
