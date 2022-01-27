@@ -1,12 +1,15 @@
 #include "reduction.h"
 
 // The character set used for passwords.
-static const unsigned char charset[64] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J'
-                                       ,'K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c',
-                                       'd','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t',
-                                       'u','v','w','x','y','z','-','_'};
+static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+                                          'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                                          'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
+                                          'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+                                          's', 't',
+                                          'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
 // The character set used for digests (NTLM hashes).
-static const char hashset[16] = {(char)0x88, 0x46, (char)0xF7,(char) 0xEA,(char) 0xEE,(char) 0x8F,(char) 0xB1, 0x17,(char) 0xAD, 0x06, (char)0xBD, (char)0xD8, 0x30, (char)0xB7,
+static const unsigned char hashset[DIGEST_CHARSET_LENGTH] = {0x88, 0x46, 0xF7, 0xEA, 0xEE, 0x8F, 0xB1,
+                                 0x17, 0xAD, 0x06, 0xBD, 0xD8, 0x30, 0xB7,
                                  0x58, 0x6C};
 
 void generate_pwd_from_text(char text[], Password *password) {
@@ -100,20 +103,28 @@ void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
     }
 }
 
-void reduce_digest_noloop(unsigned long index, Digest &digest, Password &plain_text) {
-    plain_text.bytes[0] = charset[(digest.bytes[0] + index) % CHARSET_LENGTH];
-    plain_text.bytes[1] = charset[(digest.bytes[1] + index) % CHARSET_LENGTH];
-    plain_text.bytes[2] = charset[(digest.bytes[2] + index) % CHARSET_LENGTH];
-    plain_text.bytes[3] = charset[(digest.bytes[3] + index) % CHARSET_LENGTH];
-    plain_text.bytes[4] = charset[(digest.bytes[4] + index) % CHARSET_LENGTH];
-    plain_text.bytes[5] = charset[(digest.bytes[5] + index) % CHARSET_LENGTH];
-    plain_text.bytes[6] = charset[(digest.bytes[6] + index) % CHARSET_LENGTH];
+// Does not work: 27 MR/s and 99.62% of duplicates in 10.000 reductions.
+void reduce_digest_2(unsigned long index, Digest &digest, Password &plain_text) {
+    uint8_t counter = digest.bytes[7];
+    for (char i = 6; i >= 0; i--) {
+        counter <<= 8;
+        counter |= digest.bytes[i];
+    }
+    for (int i = PASSWORD_LENGTH - 1; i >= 0; i--) {
+        plain_text.bytes[i] = charset[counter % CHARSET_LENGTH];
+        counter /= 64;
+    }
+}
 
+void reduce_digest_3(Password &plain_text) {
+    for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
+        plain_text.bytes[i] = (uint8_t) 'a';
+    }
 }
 
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        reduce_digest_noloop(j, (*digests)[j], (*plain_texts)[j]);
+        reduce_digest(j, (*digests)[j], (*plain_texts)[j]);
     }
 }
 
@@ -133,9 +144,12 @@ int count_duplicates(Password **passwords, bool debug = false) {
         for (int j = i + 1; j < DEFAULT_PASSWORD_NUMBER; j++) {
             // Increment count by 1 if duplicate found
             if (pwdcmp((*passwords)[i], (*passwords)[j])) {
-                printf("Found a duplicate : ");
-                display_password((*passwords)[i]);
+                if (debug) {
+                    printf("Found a duplicate : ");
+                    display_password((*passwords)[i]);
+                }
                 count++;
+                break;
             }
         }
     }
@@ -187,9 +201,9 @@ int main() {
 
     display_reductions(&digests, &passwords, 5);
 
-    /*int dup = count_duplicates(&passwords);
+    int dup = count_duplicates(&passwords);
     printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, DEFAULT_PASSWORD_NUMBER,
-           ((double) dup / DEFAULT_PASSWORD_NUMBER) * 100);*/
+           ((double) dup / DEFAULT_PASSWORD_NUMBER) * 100);
 
     //display_passwords(&passwords);
     return 0;
