@@ -1,21 +1,4 @@
-/*
- * Author: Maxime Missichini
- * Email: missichini.maxime@gmail.com
- * -----
- * File: hash.cu
- * Created Date: 28/09/2021
- * -----
- *
- */
-
-#include <cuda_runtime.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-
-#include "commons.cuh"
-#include "rainbow.cuh"
+#include "chains.cuh"
 
 int main() {
     double program_time_used;
@@ -23,8 +6,8 @@ int main() {
     program_start = clock();
 
     RainbowTable table;
-    table.length = PASSWORD_NUMBER;
-    cudaMalloc(&table.chains, sizeof(RainbowChain) * PASSWORD_NUMBER);
+    table.length = DEFAULT_PASSWORD_NUMBER;
+    cudaMalloc(&table.chains, sizeof(RainbowChain) * DEFAULT_PASSWORD_NUMBER);
     RainbowChain *d_chains = table.chains;
 
     /*
@@ -48,7 +31,7 @@ int main() {
 
     cudaEventRecord(start);
 
-    ntlm_chain_kernel<<<PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(
+    ntlm_chain_kernel<<<DEFAULT_PASSWORD_NUMBER / THREAD_PER_BLOCK, THREAD_PER_BLOCK>>>(
             d_table);
     cudaEventRecord(end);
 
@@ -71,8 +54,8 @@ int main() {
     cudaMemcpy(&table, d_table, sizeof(RainbowTable), cudaMemcpyDeviceToHost);
 
     table.chains =
-            (RainbowChain *) malloc(PASSWORD_NUMBER * sizeof(RainbowChain));
-    cudaMemcpy(table.chains, d_chains, sizeof(RainbowChain) * PASSWORD_NUMBER,
+            (RainbowChain *) malloc(DEFAULT_PASSWORD_NUMBER * sizeof(RainbowChain));
+    cudaMemcpy(table.chains, d_chains, sizeof(RainbowChain) * DEFAULT_PASSWORD_NUMBER,
                cudaMemcpyDeviceToHost);
 
     printf("CHAINS RETRIEVED IN %f seconds\n",
@@ -87,7 +70,7 @@ int main() {
 
     printf("GPU PARALLEL HASH TIME : %f seconds\n", milliseconds / 1000);
     printf("HASH RATE (adjusted with TABLE_T) : %f MH/s\n",
-           (PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000 * TABLE_T);
+           (DEFAULT_PASSWORD_NUMBER / (milliseconds / 1000)) / 1000000 * TABLE_T);
 
     // Cleanup
     cudaFree(d_table);
