@@ -3,7 +3,7 @@
 // The character set used for passwords.
 static const char *charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 // The character set used for digests (NTLM hashes).
-static const char hashset[16] = {0x88, 0x46, 0xF7, 0xEA, 0xEE, 0x8F, 0xB1, 0x17, 0xAD, 0x06, 0xBD, 0xD8, 0x30, 0xB7,
+static const char hashset[16] = {(char)0x88, 0x46, (char)0xF7,(char) 0xEA,(char) 0xEE,(char) 0x8F,(char) 0xB1, 0x17,(char) 0xAD, 0x06, (char)0xBD, (char)0xD8, 0x30, (char)0xB7,
                                  0x58, 0x6C};
 
 void generate_pwd_from_text(char text[], Password *password) {

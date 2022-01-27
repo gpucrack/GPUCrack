@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(GPU_crack CUDA)
+project(GPU_crack CUDA CXX)
 
 set(CMAKE_CUDA_STANDARD 14)
 
@@ -29,6 +29,9 @@ add_executable(complianceTest
         src/gpu/hash/test/complianceTest.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash.cuh)
+
+add_executable(reduction
+        src/common/reduction/reduction.cpp)
 
 
 set_target_properties(Chains PROPERTIES
