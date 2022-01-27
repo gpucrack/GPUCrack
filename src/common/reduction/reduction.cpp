@@ -1,7 +1,10 @@
 #include "reduction.h"
 
 // The character set used for passwords.
-static const char *charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
+static const unsigned char charset[64] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J'
+                                       ,'K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c',
+                                       'd','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t',
+                                       'u','v','w','x','y','z','-','_'};
 // The character set used for digests (NTLM hashes).
 static const char hashset[16] = {(char)0x88, 0x46, (char)0xF7,(char) 0xEA,(char) 0xEE,(char) 0x8F,(char) 0xB1, 0x17,(char) 0xAD, 0x06, (char)0xBD, (char)0xD8, 0x30, (char)0xB7,
                                  0x58, 0x6C};

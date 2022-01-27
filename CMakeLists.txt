@@ -30,8 +30,11 @@ add_executable(complianceTest
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash.cuh)
 
-add_executable(reduction
+add_executable(reductionCPU
         src/common/reduction/reduction.cpp)
+
+add_executable(reduction
+        src/gpu/reduction/reduction_cuda.cu)
 
 
 set_target_properties(Chains PROPERTIES
@@ -46,3 +49,8 @@ set_target_properties(generalTest PROPERTIES
 set_target_properties(complianceTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
+set_target_properties(reductionCPU PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(reduction PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
