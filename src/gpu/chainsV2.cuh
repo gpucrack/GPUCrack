@@ -10,7 +10,6 @@
 #include "commons.cuh"
 #include "rainbow.cuh"
 
-__host__ int generateChains();
 __global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int chainLength);
 __host__ int generateChains(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass);
 

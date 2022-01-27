@@ -29,8 +29,7 @@ __global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int c
 
     for (int i=0; i<chainLength; i++){
         ntlm(&passwords[index], &digests[index]);
-        //Par overwrite
-        //reduction(&passwords[index], &digests[index]);
+        //TODO reduction(&passwords[index], &digests[index]);
     }
 }
 
