@@ -275,6 +275,12 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         cudaMemcpyAsync(&(destination[currentIndex]), d_results,
                         sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
 
+        Password *destination2 = *h_passwords;
+        // Device to host copy
+
+        cudaMemcpyAsync(&(destination2[currentIndex]), d_passwords,
+                        sizeof(Password) * batchSize, cudaMemcpyDeviceToHost, stream1);
+
         currentIndex += batchSize;
         chainsRemaining -= batchSize;
 
@@ -284,16 +290,16 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
     }
 }
 
-__host__ void printDigest(Digest * dig) {
+__device__ __host__ void printDigest(Digest * dig) {
 
     for(unsigned char byte : dig->bytes){
-        printf("%X02", byte);
+        printf("%x", byte);
     }
 
     printf("\n");
 }
 
-__host__ void printPassword(Password * pwd) {
+__device__ __host__ void printPassword(Password * pwd) {
     for(unsigned char byte : pwd->bytes){
         printf("%c", byte);
     }

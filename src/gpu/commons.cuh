@@ -39,7 +39,7 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
                           Password ** h_passwords, Digest ** h_results, int threadPerBlock,
                           int chainLength);
 
-__host__ void printDigest(Digest * dig);
+__device__ __host__ void printDigest(Digest * dig);
 
-__host__ void printPassword(Password * pwd);
+__device__ __host__ void printPassword(Password * pwd);
 #endif //GPU_CRACK_COMMONS_CUH
