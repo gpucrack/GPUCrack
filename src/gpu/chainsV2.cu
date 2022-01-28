@@ -47,18 +47,9 @@ __host__ void generateChains(Password * h_passwords, Digest * h_results, int pas
 }
 
 __device__ void reduce_digest(unsigned int index, Digest * digest, Password  * plain_text) {
-    if (index == 666){
-        printf("INPUT\n");
-        printPassword(plain_text);
-    }
     for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
         (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % 64];
     }
-    if (index == 666){
-        printf("OUTPUT\n");
-        printPassword(plain_text);
-    }
-
 }
 
 __global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int chainLength) {
