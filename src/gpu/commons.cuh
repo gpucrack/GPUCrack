@@ -14,6 +14,7 @@
 
 #include "./hash/hash_functions/ntlm.cuh"
 #include "./chainsV2.cuh"
+#include "./hash/hash.cuh"
 
 // Generates passwordNumber random passwords, using a 62 character alphanumeric charset.
 // The charset contains [a-zA-Z0-9].
@@ -34,10 +35,6 @@ __host__ void initArrays(Password ** passwords, Digest ** results, int passwordN
 // Launches the ntlm_kernel function (from ./hash_functions/ntlm.cuh), which hashes the specified number of passwords using NTLM.
 __host__ void hashKernel(const int numberOfPass, int batchSize, float *milliseconds, const clock_t *program_start,
                          Digest **h_results, Password **h_passwords, int passwordNumber, int threadPerBlock);
-
-__host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
-                          Password ** h_passwords, Digest ** h_results, int threadPerBlock,
-                          int chainLength);
 
 __device__ __host__ void printDigest(Digest * dig);
 
