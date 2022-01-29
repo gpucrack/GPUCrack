@@ -40,7 +40,7 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
         // reference results of comparison
         if (comparison != -2 & comparison != 1) {
             printf("TEST FAILED ! %d\n", comparison);
-            printf("FAILED @ DIGEST N°%d, CHARACTER N°%d\n", i);
+            printf("FAILED @ DIGEST N°%d\n", i);
             printf("THIS IS THE FAIL SAMPLE: ");
             for (unsigned char byte: result[i].bytes) {
                 printf("%x", byte);
