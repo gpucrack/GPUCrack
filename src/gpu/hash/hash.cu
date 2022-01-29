@@ -52,3 +52,84 @@ void hashTime(Password *h_passwords, Digest * h_results, int passwordNumber, flo
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 }
+
+__host__ void hashKernel(const int numberOfPass, int batchSize,
+                         float *milliseconds, const clock_t *program_start,
+                         Digest **h_results, Password **h_passwords, int passwordNumber,
+                         int threadPerBlock) {
+
+    // Device copies
+    Digest *d_results;
+    Password *d_passwords;
+
+    // Measure GPU time
+    cudaEvent_t start, end;
+    cudaEventCreate(&start);
+    cudaEventCreate(&end);
+
+    cudaStream_t stream1;
+
+    cudaStreamCreate(&stream1);
+
+    int passwordRemaining = passwordNumber;
+    int currentIndex = 0;
+
+    // Main loop, we add +1 to be sure to do all the batches in case
+    // we have 2.5 for example, it'll be 3 passes
+    for (int i = 0; i<numberOfPass; i++) {
+        // Temporary variable to measure GPU time inside this loop
+        float tempMilli = 0;
+
+        // If the currentIndex to save result is greater than the number of
+        // password we must stop
+        if (currentIndex >= passwordNumber) break;
+
+        // If we have less than batchSize password to hash, then hash them all
+        // but modify the batchSize to avoid index errors
+        if (passwordRemaining <= batchSize) batchSize = passwordRemaining;
+
+        // GPU Malloc for the password array, size is batchSize
+        cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
+        cudaMalloc(&d_results, sizeof(Digest) * batchSize);
+
+        Password *source = *h_passwords;
+
+        // Device copies
+        cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+                        cudaMemcpyHostToDevice, stream1);
+
+        cudaEventRecord(start);
+        ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+                d_passwords, d_results);
+        cudaEventRecord(end);
+        cudaEventSynchronize(end);
+
+        // Necessary procedure to record time and store the elasped time in
+        // tempMilli
+        cudaEventElapsedTime(&tempMilli, start, end);
+        *milliseconds += tempMilli;
+        cudaEventDestroy(start);
+        cudaEventDestroy(end);
+
+        // Check for errors during hashKernel execution
+        cudaError_t cudaerr = cudaDeviceSynchronize();
+        if (cudaerr != cudaSuccess) {
+            printf("hashKernel launch failed with error \"%s\".\n",
+                   cudaGetErrorString(cudaerr));
+            exit(1);
+        }
+
+        Digest *destination = *h_results;
+        // Device to host copy
+
+        cudaMemcpyAsync(&(destination[currentIndex]), d_results,
+                        sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
+
+        currentIndex += batchSize;
+        passwordRemaining -= batchSize;
+
+        // Cleanup before next loop to free memory
+        cudaFree(d_passwords);
+        cudaFree(d_results);
+    }
+}
