@@ -30,11 +30,13 @@ __host__ void generateChains(Password * h_passwords, Digest * h_results, int pas
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
             &h_passwords, &h_results, THREAD_PER_BLOCK, t);
 
-    //TODO : save endingpoints on disk
+    //TODO : save ending points on disk
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
     printf("CHAIN RATE : %f MC/s\n",
-           (passwordNumber / (milliseconds / 1000)) / 1000000);
+           ((float)(passwordNumber) / (milliseconds / 1000)) / 1000000);
+    printf("HASH/REDUCTION : %f MHR/s\n",
+           (((float)(passwordNumber) / (milliseconds / 1000)) / 1000000) * (float)t) ;
 
     program_end = clock();
     program_time_used =
