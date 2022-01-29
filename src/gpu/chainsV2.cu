@@ -64,7 +64,7 @@ __global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int c
 
     for (int i=0; i<chainLength-1; i++){
         ntlm(&passwords[index], &digests[index]);
-        reduce_digest(index ,&digests[index], &passwords[index]);
+        reduce_digest(i ,&digests[index], &passwords[index]);
     }
     ntlm(&passwords[index], &digests[index]);
 }
