@@ -23,7 +23,6 @@ void chainCompliance(int passwordNumber, Password * passwords, Digest * result, 
     hash(referencePassword, referenceDigest, 1, 1);
     printf("\nBECOMES:\n");
     printDigest(referenceDigest);
-
     printf("\n\n");
 
 }

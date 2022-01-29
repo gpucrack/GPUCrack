@@ -62,10 +62,11 @@ __global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int c
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    for (int i=0; i<chainLength; i++){
+    for (int i=0; i<chainLength-1; i++){
         ntlm(&passwords[index], &digests[index]);
         reduce_digest(index ,&digests[index], &passwords[index]);
     }
+    ntlm(&passwords[index], &digests[index]);
 }
 
 __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
