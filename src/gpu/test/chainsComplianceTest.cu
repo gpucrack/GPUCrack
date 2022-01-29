@@ -1,26 +1,30 @@
 #include "chainsComplianceTest.cuh"
 
 
-void chainCompliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass,
-                     const unsigned char * referencePassword, unsigned char * referenceResult) {
-
-    printf("\n==========FILLING PASSWORD ARRAY WITH REFERENCE PASSWORD==========\n");
-
-    // Fill passwords with reference sentence
-    for (int j = 0; j < passwordNumber; j++) {
-        for (int i = 0; i < PASSWORD_LENGTH; i++) {
-            passwords[j].bytes[i] = referencePassword[i];
-        }
-    }
+void chainCompliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass) {
 
     generateChains(passwords, result, passwordNumber, numberOfPass);
 
-    printf("\n==========OUTPUTS==========\n");
+    printf("\n==========SAMPLE OF OUTPUTS==========\n");
     for(int i=passwordNumber-1; i<passwordNumber; i++) {
         printPassword(&(passwords[i]));
         printDigest(&(result[i]));
     }
     printf("\n");
+
+    printf("\n==========COMPLIANCE TEST==========\n");
+
+    Password * referencePassword = &(passwords[passwordNumber-1]);
+    Digest * referenceDigest = &(result[passwordNumber-1]);
+
+    printf("RESULTS FROM BASE FUNCTION : \n");
+    printPassword(referencePassword);
+    printf("\n");
+    hash(referencePassword, referenceDigest, 1, 1);
+    printf("\nBECOMES:\n");
+    printDigest(referenceDigest);
+
+    printf("\n\n");
 
 }
 
@@ -31,15 +35,12 @@ int main() {
     Password * passwords;
     Digest * result;
 
-    initEmptyArrays(&passwords, &result, passwordNumber);
+    initArrays(&passwords, &result, passwordNumber);
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    unsigned char REFERENCE_START_PASSWORD[PASSWORD_LENGTH] = {'1','2','3','4','5','6','7'};
+    chainCompliance(passwordNumber, passwords, result, numberOfPass);
 
-    unsigned char REFERENCE_END_PASSWORD[PASSWORD_LENGTH] = {'1','2','3','4','5','6','7'};
-
-    unsigned char REFERENCE_END_RESULT[HASH_LENGTH*2] = {'3', '2', '8', '7', '2', '7', 'b', '8', '1', 'c', 'a',
-                                                      '0', '5', '8', '0', '5', 'a','6', '8', 'e', 'f', '2',
-                                                      '6', 'a', 'c', 'b', '2', '5', '2', '0', '3', '9'};
+    cudaFreeHost(passwords);
+    cudaFreeHost(result);
 }

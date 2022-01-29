@@ -12,5 +12,8 @@ int main(){
 
     generateChains(passwords, result, passwordNumber, numberOfPass);
 
+    cudaFreeHost(passwords);
+    cudaFreeHost(result);
+
     return 0;
 }

@@ -98,6 +98,10 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
         cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
                         cudaMemcpyHostToDevice, stream1);
 
+        if (batchSize < threadPerBlock) {
+            threadPerBlock = batchSize;
+        }
+
         cudaEventRecord(start);
         ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
                 d_passwords, d_results);

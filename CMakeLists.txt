@@ -42,7 +42,11 @@ add_executable(chainTest
         src/gpu/hash/hash_functions/ntlm.cu)
 
 add_executable(chainsComplianceTest
-        src/gpu/test/chainsComplianceTest.cu)
+        src/gpu/test/chainsComplianceTest.cu
+        src/gpu/commons.cu
+        src/gpu/chainsV2.cu
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/gpu/hash/hash.cu)
 
 
 set_target_properties(Chains PROPERTIES
