@@ -159,5 +159,5 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
     }
     cudaStreamDestroy(stream1);
     createFile((char *) "../src/testEnd.txt");
-    writeEnding((char *) "../src/testEnd.txt", h_passwords, h_results, passwordNumber);
+    writeEnding((char *) "../src/testEnd.txt", h_results, passwordNumber);
 }

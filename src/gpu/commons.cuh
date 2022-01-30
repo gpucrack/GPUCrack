@@ -38,8 +38,23 @@ __device__ __host__ void printPassword(Password * pwd);
 
 __host__ void createFile(char * name);
 
+/**
+ * Opens or create a file located at the given path.
+ * @param path the path of the file.
+ * @return a std::ofstream of the file, which can be used to write data into the file
+ */
+__host__ std::ofstream openFile(const char * path);
+
 __host__ void writeStarting(char * name, Password ** passwords, int passwordNumber);
 
-__host__ void writeEnding(char * name, Password ** passwords, Digest ** results, int passwordNumber);
+__host__ void writeEndingReduction(char * name, Password ** passwords, Digest ** results, int passwordNumber);
+
+/**
+ * Writes end points (hashes) into a text file.
+ * @param path the path of the file to save.
+ * @param results the array containing every end point.
+ * @param endpointNumber the number of end points (called m_t).
+ */
+__host__ void writeEnding(char * path, Digest ** results, int endpointNumber, bool debug = false);
 
 #endif //GPU_CRACK_COMMONS_CUH

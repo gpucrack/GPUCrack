@@ -160,7 +160,7 @@ __host__ void writeStarting(char * name, Password ** passwords, int passwordNumb
     file.close();
 }
 
-__host__ void writeEnding(char * name, Password ** passwords, Digest ** results, int passwordNumber) {
+__host__ void writeEndingReduction(char * name, Password ** passwords, Digest ** results, int passwordNumber) {
     std::ofstream file;
     file.open(name);
 
@@ -179,5 +179,35 @@ __host__ void writeEnding(char * name, Password ** passwords, Digest ** results,
     }
 
     printf("FILE WRITTEN\n");
+    file.close();
+}
+
+__host__ std::ofstream openFile(const char * path) {
+    std::ofstream file;
+    file.open(path);
+
+    // Check if the file was correctly opened
+    if(!file.is_open()) {
+        printf("Error: couldn't open file in %s.\n", path);
+    }
+
+    return file;
+}
+
+__host__ void writeEnding(char * path, Digest ** results, int endpointNumber, bool debug) {
+    std::ofstream file = openFile(path);
+
+    // Iterate through every end point
+    for(int i=0; i< endpointNumber; i++) {
+        // Iterate through every byte of the end point
+        for(int j=0; j<HASH_LENGTH; j++){
+            char buf[HASH_LENGTH];
+            sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
+            file << buf;
+        }
+        file << std::endl;
+    }
+
+    if (debug) printf("FILE WRITTEN\n");
     file.close();
 }
