@@ -155,4 +155,6 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         cudaFree(d_passwords);
         cudaFree(d_results);
     }
+
+    cudaStreamDestroy(stream1);
 }

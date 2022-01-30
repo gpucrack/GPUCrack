@@ -11,11 +11,11 @@ int main() {
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    hash(passwords, result, passwordNumber, numberOfPass);
+    hash(passwords, result, passwordNumber, numberOfPass, false);
 
     generateNewPasswords(&passwords, passwordNumber);
 
-    hash(passwords, result, passwordNumber, numberOfPass);
+    hash(passwords, result, passwordNumber, numberOfPass, false);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

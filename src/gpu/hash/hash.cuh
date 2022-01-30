@@ -6,7 +6,7 @@
 
 #include "../commons.cuh"
 
-void hash(Password *h_passwords, Digest * h_results, int passwordNumber, int numberOfPass);
+void hash(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, bool noPrint);
 
 void hashTime(Password *h_passwords, Digest * h_results, int passwordNumber, float *milliseconds,
               int threadPerBlock, int numberOfPass);

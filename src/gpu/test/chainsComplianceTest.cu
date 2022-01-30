@@ -16,12 +16,16 @@ void chainCompliance(int passwordNumber, Password * passwords, Digest * result, 
 
     printf("COMPARING ALL RESULTS TO REFERENCE RESULT\n");
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < passwordNumber; i++) {
 
-        Password * referencePassword = &(passwords[i]);
-        auto * referenceDigest = (Digest *)malloc(sizeof(Digest));
+        Password * referencePassword;
+        Digest * referenceDigest;
 
-        hash(referencePassword, referenceDigest, 1, 1);
+        initEmptyArrays(&referencePassword, &referenceDigest, 1);
+
+        memcpy((*referencePassword).bytes, passwords[i].bytes, sizeof(uint8_t) * PASSWORD_LENGTH);
+
+        hash(referencePassword, referenceDigest, 1, 1, true);
 
         int comparison = memcmp((result[i]).bytes, (*referenceDigest).bytes, HASH_LENGTH);
         if (comparison != 0) {
@@ -34,17 +38,15 @@ void chainCompliance(int passwordNumber, Password * passwords, Digest * result, 
             exit(1);
         }
 
-        referencePassword = nullptr;
-
-        free(referencePassword);
-        free(referenceDigest);
+        cudaFreeHost(referencePassword);
+        cudaFreeHost(referenceDigest);
     }
     printf("TEST PASSED !\n");
 }
 
 int main() {
 
-    int passwordNumber = DEFAULT_PASSWORD_NUMBER;
+    int passwordNumber = 33554432;
 
     Password * passwords;
     Digest * result;

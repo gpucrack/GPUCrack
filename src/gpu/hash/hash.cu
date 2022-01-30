@@ -1,6 +1,6 @@
 #include "hash.cuh"
 
-void hash(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass) {
+void hash(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, bool noPrint) {
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
@@ -14,16 +14,18 @@ void hash(Password * h_passwords, Digest * h_results, int passwordNumber, int nu
     hashKernel(numberOfPass, batchSize, &milliseconds, &program_start, &h_results, &h_passwords, passwordNumber,
                THREAD_PER_BLOCK);
 
-    // Compute GPU time and hash rate
-    printf("GPU PARALLEL HASH TIME : %f milliseconds\n", milliseconds);
-    printf("HASH RATE : %f MH/s\n",
-           (passwordNumber / (milliseconds / 1000)) / 1000000);
+    if(!noPrint) {
+        // Compute GPU time and hash rate
+        printf("GPU PARALLEL HASH TIME : %f milliseconds\n", milliseconds);
+        printf("HASH RATE : %f MH/s\n",
+               (passwordNumber / (milliseconds / 1000)) / 1000000);
 
-    // End and compute total time
-    program_end = clock();
-    program_time_used =
-            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
-    printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
+        // End and compute total time
+        program_end = clock();
+        program_time_used =
+                ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
+        printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
+    }
 }
 
 
@@ -108,7 +110,7 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
-        // Necessary procedure to record time and store the elasped time in
+        // Necessary procedure to record time and store the elapsed time in
         // tempMilli
         cudaEventElapsedTime(&tempMilli, start, end);
         *milliseconds += tempMilli;
@@ -136,4 +138,6 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
         cudaFree(d_passwords);
         cudaFree(d_results);
     }
+
+    cudaStreamDestroy(stream1);
 }
