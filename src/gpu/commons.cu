@@ -1,6 +1,6 @@
 #include "commons.cuh"
 
-__host__ void generatePasswords(Password ** result, int passwordNumber) {
+__host__ void generatePasswords(Password **result, int passwordNumber) {
 
     cudaError_t status = cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault);
     if (status != cudaSuccess)
@@ -9,7 +9,7 @@ __host__ void generatePasswords(Password ** result, int passwordNumber) {
     generateNewPasswords(result, passwordNumber);
 }
 
-__host__ void generateNewPasswords(Password ** result, int passwordNumber) {
+__host__ void generateNewPasswords(Password **result, int passwordNumber) {
 
     char charSet[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
                         't', 'u', 'v', 'w', 'x',
@@ -24,7 +24,7 @@ __host__ void generateNewPasswords(Password ** result, int passwordNumber) {
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
-        for (int i=0; i<PASSWORD_LENGTH; i++) {
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
             (*result)[j].bytes[i] = charSet[distr(gen)];
         }
     }
@@ -99,7 +99,7 @@ __host__ int computeBatchSize(int numberOfPass, int passwordNumber) {
     return batchSize;
 }
 
-__host__ void initEmptyArrays(Password ** passwords, Digest ** results, int passwordNumber) {
+__host__ void initEmptyArrays(Password **passwords, Digest **results, int passwordNumber) {
 
     cudaError_t status = cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault);
     if (status != cudaSuccess)
@@ -111,7 +111,7 @@ __host__ void initEmptyArrays(Password ** passwords, Digest ** results, int pass
 
 }
 
-__host__ void initArrays(Password ** passwords, Digest ** results, int passwordNumber) {
+__host__ void initArrays(Password **passwords, Digest **results, int passwordNumber) {
 
     generatePasswords(passwords, passwordNumber);
 
@@ -121,45 +121,45 @@ __host__ void initArrays(Password ** passwords, Digest ** results, int passwordN
 
 }
 
-__device__ __host__ void printDigest(Digest * dig) {
+__device__ __host__ void printDigest(Digest *dig) {
 
-    for(unsigned char byte : dig->bytes){
+    for (unsigned char byte : dig->bytes) {
         printf("%02X", byte);
     }
 
     printf("\n");
 }
 
-__device__ __host__ void printPassword(Password * pwd) {
-    for(unsigned char byte : pwd->bytes){
+__device__ __host__ void printPassword(Password *pwd) {
+    for (unsigned char byte : pwd->bytes) {
         printf("%c", byte);
     }
     printf("\n");
 }
 
-__host__ void createFile(char * name) {
+__host__ void createFile(char *name) {
     // Creating file
-    std::ofstream file (name);
+    std::ofstream file(name);
     printf("CREATING FILE\n");
 }
 
-__host__ std::ofstream openFile(const char * path) {
+__host__ std::ofstream openFile(const char *path) {
     std::ofstream file;
     file.open(path);
 
     // Check if the file was correctly opened
-    if(!file.is_open()) {
+    if (!file.is_open()) {
         printf("Error: couldn't open file in %s.\n", path);
     }
 
     return file;
 }
 
-__host__ void writeStarting(char * path, Password ** passwords, int startNumber, bool debug) {
+__host__ void writeStarting(char *path, Password **passwords, int startNumber, bool debug) {
     std::ofstream file = openFile(path);
 
     // Iterate through every start point
-    for(int i=0; i<startNumber; i++) {
+    for (int i = 0; i < startNumber; i++) {
         file << (*passwords)[i].bytes << std::endl;
     }
 
@@ -168,14 +168,14 @@ __host__ void writeStarting(char * path, Password ** passwords, int startNumber,
 }
 
 
-__host__ void writeEndingReduction(char * path, Password ** passwords, Digest ** results, int endNumber, bool debug) {
+__host__ void writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug) {
     std::ofstream file = openFile(path);
 
     // Iterate through every end point
-    for(int i=0; i<endNumber; i++) {
+    for (int i = 0; i < endNumber; i++) {
         file << (*passwords)[i].bytes << "-->";
         // Iterate through every byte of the end point
-        for(int j=0; j<HASH_LENGTH; j++){
+        for (int j = 0; j < HASH_LENGTH; j++) {
             char buf[HASH_LENGTH];
             sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
             file << buf;
@@ -187,13 +187,13 @@ __host__ void writeEndingReduction(char * path, Password ** passwords, Digest **
     file.close();
 }
 
-__host__ void writeEnding(char * path, Digest ** results, int endNumber, bool debug) {
+__host__ void writeEnding(char *path, Digest **results, int endNumber, bool debug) {
     std::ofstream file = openFile(path);
 
     // Iterate through every end point
-    for(int i=0; i< endNumber; i++) {
+    for (int i = 0; i < endNumber; i++) {
         // Iterate through every byte of the end point
-        for(int j=0; j<HASH_LENGTH; j++){
+        for (int j = 0; j < HASH_LENGTH; j++) {
             char buf[HASH_LENGTH];
             sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
             file << buf;

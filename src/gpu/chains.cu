@@ -1,16 +1,19 @@
 #include "chains.cuh"
 
-__device__ static const unsigned char charset[64] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
-                                                      'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-                                                      'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
-                                                      'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                                                      's', 't',
-                                                      'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
+__device__ static const unsigned char charset[64] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C',
+                                                     'D', 'E',
+                                                     'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+                                                     'S', 'T',
+                                                     'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
+                                                     'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+                                                     'q', 'r',
+                                                     's', 't',
+                                                     'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
 
-__host__ void generateChains(Password * h_passwords, Digest * h_results, int passwordNumber, int numberOfPass) {
+__host__ void generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass) {
 
     printf("\n==========INPUTS==========\n");
-    for(int i=passwordNumber-1; i<passwordNumber; i++) {
+    for (int i = passwordNumber - 1; i < passwordNumber; i++) {
         printPassword(&(h_passwords[i]));
         printDigest(&(h_results[i]));
     }
@@ -28,15 +31,15 @@ __host__ void generateChains(Password * h_passwords, Digest * h_results, int pas
     int t = 1000;
 
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
-            &h_passwords, &h_results, THREAD_PER_BLOCK, t);
+                &h_passwords, &h_results, THREAD_PER_BLOCK, t);
 
     //TODO : save ending points on disk
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
     printf("CHAIN RATE : %f MC/s\n",
-           ((float)(passwordNumber) / (milliseconds / 1000)) / 1000000);
+           ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
     printf("HASH/REDUCTION : %f MHR/s\n",
-           (((float)(passwordNumber) / (milliseconds / 1000)) / 1000000) * (float)t) ;
+           (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) t);
 
     program_end = clock();
     program_time_used =
@@ -44,7 +47,7 @@ __host__ void generateChains(Password * h_passwords, Digest * h_results, int pas
     printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
 
     printf("\n==========OUTPUTS==========\n");
-    for(int i=passwordNumber-1; i<passwordNumber; i++) {
+    for (int i = passwordNumber - 1; i < passwordNumber; i++) {
         printPassword(&(h_passwords[i]));
         printDigest(&(h_results[i]));
     }
@@ -52,25 +55,25 @@ __host__ void generateChains(Password * h_passwords, Digest * h_results, int pas
 
 }
 
-__device__ void reduce_digest(unsigned int index, Digest * digest, Password  * plain_text) {
+__device__ void reduce_digest(unsigned int index, Digest *digest, Password *plain_text) {
     for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
         (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % 64];
     }
 }
 
-__global__ void ntlm_chain_kernel2(Password * passwords, Digest * digests, int chainLength) {
+__global__ void ntlm_chain_kernel2(Password *passwords, Digest *digests, int chainLength) {
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    for (int i=0; i<chainLength-1; i++){
+    for (int i = 0; i < chainLength - 1; i++) {
         ntlm(&passwords[index], &digests[index]);
-        reduce_digest(i ,&digests[index], &passwords[index]);
+        reduce_digest(i, &digests[index], &passwords[index]);
     }
     ntlm(&passwords[index], &digests[index]);
 }
 
 __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
-                          Password ** h_passwords, Digest ** h_results, int threadPerBlock,
+                          Password **h_passwords, Digest **h_results, int threadPerBlock,
                           int chainLength) {
 
     //TODO: save start points on disk
@@ -95,7 +98,7 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
-    for (int i = 0; i<numberOfPass; i++) {
+    for (int i = 0; i < numberOfPass; i++) {
         // Temporary variable to measure GPU time inside this loop
         float tempMilli = 0;
 
