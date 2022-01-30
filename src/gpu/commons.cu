@@ -9,11 +9,7 @@ __host__ void handleCudaError(cudaError_t status) {
 }
 
 __host__ void generatePasswords(Password **result, int passwordNumber) {
-
-    cudaError_t status = cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
+    handleCudaError(cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault));
     generateNewPasswords(result, passwordNumber);
 }
 
