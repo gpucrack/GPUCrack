@@ -6,10 +6,10 @@ set(CMAKE_CUDA_STANDARD 14)
 include_directories(src/gpu/hash/hash_functions)
 
 add_executable(Chains
-        src/gpu/chains.cu
+        src/gpu/chainsOld.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/rainbow.cu
-        src/gpu/commons.cu src/gpu/chainsV2.cu src/gpu/chainsV2.cuh)
+        src/gpu/commons.cu src/gpu/chains.cu src/gpu/chains.cuh)
 
 add_executable(benchmarkTest
         src/gpu/hash/test/benchmarkTest.cu
@@ -36,7 +36,7 @@ add_executable(reduction
         src/gpu/reduction/reduction_cuda.cu)
 
 add_executable(chainTest
-        src/gpu/chainsV2.cu
+        src/gpu/chains.cu
         src/gpu/commons.cu
         src/gpu/test/chainTest.cu
         src/gpu/hash/hash_functions/ntlm.cu)
@@ -44,7 +44,7 @@ add_executable(chainTest
 add_executable(chainsComplianceTest
         src/gpu/test/chainsComplianceTest.cu
         src/gpu/commons.cu
-        src/gpu/chainsV2.cu
+        src/gpu/chains.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash.cu)
 

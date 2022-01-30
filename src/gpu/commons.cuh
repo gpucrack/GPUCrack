@@ -13,7 +13,7 @@
 #include <random>
 
 #include "./hash/hash_functions/ntlm.cuh"
-#include "./chainsV2.cuh"
+#include "./chains.cuh"
 #include "./hash/hash.cuh"
 
 // Generates passwordNumber random passwords, using a 62 character alphanumeric charset.
