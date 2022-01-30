@@ -1,5 +1,13 @@
 #include "commons.cuh"
 
+__host__ void handleCudaError(cudaError_t status) {
+    if (status != cudaSuccess) {
+        const char *errorMessage = cudaGetErrorString(status);
+        printf("CUDA error: %s.\n", errorMessage);
+        exit(1);
+    }
+}
+
 __host__ void generatePasswords(Password **result, int passwordNumber) {
 
     cudaError_t status = cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault);
@@ -42,19 +50,13 @@ __host__ int memoryAnalysis(int passwordNumber) {
         exit(1);
     }
 
+    // Detect available memory
     size_t freeMem;
     size_t totalMem;
-    cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
+    handleCudaError(cudaMemGetInfo(&freeMem, &totalMem));
 
     // Just to keep a little of memory, just in case
     freeMem -= 500000000;
-
-    // Checking errors on memory detection
-    if (mem != cudaSuccess) {
-        printf("memory check failed with error \"%s\".\n",
-               cudaGetErrorString(mem));
-        exit(1);
-    }
 
     printf("MEMORY AVAILABLE : %ld Megabytes\n", (freeMem / 1000000));
 
@@ -87,50 +89,32 @@ __host__ int memoryAnalysis(int passwordNumber) {
 }
 
 __host__ int computeBatchSize(int numberOfPass, int passwordNumber) {
-    int batchSize;
-
-    if (numberOfPass > 1)
-        batchSize = (passwordNumber / numberOfPass);
-        // If we have less than 1 round then the batch size is the number of
-        // passwords
-    else
-        batchSize = passwordNumber;
-
-    return batchSize;
+    // If we have less than 1 round then the batch size is the number of passwords
+    if (numberOfPass > 1) return (passwordNumber / numberOfPass);
+    else return passwordNumber;
 }
 
 __host__ void initEmptyArrays(Password **passwords, Digest **results, int passwordNumber) {
-
-    cudaError_t status = cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
-    status = cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
+    handleCudaError(cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault));
+    handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
 __host__ void initArrays(Password **passwords, Digest **results, int passwordNumber) {
-
     generatePasswords(passwords, passwordNumber);
-
-    cudaError_t status = cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
+    handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
 __device__ __host__ void printDigest(Digest *dig) {
-
+    // Iterate through every byte of the digest
     for (unsigned char byte : dig->bytes) {
-        printf("%02X", byte);
+        printf("%02X", byte); // %02X formats as uppercase hex with leading zeroes
     }
 
     printf("\n");
 }
 
 __device__ __host__ void printPassword(Password *pwd) {
+    // Iterate through every byte of the password
     for (unsigned char byte : pwd->bytes) {
         printf("%c", byte);
     }

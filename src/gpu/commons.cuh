@@ -32,8 +32,16 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, int passwo
 
 __host__ void initArrays(Password **passwords, Digest **results, int passwordNumber);
 
+/**
+ * Prints a single digest in the console.
+ * @param dig the digest to display.
+ */
 __device__ __host__ void printDigest(Digest *dig);
 
+/**
+ * Prints a single password in the console.
+ * @param pwd the password to display.
+ */
 __device__ __host__ void printPassword(Password *pwd);
 
 /**
