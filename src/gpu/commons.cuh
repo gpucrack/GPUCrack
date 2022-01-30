@@ -45,16 +45,32 @@ __host__ void createFile(char * name);
  */
 __host__ std::ofstream openFile(const char * path);
 
-__host__ void writeStarting(char * name, Password ** passwords, int passwordNumber);
+/**
+ * Writes start points (passwords) into a text file.
+ * @param path the path of the file to save.
+ * @param passwords the array containing every password located in first row.
+ * @param startNumber the number of start points (called m_0).
+ * @param debug (default: false) to print a message when the file is written.
+ */
+__host__ void writeStarting(char * path, Password ** passwords, int startNumber, bool debug = false);
 
-__host__ void writeEndingReduction(char * name, Password ** passwords, Digest ** results, int passwordNumber);
+/**
+ * Writes the last reductions of a table (password --> end point) into a text file.
+ * @param path the path of the file to save.
+ * @param passwords the array containing every password located in row t-1.
+ * @param results the array containing every end point.
+ * @param endNumber the number of end points (called m_t).
+ * @param debug (default: false) to print a message when the file is written.
+ */
+__host__ void writeEndingReduction(char * path, Password ** passwords, Digest ** results, int endNumber, bool debug = false);
 
 /**
  * Writes end points (hashes) into a text file.
  * @param path the path of the file to save.
  * @param results the array containing every end point.
- * @param endpointNumber the number of end points (called m_t).
+ * @param endNumber the number of end points (called m_t).
+ * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writeEnding(char * path, Digest ** results, int endpointNumber, bool debug = false);
+__host__ void writeEnding(char * path, Digest ** results, int endNumber, bool debug = false);
 
 #endif //GPU_CRACK_COMMONS_CUH

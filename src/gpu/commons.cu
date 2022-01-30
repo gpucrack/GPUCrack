@@ -143,45 +143,6 @@ __host__ void createFile(char * name) {
     printf("CREATING FILE\n");
 }
 
-__host__ void writeStarting(char * name, Password ** passwords, int passwordNumber) {
-    std::ofstream file;
-    file.open(name);
-
-    if(!file.is_open()) {
-        printf("ERROR OPENING THE FILE !\n");
-    }
-
-    for(int i=0; i<passwordNumber; i++) {
-        file << (*passwords)[i].bytes << std::endl;
-    }
-
-    printf("FILE WRITTEN\n");
-
-    file.close();
-}
-
-__host__ void writeEndingReduction(char * name, Password ** passwords, Digest ** results, int passwordNumber) {
-    std::ofstream file;
-    file.open(name);
-
-    if(!file.is_open()) {
-        printf("ERROR OPENING THE FILE !\n");
-    }
-
-    for(int i=0; i<passwordNumber; i++) {
-        file << (*passwords)[i].bytes << "-->";
-        for(int j=0; j<HASH_LENGTH; j++){
-            char buf[HASH_LENGTH];
-            sprintf(buf, "%02X", (*results)[i].bytes[j]);
-            file << buf;
-        }
-        file << std::endl;
-    }
-
-    printf("FILE WRITTEN\n");
-    file.close();
-}
-
 __host__ std::ofstream openFile(const char * path) {
     std::ofstream file;
     file.open(path);
@@ -194,11 +155,25 @@ __host__ std::ofstream openFile(const char * path) {
     return file;
 }
 
-__host__ void writeEnding(char * path, Digest ** results, int endpointNumber, bool debug) {
+__host__ void writeStarting(char * path, Password ** passwords, int startNumber, bool debug) {
+    std::ofstream file = openFile(path);
+
+    // Iterate through every start point
+    for(int i=0; i<startNumber; i++) {
+        file << (*passwords)[i].bytes << std::endl;
+    }
+
+    if (debug) printf("The start point file was written.\n");
+    file.close();
+}
+
+
+__host__ void writeEndingReduction(char * path, Password ** passwords, Digest ** results, int endNumber, bool debug) {
     std::ofstream file = openFile(path);
 
     // Iterate through every end point
-    for(int i=0; i< endpointNumber; i++) {
+    for(int i=0; i<endNumber; i++) {
+        file << (*passwords)[i].bytes << "-->";
         // Iterate through every byte of the end point
         for(int j=0; j<HASH_LENGTH; j++){
             char buf[HASH_LENGTH];
@@ -208,6 +183,24 @@ __host__ void writeEnding(char * path, Digest ** results, int endpointNumber, bo
         file << std::endl;
     }
 
-    if (debug) printf("FILE WRITTEN\n");
+    if (debug) printf("The end point reduction file was written.\n");
+    file.close();
+}
+
+__host__ void writeEnding(char * path, Digest ** results, int endNumber, bool debug) {
+    std::ofstream file = openFile(path);
+
+    // Iterate through every end point
+    for(int i=0; i< endNumber; i++) {
+        // Iterate through every byte of the end point
+        for(int j=0; j<HASH_LENGTH; j++){
+            char buf[HASH_LENGTH];
+            sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
+            file << buf;
+        }
+        file << std::endl;
+    }
+
+    if (debug) printf("The end point file was written.\n");
     file.close();
 }
