@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
+#include <c++/9/fstream>
 
 #include "commons.cuh"
 #include "rainbow.cuh"

@@ -73,6 +73,10 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
                           Password ** h_passwords, Digest ** h_results, int threadPerBlock,
                           int chainLength) {
 
+    //TODO: save start points on disk
+    createFile((char *) "../src/testStart.txt");
+    writeStarting((char *) "../src/testStart.txt", h_passwords, passwordNumber);
+
     // Device copies for endpoints
     Digest *d_results;
     Password *d_passwords;
@@ -106,8 +110,6 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         // GPU Malloc for the password array, size is batchSize
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
-
-        //TODO: save start points on disk
 
         Password *source = *h_passwords;
 
@@ -155,6 +157,7 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         cudaFree(d_passwords);
         cudaFree(d_results);
     }
-
     cudaStreamDestroy(stream1);
+    createFile((char *) "../src/testEnd.txt");
+    writeEnding((char *) "../src/testEnd.txt", h_passwords, h_results, passwordNumber);
 }

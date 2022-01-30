@@ -1,7 +1,7 @@
 #include "chainTest.cuh"
 
 int main(){
-    int passwordNumber = DEFAULT_PASSWORD_NUMBER;
+    int passwordNumber = 1048576;
 
     Password * passwords;
     Digest * result;

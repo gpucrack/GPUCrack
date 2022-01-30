@@ -124,7 +124,7 @@ __host__ void initArrays(Password ** passwords, Digest ** results, int passwordN
 __device__ __host__ void printDigest(Digest * dig) {
 
     for(unsigned char byte : dig->bytes){
-        printf("%x", byte);
+        printf("%02X", byte);
     }
 
     printf("\n");
@@ -135,4 +135,49 @@ __device__ __host__ void printPassword(Password * pwd) {
         printf("%c", byte);
     }
     printf("\n");
+}
+
+__host__ void createFile(char * name) {
+    // Creating file
+    std::ofstream file (name);
+    printf("CREATING FILE\n");
+}
+
+__host__ void writeStarting(char * name, Password ** passwords, int passwordNumber) {
+    std::ofstream file;
+    file.open(name);
+
+    if(!file.is_open()) {
+        printf("ERROR OPENING THE FILE !\n");
+    }
+
+    for(int i=0; i<passwordNumber; i++) {
+        file << (*passwords)[i].bytes << std::endl;
+    }
+
+    printf("FILE WRITTEN\n");
+
+    file.close();
+}
+
+__host__ void writeEnding(char * name, Password ** passwords, Digest ** results, int passwordNumber) {
+    std::ofstream file;
+    file.open(name);
+
+    if(!file.is_open()) {
+        printf("ERROR OPENING THE FILE !\n");
+    }
+
+    for(int i=0; i<passwordNumber; i++) {
+        file << (*passwords)[i].bytes << "-->";
+        for(int j=0; j<HASH_LENGTH; j++){
+            char buf[HASH_LENGTH];
+            sprintf(buf, "%02X", (*results)[i].bytes[j]);
+            file << buf;
+        }
+        file << std::endl;
+    }
+
+    printf("FILE WRITTEN\n");
+    file.close();
 }

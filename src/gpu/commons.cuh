@@ -35,4 +35,11 @@ __host__ void initArrays(Password ** passwords, Digest ** results, int passwordN
 __device__ __host__ void printDigest(Digest * dig);
 
 __device__ __host__ void printPassword(Password * pwd);
+
+__host__ void createFile(char * name);
+
+__host__ void writeStarting(char * name, Password ** passwords, int passwordNumber);
+
+__host__ void writeEnding(char * name, Password ** passwords, Digest ** results, int passwordNumber);
+
 #endif //GPU_CRACK_COMMONS_CUH
