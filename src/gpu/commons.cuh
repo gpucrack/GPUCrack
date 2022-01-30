@@ -36,10 +36,15 @@ __device__ __host__ void printDigest(Digest *dig);
 
 __device__ __host__ void printPassword(Password *pwd);
 
-__host__ void createFile(char *name);
+/**
+ * Creates a file at the given path.
+ * @param path the path of the file to be created.
+ * @param debug (default: false) to print a message when the file is created.
+ */
+__host__ void createFile(char *path, bool debug = false);
 
 /**
- * Opens or create a file located at the given path.
+ * Opens the file located at the given path.
  * @param path the path of the file.
  * @return a std::ofstream of the file, which can be used to write data into the file
  */

@@ -137,10 +137,9 @@ __device__ __host__ void printPassword(Password *pwd) {
     printf("\n");
 }
 
-__host__ void createFile(char *name) {
-    // Creating file
-    std::ofstream file(name);
-    printf("CREATING FILE\n");
+__host__ void createFile(char *path, bool debug) {
+    std::ofstream file(path);
+    if (debug) printf("New file created: %s.\n", path);
 }
 
 __host__ std::ofstream openFile(const char *path) {
