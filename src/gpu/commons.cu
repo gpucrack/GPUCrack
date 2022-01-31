@@ -1,15 +1,19 @@
 #include "commons.cuh"
 
-__host__ void generatePasswords(Password ** result, int passwordNumber) {
+__host__ void handleCudaError(cudaError_t status) {
+    if (status != cudaSuccess) {
+        const char *errorMessage = cudaGetErrorString(status);
+        printf("CUDA error: %s.\n", errorMessage);
+        exit(1);
+    }
+}
 
-    cudaError_t status = cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
+__host__ void generatePasswords(Password **result, int passwordNumber) {
+    handleCudaError(cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault));
     generateNewPasswords(result, passwordNumber);
 }
 
-__host__ void generateNewPasswords(Password ** result, int passwordNumber) {
+__host__ void generateNewPasswords(Password **result, int passwordNumber) {
 
     char charSet[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
                         't', 'u', 'v', 'w', 'x',
@@ -24,7 +28,7 @@ __host__ void generateNewPasswords(Password ** result, int passwordNumber) {
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
-        for (int i=0; i<PASSWORD_LENGTH; i++) {
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
             (*result)[j].bytes[i] = charSet[distr(gen)];
         }
     }
@@ -42,19 +46,13 @@ __host__ int memoryAnalysis(int passwordNumber) {
         exit(1);
     }
 
+    // Detect available memory
     size_t freeMem;
     size_t totalMem;
-    cudaError_t mem = cudaMemGetInfo(&freeMem, &totalMem);
+    handleCudaError(cudaMemGetInfo(&freeMem, &totalMem));
 
     // Just to keep a little of memory, just in case
     freeMem -= 500000000;
-
-    // Checking errors on memory detection
-    if (mem != cudaSuccess) {
-        printf("memory check failed with error \"%s\".\n",
-               cudaGetErrorString(mem));
-        exit(1);
-    }
 
     printf("MEMORY AVAILABLE : %ld Megabytes\n", (freeMem / 1000000));
 
@@ -87,98 +85,102 @@ __host__ int memoryAnalysis(int passwordNumber) {
 }
 
 __host__ int computeBatchSize(int numberOfPass, int passwordNumber) {
-    int batchSize;
-
-    if (numberOfPass > 1)
-        batchSize = (passwordNumber / numberOfPass);
-        // If we have less than 1 round then the batch size is the number of
-        // passwords
-    else
-        batchSize = passwordNumber;
-
-    return batchSize;
+    // If we have less than 1 round then the batch size is the number of passwords
+    if (numberOfPass > 1) return (passwordNumber / numberOfPass);
+    else return passwordNumber;
 }
 
-__host__ void initEmptyArrays(Password ** passwords, Digest ** results, int passwordNumber) {
-
-    cudaError_t status = cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
-    status = cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
+__host__ void initEmptyArrays(Password **passwords, Digest **results, int passwordNumber) {
+    handleCudaError(cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault));
+    handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initArrays(Password ** passwords, Digest ** results, int passwordNumber) {
-
+__host__ void initArrays(Password **passwords, Digest **results, int passwordNumber) {
     generatePasswords(passwords, passwordNumber);
-
-    cudaError_t status = cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault);
-    if (status != cudaSuccess)
-        printf("Error allocating pinned host memory\n");
-
+    handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__device__ __host__ void printDigest(Digest * dig) {
-
-    for(unsigned char byte : dig->bytes){
-        printf("%02X", byte);
+__device__ __host__ void printDigest(Digest *dig) {
+    // Iterate through every byte of the digest
+    for (unsigned char byte : dig->bytes) {
+        printf("%02X", byte); // %02X formats as uppercase hex with leading zeroes
     }
 
     printf("\n");
 }
 
-__device__ __host__ void printPassword(Password * pwd) {
-    for(unsigned char byte : pwd->bytes){
+__device__ __host__ void printPassword(Password *pwd) {
+    // Iterate through every byte of the password
+    for (unsigned char byte : pwd->bytes) {
         printf("%c", byte);
     }
     printf("\n");
 }
 
-__host__ void createFile(char * name) {
-    // Creating file
-    std::ofstream file (name);
-    printf("CREATING FILE\n");
+__host__ void createFile(char *path, bool debug) {
+    std::ofstream file(path);
+    if (debug) printf("New file created: %s.\n", path);
 }
 
-__host__ void writeStarting(char * name, Password ** passwords, int passwordNumber) {
+__host__ std::ofstream openFile(const char *path) {
     std::ofstream file;
-    file.open(name);
+    file.open(path);
 
-    if(!file.is_open()) {
-        printf("ERROR OPENING THE FILE !\n");
+    // Check if the file was correctly opened
+    if (!file.is_open()) {
+        printf("Error: couldn't open file in %s.\n", path);
     }
 
-    for(int i=0; i<passwordNumber; i++) {
+    return file;
+}
+
+__host__ void writeStarting(char *path, Password **passwords, int startNumber, bool debug) {
+    std::ofstream file = openFile(path);
+
+    // Iterate through every start point
+    for (int i = 0; i < startNumber; i++) {
         file << (*passwords)[i].bytes << std::endl;
     }
 
-    printf("FILE WRITTEN\n");
-
+    if (debug) printf("The start point file was written.\n");
     file.close();
 }
 
-__host__ void writeEnding(char * name, Password ** passwords, Digest ** results, int passwordNumber) {
-    std::ofstream file;
-    file.open(name);
 
-    if(!file.is_open()) {
-        printf("ERROR OPENING THE FILE !\n");
-    }
+__host__ void writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug) {
+    std::ofstream file = openFile(path);
 
-    for(int i=0; i<passwordNumber; i++) {
+    // Iterate through every end point
+    for (int i = 0; i < endNumber; i++) {
         file << (*passwords)[i].bytes << "-->";
-        for(int j=0; j<HASH_LENGTH; j++){
+        // Iterate through every byte of the end point
+        for (int j = 0; j < HASH_LENGTH; j++) {
             char buf[HASH_LENGTH];
-            sprintf(buf, "%02X", (*results)[i].bytes[j]);
+            sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
             file << buf;
         }
         file << std::endl;
     }
 
-    printf("FILE WRITTEN\n");
+    if (debug) printf("The end point reduction file was written.\n");
+    file.close();
+}
+
+__host__ void writeEnding(char *path, Digest **results, int endNumber, bool debug) {
+    std::ofstream file = openFile(path);
+
+    // Iterate through every end point
+    for (int i = 0; i < endNumber; i++) {
+        // Iterate through every byte of the end point
+        for (int j = 0; j < HASH_LENGTH; j++) {
+            char buf[HASH_LENGTH];
+            sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
+            file << buf;
+        }
+        file << std::endl;
+    }
+
+    if (debug) printf("The end point file was written.\n");
     file.close();
 }
 
