@@ -193,3 +193,12 @@ __host__ long computeT(int goRam) {
     mtMax = mZero / (int) r;
     return ((2*3521614606208) / mtMax) - 2;
 }
+
+__host__ int getTotalSystemMemory() {
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    double value = ((double)(pages * page_size) / 1000000000) - 2;
+    if (value > 31.0) return 32;
+    else if (value > 15.0) return 16;
+    else if (value > 7.0) return 8;
+}

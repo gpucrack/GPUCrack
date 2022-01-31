@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <unistd.h>
 
 #include "./hash/hash_functions/ntlm.cuh"
 #include "./chains.cuh"
@@ -88,5 +89,7 @@ writeEndingReduction(char *path, Password **passwords, Digest **results, int end
 __host__ void writeEnding(char *path, Digest **results, int endNumber, bool debug = false);
 
 __host__ long computeT(int goRam);
+
+__host__ int getTotalSystemMemory();
 
 #endif //GPU_CRACK_COMMONS_CUH

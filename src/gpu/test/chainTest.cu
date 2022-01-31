@@ -3,6 +3,8 @@
 int main(){
     int passwordNumber = 1073741824;
 
+    printf("%d\n",getTotalSystemMemory());
+
     Password * passwords;
     Digest * result;
 
