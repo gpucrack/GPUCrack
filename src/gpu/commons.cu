@@ -181,3 +181,13 @@ __host__ void writeEnding(char * name, Password ** passwords, Digest ** results,
     printf("FILE WRITTEN\n");
     file.close();
 }
+
+__host__ long computeT(int goRam) {
+    int mZero;
+    int mtMax;
+    double r = 19.83;
+    if (goRam == 16) mZero = 268435456;
+    else if (goRam == 32) mZero = 1073741824;
+    mtMax = mZero / (int) r;
+    return ((2*3521614606208) / mtMax) - 2;
+}

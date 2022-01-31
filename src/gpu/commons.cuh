@@ -42,4 +42,6 @@ __host__ void writeStarting(char * name, Password ** passwords, int passwordNumb
 
 __host__ void writeEnding(char * name, Password ** passwords, Digest ** results, int passwordNumber);
 
+__host__ long computeT(int goRam);
+
 #endif //GPU_CRACK_COMMONS_CUH

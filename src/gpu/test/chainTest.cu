@@ -1,7 +1,7 @@
 #include "chainTest.cuh"
 
 int main(){
-    int passwordNumber = 1048576;
+    int passwordNumber = 1073741824;
 
     Password * passwords;
     Digest * result;

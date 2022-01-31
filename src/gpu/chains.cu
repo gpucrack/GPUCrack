@@ -24,13 +24,12 @@ __host__ void generateChains(Password * h_passwords, Digest * h_results, int pas
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
-    //TODO : compute t
-    int t = 1000;
+    printf("WITH 16Go RAMt=%d\n", (int)computeT(16));
+    printf("WITH 32Go RAMt=%d\n", (int)computeT(32));
+    int t = 10000;
 
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
             &h_passwords, &h_results, THREAD_PER_BLOCK, t);
-
-    //TODO : save ending points on disk
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
     printf("CHAIN RATE : %f MC/s\n",
@@ -73,9 +72,8 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
                           Password ** h_passwords, Digest ** h_results, int threadPerBlock,
                           int chainLength) {
 
-    //TODO: save start points on disk
-    createFile((char *) "../src/testStart.txt");
-    writeStarting((char *) "../src/testStart.txt", h_passwords, passwordNumber);
+    //createFile((char *) "../src/testStart.txt");
+    //writeStarting((char *) "../src/testStart.txt", h_passwords, passwordNumber);
 
     // Device copies for endpoints
     Digest *d_results;
@@ -158,6 +156,6 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         cudaFree(d_results);
     }
     cudaStreamDestroy(stream1);
-    createFile((char *) "../src/testEnd.txt");
-    writeEnding((char *) "../src/testEnd.txt", h_passwords, h_results, passwordNumber);
+    //createFile((char *) "../src/testEnd.txt");
+    //writeEnding((char *) "../src/testEnd.txt", h_passwords, h_results, passwordNumber);
 }
