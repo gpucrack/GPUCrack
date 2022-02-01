@@ -187,10 +187,18 @@ __host__ void writeEnding(char *path, Digest **results, int endNumber, bool debu
 __host__ long computeT(int goRam) {
     int mZero;
     int mtMax;
+
+    // Recommended value
     double r = 19.83;
+
+    // Choosing m0 based on host memory
     if (goRam == 16) mZero = 268435456;
     else if (goRam == 32) mZero = 1073741824;
+
+    // Need to compute mtMax first
     mtMax = mZero / (int) r;
+
+    // Compute t knowing mtMax
     return ((2*3521614606208) / mtMax) - 2;
 }
 
