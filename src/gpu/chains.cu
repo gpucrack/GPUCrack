@@ -30,7 +30,7 @@ __host__ void generateChains(Password *h_passwords, Digest *h_results, int passw
     printf("WITH 32Go RAMt=%d\n", (int)computeT(32));
 
     // We'll use t/2 since in the kernel 1 unit of length = 1 hash and 1 reduction but t = 1 column
-    int t = 1000;
+    int t = 10000;
 
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, &h_results, THREAD_PER_BLOCK, t/2);

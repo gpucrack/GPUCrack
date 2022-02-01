@@ -198,8 +198,10 @@ __host__ long computeT(int goRam) {
     // Need to compute mtMax first
     mtMax = mZero / (int) r;
 
+    long domain = 35184372088832;
+
     // Compute t knowing mtMax
-    return ((2*3521614606208) / mtMax) - 2;
+    return ((2*domain) / mtMax) - 2;
 }
 
 __host__ int getTotalSystemMemory() {
