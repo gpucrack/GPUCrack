@@ -15,7 +15,6 @@ __host__ void generateChains(Password *h_passwords, Digest *h_results, int passw
     printf("\n==========INPUTS==========\n");
     for (int i = passwordNumber - 1; i < passwordNumber; i++) {
         printPassword(&(h_passwords[i]));
-        printDigest(&(h_results[i]));
     }
     printf("\n");
 
@@ -29,12 +28,13 @@ __host__ void generateChains(Password *h_passwords, Digest *h_results, int passw
 
     printf("WITH 16Go RAMt=%d\n", (int)computeT(16));
     printf("WITH 32Go RAMt=%d\n", (int)computeT(32));
-    int t = 10000;
+
+    // We'll use t/2 since in the kernel 1 unit of length = 1 hash and 1 reduction but t = 1 column
+    int t = 1000;
 
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
-                &h_passwords, &h_results, THREAD_PER_BLOCK, t);
+                &h_passwords, &h_results, THREAD_PER_BLOCK, t/2);
 
-    //TODO : save ending points on disk
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
     printf("CHAIN RATE : %f MC/s\n",
@@ -49,8 +49,8 @@ __host__ void generateChains(Password *h_passwords, Digest *h_results, int passw
 
     printf("\n==========OUTPUTS==========\n");
     for (int i = passwordNumber - 1; i < passwordNumber; i++) {
-        printPassword(&(h_passwords[i]));
         printDigest(&(h_results[i]));
+        printPassword(&(h_passwords[i]));
     }
     printf("\n");
 
@@ -66,11 +66,10 @@ __global__ void ntlm_chain_kernel2(Password *passwords, Digest *digests, int cha
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    for (int i = 0; i < chainLength - 1; i++) {
+    for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
         reduce_digest(i, &digests[index], &passwords[index]);
     }
-    ntlm(&passwords[index], &digests[index]);
 }
 
 __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
