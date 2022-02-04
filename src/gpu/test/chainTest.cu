@@ -1,9 +1,7 @@
 #include "chainTest.cuh"
 
 int main(){
-    int passwordNumber = 1073741824;
-
-    printf("%d\n",getTotalSystemMemory());
+    int passwordNumber = getNumberPassword(12);
 
     Password * passwords;
     Digest * result;

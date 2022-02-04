@@ -46,6 +46,7 @@ __host__ int memoryAnalysis(int passwordNumber) {
         exit(1);
     }
 
+
     // Detect available memory
     size_t freeMem;
     size_t totalMem;
@@ -68,6 +69,11 @@ __host__ int memoryAnalysis(int passwordNumber) {
 
     printf("THIS MUCH MEMORY WILL BE USED : %ld Megabytes\n",
            (memUsed / 1000000));
+
+    if((memUsed / 1000000000) >= getTotalSystemMemory() - 4) {
+        printf("NOT ENOUGH RAM FOR THIS NUMBER OF PASSWORDS !\n");
+        exit(1);
+    }
 
     // We need to determine how many batch we'll do to hash all passwords
     // We need to compute the batch size as well
@@ -192,8 +198,11 @@ __host__ long computeT(int goRam) {
     double r = 19.83;
 
     // Choosing m0 based on host memory
-    if (goRam == 16) mZero = 268435456;
-    else if (goRam == 32) mZero = 1073741824;
+    if (goRam == 8) mZero = getNumberPassword(8);
+    else if (goRam == 12) mZero = getNumberPassword(12);
+    else if (goRam == 16) mZero = getNumberPassword(16);
+    else if (goRam == 24) mZero = getNumberPassword(24);
+    else mZero = getNumberPassword(32);
 
     // Need to compute mtMax first
     mtMax = mZero / (int) r;
@@ -202,6 +211,14 @@ __host__ long computeT(int goRam) {
 
     // Compute t knowing mtMax
     return ((2*domain) / mtMax) - 2;
+}
+
+__host__ int getNumberPassword(int goRam) {
+    if (goRam == 8) return 4000000000 / (sizeof(Digest) + sizeof(Password));
+    else if (goRam == 12) return 8000000000 / (sizeof(Digest) + sizeof(Password));
+    else if (goRam == 16) return 12000000000 / (sizeof(Digest) + sizeof(Password));
+    else if (goRam == 24) return 20000000000 / (sizeof(Digest) + sizeof(Password));
+    else return 28000000000 / (sizeof(Digest) + sizeof(Password));;
 }
 
 __host__ int getTotalSystemMemory() {

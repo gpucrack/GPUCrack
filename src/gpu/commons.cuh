@@ -90,6 +90,8 @@ __host__ void writeEnding(char *path, Digest **results, int endNumber, bool debu
 
 __host__ long computeT(int goRam);
 
+__host__ int getNumberPassword(int goRam);
+
 __host__ int getTotalSystemMemory();
 
 #endif //GPU_CRACK_COMMONS_CUH
