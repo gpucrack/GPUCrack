@@ -214,9 +214,9 @@ __host__ long computeT(int goRam) {
 }
 
 __host__ int getNumberPassword(int goRam) {
-    if (goRam == 8) return 134217728;
-    else if (goRam == 12) return 268435456;
-    else if (goRam == 16) return 536870912;
+    if (goRam == 8) return 167772160;
+    else if (goRam == 12) return 335544320;
+    else if (goRam == 16) return 503316480;
     else if (goRam == 24) return 805306368;
     else return 1073741824;
 }
