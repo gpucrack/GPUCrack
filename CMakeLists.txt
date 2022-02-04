@@ -42,7 +42,6 @@ add_executable(chainTest
         src/gpu/hash/hash_functions/ntlm.cu)
 
 add_executable(chainsComplianceTest
-        src/gpu/test/chainsComplianceTest.cu
         src/gpu/commons.cu
         src/gpu/chains.cu
         src/gpu/hash/hash_functions/ntlm.cu
