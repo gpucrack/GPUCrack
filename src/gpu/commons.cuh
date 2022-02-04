@@ -66,7 +66,7 @@ __host__ std::ofstream openFile(const char *path);
  * @param startNumber the number of start points (called m_0).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writeStarting(char *path, Password **passwords, int startNumber, bool debug = false);
+__host__ void writePoint(char *path, Password **passwords, int startNumber, bool debug = false);
 
 /**
  * Writes the last reductions of a table (password --> end point) into a text file.
@@ -78,15 +78,6 @@ __host__ void writeStarting(char *path, Password **passwords, int startNumber, b
  */
 __host__ void
 writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug = false);
-
-/**
- * Writes end points (hashes) into a text file.
- * @param path the path of the file to save.
- * @param results the array containing every end point.
- * @param endNumber the number of end points (called m_t).
- * @param debug (default: false) to print a message when the file is written.
- */
-__host__ void writeEnding(char *path, Digest **results, int endNumber, bool debug = false);
 
 __host__ long computeT(int goRam);
 

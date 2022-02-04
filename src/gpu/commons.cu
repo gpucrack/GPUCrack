@@ -140,11 +140,11 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writeStarting(char *path, Password **passwords, int startNumber, bool debug) {
+__host__ void writePoint(char *path, Password **passwords, int number, bool debug) {
     std::ofstream file = openFile(path);
 
     // Iterate through every start point
-    for (int i = 0; i < startNumber; i++) {
+    for (int i = 0; i < number; i++) {
         file << (*passwords)[i].bytes << std::endl;
     }
 
@@ -169,24 +169,6 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
     }
 
     if (debug) printf("The end point reduction file was written.\n");
-    file.close();
-}
-
-__host__ void writeEnding(char *path, Digest **results, int endNumber, bool debug) {
-    std::ofstream file = openFile(path);
-
-    // Iterate through every end point
-    for (int i = 0; i < endNumber; i++) {
-        // Iterate through every byte of the end point
-        for (int j = 0; j < HASH_LENGTH; j++) {
-            char buf[HASH_LENGTH];
-            sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
-            file << buf;
-        }
-        file << std::endl;
-    }
-
-    if (debug) printf("The end point file was written.\n");
     file.close();
 }
 

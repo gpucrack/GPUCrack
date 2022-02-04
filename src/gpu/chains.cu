@@ -77,7 +77,7 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
                           int chainLength) {
 
     //createFile((char *) "../src/testStart.txt");
-    //writeStarting((char *) "../src/testStart.txt", h_passwords, passwordNumber);
+    //writePoint((char *) "../src/testStart.txt", h_passwords, passwordNumber);
 
     // Device copies for endpoints
     Digest *d_results;
