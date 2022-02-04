@@ -214,11 +214,11 @@ __host__ long computeT(int goRam) {
 }
 
 __host__ int getNumberPassword(int goRam) {
-    if (goRam == 8) return 4000000000 / (sizeof(Digest) + sizeof(Password));
-    else if (goRam == 12) return 8000000000 / (sizeof(Digest) + sizeof(Password));
-    else if (goRam == 16) return 12000000000 / (sizeof(Digest) + sizeof(Password));
-    else if (goRam == 24) return 20000000000 / (sizeof(Digest) + sizeof(Password));
-    else return 28000000000 / (sizeof(Digest) + sizeof(Password));;
+    if (goRam == 8) return 134217728;
+    else if (goRam == 12) return 268435456;
+    else if (goRam == 16) return 536870912;
+    else if (goRam == 24) return 805306368;
+    else return 1073741824;
 }
 
 __host__ int getTotalSystemMemory() {
