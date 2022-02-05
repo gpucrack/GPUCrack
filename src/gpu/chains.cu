@@ -10,7 +10,8 @@ __device__ static const unsigned char charset[64] = {'0', '1', '2', '3', '4', '5
                                                      's', 't',
                                                      'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
 
-__host__ void generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass) {
+__host__ void generateChains(Password *h_passwords, Digest *h_results, int passwordNumber,
+                             int numberOfPass, int numberOfColumn, bool save) {
 
     printf("\n==========INPUTS==========\n");
     for (int i = passwordNumber - 1; i < passwordNumber; i++) {
@@ -26,21 +27,18 @@ __host__ void generateChains(Password *h_passwords, Digest *h_results, int passw
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
-    printf("WITH 16Go RAMt=%d\n", (int)computeT(16));
-    printf("WITH 32Go RAMt=%d\n", (int)computeT(32));
-
-    // We'll use t/2 since in the kernel 1 unit of length = 1 hash and 1 reduction but t = 1 column
-    int t = 1000;
-
+    // We send numberOfColumn/2 since one loop of kernel is hashing/reducing at the same time so we need 2x
+    // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
-                &h_passwords, &h_results, THREAD_PER_BLOCK, t/2);
+                &h_passwords, &h_results, THREAD_PER_BLOCK,
+                numberOfColumn / 2, save);
 
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
     printf("CHAIN RATE : %f MC/s\n",
            ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
     printf("HASH/REDUCTION : %f MHR/s\n",
-           (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) t);
+           (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) numberOfColumn);
 
     program_end = clock();
     program_time_used =
@@ -62,7 +60,7 @@ __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plai
     }
 }
 
-__global__ void ntlm_chain_kernel2(Password *passwords, Digest *digests, int chainLength) {
+__global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -73,11 +71,12 @@ __global__ void ntlm_chain_kernel2(Password *passwords, Digest *digests, int cha
 }
 
 __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
-                          Password **h_passwords, Digest **h_results, int threadPerBlock,
-                          int chainLength) {
+                          Password **h_passwords, Digest **h_results, int threadPerBlock, int chainLength, bool save) {
 
-    //createFile((char *) "../src/testStart.txt");
-    //writePoint((char *) "../src/testStart.txt", h_passwords, passwordNumber);
+    if (save) {
+        createFile((char *) "../src/tables/testStart.txt", true);
+        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber, true);
+    }
 
     // Device copies for endpoints
     Digest *d_results;
@@ -120,7 +119,7 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
                         cudaMemcpyHostToDevice, stream1);
 
         cudaEventRecord(start);
-        ntlm_chain_kernel2<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+        ntlm_chain_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
                 d_passwords, d_results, chainLength);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -160,6 +159,9 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
         cudaFree(d_results);
     }
     cudaStreamDestroy(stream1);
-    //createFile((char *) "../src/testEnd.txt");
-    //writeEnding((char *) "../src/testEnd.txt", h_passwords, h_results, passwordNumber);
+
+    if (save) {
+        createFile((char *) "../src/tables/testEnd.txt", true);
+        writePoint((char *) "../src/tables/testEnd.txt", h_passwords, passwordNumber, true);
+    }
 }

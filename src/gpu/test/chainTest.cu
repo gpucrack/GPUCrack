@@ -1,7 +1,7 @@
 #include "chainTest.cuh"
 
 int main(){
-    int passwordNumber = getNumberPassword(24);
+    int passwordNumber = getNumberPassword(16);
 
     Password * passwords;
     Digest * result;
@@ -10,7 +10,9 @@ int main(){
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    generateChains(passwords, result, passwordNumber, numberOfPass);
+    // int t = computeT(16);
+
+    generateChains(passwords, result, passwordNumber, numberOfPass, 1000, false);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

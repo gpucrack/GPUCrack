@@ -90,7 +90,7 @@ __device__ void dedup_endpoints(RainbowTable *table) {
     table->length = dedup_index;
 }
 
-__global__ void ntlm_chain_kernel(RainbowTable *table) {
+__global__ void ntlm_chain_kernel_old(RainbowTable *table) {
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // generate the chain

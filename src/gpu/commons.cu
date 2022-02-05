@@ -28,8 +28,8 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
-        for (int i = 0; i < PASSWORD_LENGTH; i++) {
-            (*result)[j].bytes[i] = charSet[distr(gen)];
+        for (unsigned char & byte : (*result)[j].bytes) {
+            byte = charSet[distr(gen)];
         }
     }
     printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
@@ -143,12 +143,12 @@ __host__ std::ofstream openFile(const char *path) {
 __host__ void writePoint(char *path, Password **passwords, int number, bool debug) {
     std::ofstream file = openFile(path);
 
-    // Iterate through every start point
+    // Iterate through every point
     for (int i = 0; i < number; i++) {
         file << (*passwords)[i].bytes << std::endl;
     }
 
-    if (debug) printf("The start point file was written.\n");
+    if (debug) printf("The point file was written.\n");
     file.close();
 }
 

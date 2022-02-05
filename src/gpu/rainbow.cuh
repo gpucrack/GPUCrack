@@ -100,7 +100,7 @@ __device__ RainbowChain *binary_search(RainbowTable *table, Password *endpoint);
 /*
     Kernel to generate all the chains.
 */
-__global__ void ntlm_chain_kernel(RainbowTable *table);
+__global__ void ntlm_chain_kernel_old(RainbowTable *table);
 
 /*
     Pretty prints a rainbow table.
