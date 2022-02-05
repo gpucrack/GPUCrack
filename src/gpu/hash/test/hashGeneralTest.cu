@@ -1,4 +1,4 @@
-#include "generalTest.cuh"
+#include "hashGeneralTest.cuh"
 
 int main() {
 

@@ -5,27 +5,21 @@ set(CMAKE_CUDA_STANDARD 14)
 
 include_directories(src/gpu/hash/hash_functions)
 
-add_executable(Chains
-        src/gpu/chainsOld.cu
-        src/gpu/hash/hash_functions/ntlm.cu
-        src/gpu/rainbow.cu
-        src/gpu/commons.cu src/gpu/chains.cu src/gpu/chains.cuh)
-
-add_executable(benchmarkTest
-        src/gpu/hash/test/benchmarkTest.cu
+add_executable(hashBenchmarkTest
+        src/gpu/hash/test/hashBenchmarkTest.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/commons.cu
         src/gpu/hash/hash.cuh
         )
 
-add_executable(generalTest
+add_executable(hashGeneralTest
         src/gpu/commons.cu
-        src/gpu/hash/test/generalTest.cu
+        src/gpu/hash/test/hashGeneralTest.cu
         src/gpu/hash/hash_functions/ntlm.cu)
 
-add_executable(complianceTest
+add_executable(hashComplianceTest
         src/gpu/commons.cu
-        src/gpu/hash/test/complianceTest.cu
+        src/gpu/hash/test/hashComplianceTest.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/hash/hash.cuh)
 
@@ -41,23 +35,13 @@ add_executable(chainTest
         src/gpu/test/chainTest.cu
         src/gpu/hash/hash_functions/ntlm.cu)
 
-add_executable(chainsComplianceTest
-        src/gpu/commons.cu
-        src/gpu/chains.cu
-        src/gpu/hash/hash_functions/ntlm.cu
-        src/gpu/hash/hash.cu)
-
-
-set_target_properties(Chains PROPERTIES
+set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(benchmarkTest PROPERTIES
+set_target_properties(hashGeneralTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(generalTest PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
-set_target_properties(complianceTest PROPERTIES
+set_target_properties(hashComplianceTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(reductionCPU PROPERTIES
@@ -67,7 +51,4 @@ set_target_properties(reduction PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(chainTest PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
-set_target_properties(chainsComplianceTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)

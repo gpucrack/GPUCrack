@@ -1,5 +1,5 @@
-#ifndef GPU_CRACK_BENCHMARKTEST_CUH
-#define GPU_CRACK_BENCHMARKTEST_CUH
+#ifndef GPU_CRACK_HASHBENCHMARKTEST_CUH
+#define GPU_CRACK_HASHBENCHMARKTEST_CUH
 
 #include <cstdio>
 
@@ -10,4 +10,4 @@
 
 void benchmark(int passwordNumber);
 
-#endif //GPU_CRACK_BENCHMARKTEST_CUH
+#endif //GPU_CRACK_HASHBENCHMARKTEST_CUH

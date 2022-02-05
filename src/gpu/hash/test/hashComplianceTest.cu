@@ -1,4 +1,4 @@
-#include "complianceTest.cuh"
+#include "hashComplianceTest.cuh"
 
 int compliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass,
                const unsigned char * referencePassword, unsigned char * referenceResult) {

@@ -1,5 +1,5 @@
-#ifndef GPU_CRACK_COMPLIANCETEST_CUH
-#define GPU_CRACK_COMPLIANCETEST_CUH
+#ifndef GPU_CRACK_HASHCOMPLIANCETEST_CUH
+#define GPU_CRACK_HASHCOMPLIANCETEST_CUH
 
 #include <cstdio>
 #include <cstdlib>
@@ -13,4 +13,4 @@
 int compliance(int passwordNumber, Password * passwords, Digest * result, int numberOfPass,
                const unsigned char * referencePassword, unsigned char * referenceResult);
 
-#endif //GPU_CRACK_COMPLIANCETEST_CUH
+#endif //GPU_CRACK_HASHCOMPLIANCETEST_CUH

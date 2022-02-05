@@ -1,4 +1,4 @@
-#include "benchmarkTest.cuh"
+#include "hashBenchmarkTest.cuh"
 
 void benchmark(int passwordNumber) {
     double maxHashRate = 0;
