@@ -10,8 +10,9 @@ __device__ static const unsigned char charset[64] = {'0', '1', '2', '3', '4', '5
                                                      's', 't',
                                                      'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
 
-__host__ void generateChains(Password *h_passwords, Digest *h_results, int passwordNumber,
-                             int numberOfPass, int numberOfColumn, bool save) {
+__host__ void
+generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
+               bool save, int theadsPerBlock) {
 
     printf("\n==========INPUTS==========\n");
     for (int i = passwordNumber - 1; i < passwordNumber; i++) {
@@ -30,7 +31,7 @@ __host__ void generateChains(Password *h_passwords, Digest *h_results, int passw
     // We send numberOfColumn/2 since one loop of kernel is hashing/reducing at the same time so we need 2x
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
-                &h_passwords, &h_results, THREAD_PER_BLOCK,
+                &h_passwords, &h_results, theadsPerBlock,
                 numberOfColumn / 2, save);
 
 

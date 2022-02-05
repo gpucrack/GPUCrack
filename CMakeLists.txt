@@ -35,6 +35,18 @@ add_executable(chainTest
         src/gpu/test/chainTest.cu
         src/gpu/hash/hash_functions/ntlm.cu)
 
+add_executable(chainBenchmarkTest
+        src/gpu/chains.cu
+        src/gpu/commons.cu
+        src/gpu/test/chainBenchmarkTest.cu
+        src/gpu/hash/hash_functions/ntlm.cu)
+
+add_executable(generateTableTest
+        src/gpu/chains.cu
+        src/gpu/commons.cu
+        src/gpu/test/generateTableTest.cu
+        src/gpu/hash/hash_functions/ntlm.cu)
+
 set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
@@ -51,4 +63,10 @@ set_target_properties(reduction PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(chainTest PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(chainBenchmarkTest PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(generateTableTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
