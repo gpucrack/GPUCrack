@@ -27,11 +27,14 @@ void generate_digests_random(Digest **digests, int n) {
 }
 
 __device__ void reduce_digest2(unsigned long index, Digest * digest, Password * plain_text) {
+    for (int i = 0; i < CEILING(HASH_LENGTH,4) - 1; i++) {
+        (*plain_text).i[i] =((*digest).i[i] + index) % 64;
+    }
 }
 
 __global__ void reduce_digests2(Digest *digests, Password *plain_texts) {
     unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
-    idx++;
+    reduce_digest2(idx, digests, plain_texts);
 }
 
 inline int pwdcmp(Password &p1, Password &p2) {
@@ -106,7 +109,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
 
         cudaEventRecord(start);
         // Reduce all those digests into passwords
-        reduce_digests2<<<((passwordNumber) / THREAD_PER_BLOCK), THREAD_PER_BLOCK>>>(d_results, d_passwords);
+        reduce_digests2<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results, d_passwords);
 
         cudaEventRecord(end);
         cudaEventSynchronize(end);
