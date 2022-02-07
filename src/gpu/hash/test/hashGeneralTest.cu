@@ -2,7 +2,7 @@
 
 int main() {
 
-    int passwordNumber = DEFAULT_PASSWORD_NUMBER;
+    int passwordNumber = getNumberPassword(8);
 
     Password * passwords;
     Digest * result;
@@ -13,9 +13,9 @@ int main() {
 
     hash(passwords, result, passwordNumber, numberOfPass, false);
 
-    generateNewPasswords(&passwords, passwordNumber);
+    //generateNewPasswords(&passwords, passwordNumber);
 
-    hash(passwords, result, passwordNumber, numberOfPass, false);
+    //hash(passwords, result, passwordNumber, numberOfPass, false);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);
