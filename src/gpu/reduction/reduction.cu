@@ -27,23 +27,14 @@ void generate_digests_random(Digest **digests, int n) {
 }
 
 __device__ void reduce_digest2(unsigned long index, Digest * digest, Password * plain_text) {
-    for (int i = 0; i < CEILING(HASH_LENGTH,4) - 1; i++) {
-        (*plain_text).i[i] = charset[((*digest).i[i] + index) % 64];
+    for (int i = 0; i < PASSWORD_LENGTH; i++) {
+        (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % 64];
     }
 }
 
 __global__ void reduce_digests2(Digest *digests, Password *plain_texts) {
     unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
-    reduce_digest2(idx, digests, plain_texts);
-}
-
-inline int pwdcmp(Password &p1, Password &p2) {
-    for (int i = 0; i < CEILING(PASSWORD_LENGTH, 4); i++) {
-        if (p1.i[i] != p2.i[i]) {
-            return false;
-        }
-    }
-    return true;
+    reduce_digest2(idx, &digests[idx], &plain_texts[idx]);
 }
 
 int count_duplicates(Password **passwords, bool debug, int passwordNumber) {
@@ -62,11 +53,11 @@ int count_duplicates(Password **passwords, bool debug, int passwordNumber) {
     return count;
 }
 
-void display_reductions(Digest **digests, Password **passwords, int n) {
+void display_reductions(Digest *digests, Password *passwords, int n) {
     for (int i = 0; i < n; i++) {
-        printDigest(&(*digests)[i]);
+        printDigest(&(digests[i]));
         printf(" --> ");
-        printPassword(&(*passwords)[i]);
+        printPassword(&(passwords[i]));
         printf("\n");
     }
 }
@@ -101,10 +92,10 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
         cudaMalloc(&d_results, sizeof(Digest) * batchSize);
 
-        Password *source = *h_passwords;
+        Digest *source = *h_results;
 
         // Device copies
-        cudaMemcpy(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+        cudaMemcpy(d_results, &(source[currentIndex]), sizeof(Digest) * batchSize,
                         cudaMemcpyHostToDevice);
 
         cudaEventRecord(start);
@@ -131,9 +122,9 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
 
         Password *destination2 = *h_passwords;
         // Device to host copy
-
         cudaMemcpy(&(destination2[currentIndex]), d_passwords,
                         sizeof(Password) * batchSize, cudaMemcpyDeviceToHost);
+
         currentIndex += batchSize;
         reductionRemaining -= batchSize;
 
@@ -159,6 +150,8 @@ reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberO
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     reduceKernel(passwordNumber, numberOfPass, batchSize, &milliseconds, &h_passwords, &h_results, threadsPerBlock);
+
+    // display_reductions(h_results, h_passwords, passwordNumber);
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
 
