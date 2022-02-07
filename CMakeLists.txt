@@ -28,7 +28,7 @@ add_executable(reductionCPU
 
 add_executable(reduction
         src/gpu/commons.cu
-        src/gpu/reduction/reduction.cu)
+        src/gpu/reduction/reduction.cu src/gpu/reduction/test/reductionTest.cu src/gpu/reduction/test/reductionTest.cuh)
 
 add_executable(chainTest
         src/gpu/chains.cu
