@@ -27,8 +27,12 @@ void generate_digests_random(Digest **digests, int n) {
 }
 
 __device__ void reduce_digest2(unsigned long index, Digest * digest, Password * plain_text) {
-    for (int i = 0; i < PASSWORD_LENGTH; i++) {
-        (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % 64];
+    for (int i = 0; i < 2; i++) {
+        (*plain_text).i[i] =
+                charset[((*digest).bytes[i] + index) % 64] |
+                        (charset[((*digest).bytes[i+1] + index) % 64] << 8)|
+                        (charset[((*digest).bytes[i+2] + index) % 64] << 16)|
+                        (charset[((*digest).bytes[i+3] + index) % 64] << 24);
     }
 }
 
@@ -151,7 +155,7 @@ reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberO
 
     reduceKernel(passwordNumber, numberOfPass, batchSize, &milliseconds, &h_passwords, &h_results, threadsPerBlock);
 
-    // display_reductions(h_results, h_passwords, passwordNumber);
+    //display_reductions(h_results, h_passwords, passwordNumber);
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
 
@@ -160,7 +164,7 @@ reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberO
     printf("Reduction of %d digests ended after %f milliseconds.\n Reduction rate: %f MR/s.\n", passwordNumber,
            (double) milliseconds, reduce_rate);
 
-    int dup = count_duplicates(&h_passwords, false, 0);
+    int dup = count_duplicates(&h_passwords, false, passwordNumber);
     printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, passwordNumber,
            ((double) dup / passwordNumber) * 100);
 
