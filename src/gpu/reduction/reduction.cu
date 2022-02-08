@@ -22,7 +22,7 @@ void generate_digests_random(Digest **digests, int n) {
     }
 }
 
-__device__ void reduce_digest2(unsigned long index, Digest * digest, Password * plain_text) {
+__device__ void reduceDigest(unsigned int index, Digest * digest, Password * plain_text) {
     (*plain_text).i[0] =
             charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
             (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
@@ -35,9 +35,9 @@ __device__ void reduce_digest2(unsigned long index, Digest * digest, Password * 
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
-__global__ void reduce_digests2(Digest *digests, Password *plain_texts) {
-    unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
-    reduce_digest2(idx, &digests[idx], &plain_texts[idx]);
+__global__ void reduceDigests(Digest *digests, Password *plain_texts) {
+    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    reduceDigest(1, &digests[idx], &plain_texts[idx]);
 }
 
 int count_duplicates(Password **passwords, bool debug, int passwordNumber) {
@@ -103,7 +103,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
 
         cudaEventRecord(start);
         // Reduce all those digests into passwords
-        reduce_digests2<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results, d_passwords);
+        reduceDigests<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results, d_passwords);
 
         cudaEventRecord(end);
         cudaEventSynchronize(end);
