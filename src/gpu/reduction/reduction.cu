@@ -1,9 +1,5 @@
 #include "reduction.cuh"
 
-// Global variables for GPU
-__device__ int password_length_gpu = PASSWORD_LENGTH;
-__device__ int charset_length_gpu = CHARSET_LENGTH;
-
 // The character set used for passwords. We declare it in the host scope and in the device scope.
 // The character set used for passwords.
 __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
@@ -11,7 +7,7 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
                                                       'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
                                                       'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
                                                       's', 't',
-                                                      'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
+                                                      'u', 'v', 'w', 'x', 'y', 'z'};
 
 // The character set used for digests (NTLM hashes).
 static const unsigned char hashset[DIGEST_CHARSET_LENGTH] = {0x88, 0x46, 0xF7, 0xEA, 0xEE, 0x8F, 0xB1,
@@ -28,14 +24,14 @@ void generate_digests_random(Digest **digests, int n) {
 
 __device__ void reduce_digest2(unsigned long index, Digest * digest, Password * plain_text) {
         (*plain_text).i[0] =
-                charset[((*digest).bytes[0] + index) % 64] |
-                        (charset[((*digest).bytes[1] + index) % 64] << 8)|
-                        (charset[((*digest).bytes[2] + index) % 64] << 16)|
-                        (charset[((*digest).bytes[3] + index) % 64] << 24);
+                charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
+                        (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
+                        (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16)|
+                        (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
     (*plain_text).i[1] =
-            charset[((*digest).bytes[4] + index) % 64] |
-            (charset[((*digest).bytes[5] + index) % 64] << 8)|
-            (charset[((*digest).bytes[6] + index) % 64] << 16);
+            charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8)|
+            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16);
 }
 
 __global__ void reduce_digests2(Digest *digests, Password *plain_texts) {
@@ -166,9 +162,10 @@ reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberO
     printf("Reduction of %d digests ended after %f milliseconds.\n Reduction rate: %f MR/s.\n", passwordNumber,
            (double) milliseconds, reduce_rate);
 
+    /*
     int dup = count_duplicates(&h_passwords, false, 0);
     printf("Found %d duplicate(s) among the %d reduced passwords (%f percent).\n", dup, passwordNumber,
-           ((double) dup / passwordNumber) * 100);
+           ((double) dup / passwordNumber) * 100);*/
 
     program_end = clock();
     program_time_used =
