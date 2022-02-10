@@ -12,13 +12,15 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock) {
+               bool save, int theadsPerBlock, bool debug) {
 
-    printf("\n==========INPUTS==========\n");
-    for (int i = passwordNumber - 1; i < passwordNumber; i++) {
-        printPassword(&(h_passwords[i]));
+    if (debug) {
+        printf("\n==========INPUTS==========\n");
+        for (int i = passwordNumber - 1; i < passwordNumber; i++) {
+            printPassword(&(h_passwords[i]));
+        }
+        printf("\n");
     }
-    printf("\n");
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -32,26 +34,28 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, &h_results, theadsPerBlock,
-                numberOfColumn / 2, save);
+                numberOfColumn / 2, save, false);
 
+    if (debug) {
+        printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
+        printf("CHAIN RATE : %f MC/s\n",
+               ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
+        printf("HASH/REDUCTION : %f MHR/s\n",
+               (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) numberOfColumn);
 
-    printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
-    printf("CHAIN RATE : %f MC/s\n",
-           ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
-    printf("HASH/REDUCTION : %f MHR/s\n",
-           (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) numberOfColumn);
-
-    program_end = clock();
-    program_time_used =
-            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
-    printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
-
-    printf("\n==========OUTPUTS==========\n");
-    for (int i = passwordNumber - 1; i < passwordNumber; i++) {
-        printDigest(&(h_results[i]));
-        printPassword(&(h_passwords[i]));
+        program_end = clock();
+        program_time_used =
+                ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
+        printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
     }
-    printf("\n");
+
+    if (debug) {
+        printf("\n==========OUTPUTS==========\n");
+        for (int i = passwordNumber - 1; i < passwordNumber; i++) {
+            printPassword(&(h_passwords[i]));
+        }
+        printf("\n");
+    }
 
 }
 
@@ -78,12 +82,14 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
     }
 }
 
-__host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
-                          Password **h_passwords, Digest **h_results, int threadPerBlock, int chainLength, bool save) {
+__host__ void
+chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
+            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug) {
 
     if (save) {
-        createFile((char *) "../src/tables/testStart.txt", true);
-        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber, true);
+        createFile((char *) "../src/tables/testStart.txt", debug);
+        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber
+                   , debug);
     }
 
     // Device copies for endpoints
@@ -169,7 +175,8 @@ __host__ void chainKernel(int passwordNumber, int numberOfPass, int batchSize, f
     cudaStreamDestroy(stream1);
 
     if (save) {
-        createFile((char *) "../src/tables/testEnd.txt", true);
-        writePoint((char *) "../src/tables/testEnd.txt", h_passwords, passwordNumber, true);
+        createFile((char *) "../src/tables/testEnd.txt", debug);
+        writePoint((char *) "../src/tables/testEnd.txt", h_passwords, passwordNumber,
+                   debug);
     }
 }

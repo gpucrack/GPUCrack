@@ -13,7 +13,7 @@ int main(){
     // int t = computeT(16);
 
     generateChains(passwords, result, passwordNumber, numberOfPass, 1000,
-                   false, THREAD_PER_BLOCK);
+                   false, THREAD_PER_BLOCK, false);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

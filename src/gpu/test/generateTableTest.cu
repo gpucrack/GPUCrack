@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
     printf("NUMBER OF COLUMNS: %d\n", t);
 
     generateChains(passwords, result, passwordNumber, numberOfPass, t,
-                   true, THREAD_PER_BLOCK);
+                   true, THREAD_PER_BLOCK, false);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

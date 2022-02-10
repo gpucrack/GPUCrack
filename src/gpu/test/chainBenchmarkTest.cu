@@ -33,7 +33,7 @@ int main(){
 
             cudaEventRecord(start);
             generateChains(passwords, result, passwordNumber,
-                           numberOfPass, numberOfColumn, false, k);
+                           numberOfPass, numberOfColumn, false, k, false);
             cudaEventRecord(end);
             cudaEventSynchronize(end);
 
