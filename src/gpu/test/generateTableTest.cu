@@ -1,12 +1,12 @@
 #include "generateTableTest.cuh"
 
 int main(int argc, char *argv[]){
-    if (argc != 1) {
+    if (argc != 2) {
         printf("NOT ENOUGH ARGUMENTS\n");
         exit(1);
     }
 
-    int passwordNumber = getM0(8, atoi(argv[0]));
+    int passwordNumber = getM0(32, atoi(argv[1]));
 
     Password * passwords;
     Digest * result;
