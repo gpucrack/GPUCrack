@@ -84,18 +84,18 @@ __device__ void initLoadingBar() {
     printf("\t\t\t\t\t");
 
     // Print initial loading bar
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 20; i++) {
         printf("%c", a);
-}
-
-__device__ void incrementLoadingBar() {
-    unsigned char b = 219;
+    }
 
     // Set the cursor again starting
     // point of loading bar
     printf("\r");
     printf("\t\t\t\t\t");
+}
 
+__device__ void incrementLoadingBar() {
+    unsigned char b = 219;
     printf("%c", b);
 }
 
@@ -103,6 +103,7 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     double progress = 1.;
+    initLoadingBar();
 
     for (int i = 0; i < chainLength; i++) {
 
