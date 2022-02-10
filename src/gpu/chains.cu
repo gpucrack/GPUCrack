@@ -75,14 +75,7 @@ __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plai
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
-__device__ void progressBar(double percentage) {
-    if ((percentage * 10) % 10)
-        unsigned char x = 219;
-    cout << x;
-}
-
-
-void initLoadingBar() {
+__device__ void initLoadingBar() {
     // Initialize chars for printing loading bar
     unsigned char a = 177, b = 219;
 
@@ -96,7 +89,9 @@ void initLoadingBar() {
         printf("%c", a);
 }
 
-void incrementLoadingBar() {
+__device__ void incrementLoadingBar() {
+    unsigned char b = 219;
+
     // Set the cursor again starting
     // point of loading bar
     printf("\r");
