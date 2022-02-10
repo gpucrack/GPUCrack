@@ -205,6 +205,34 @@ __host__ int computeT(int goRam, int mt) {
     return (int)((2*domain) / mtMax) - 2;
 }
 
+__host__ int getM0(int goRam, int mt) {
+    double mZero;
+    double mtMax;
+    double tmpMZero;
+
+    // Recommended value
+    double r = 19.83;
+
+    // Choosing m0 based on host memory
+    if (goRam == 8) mZero = getNumberPassword(8);
+    else if (goRam == 12) mZero = getNumberPassword(12);
+    else if (goRam == 16) mZero = getNumberPassword(16);
+    else if (goRam == 24) mZero = getNumberPassword(24);
+    else mZero = getNumberPassword(32);
+
+    // Need to compute mtMax first
+    mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
+
+    tmpMZero = r * mtMax;
+
+    if (tmpMZero > mZero) {
+        printf("CHOSEN MT REQUIRE A BIGGER M0 THAN THE MEMORY AVAILABLE\n");
+        exit(1);
+    }else {
+        return (int)tmpMZero;
+    }
+}
+
 __host__ int getNumberPassword(int goRam) {
     if (goRam == 8) return 167772160;
     else if (goRam == 12) return 335544320;

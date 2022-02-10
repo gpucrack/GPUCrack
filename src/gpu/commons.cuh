@@ -84,6 +84,8 @@ __host__ int computeT(int goRam, int mt);
 
 __host__ int getNumberPassword(int goRam);
 
+__host__ int getM0(int goRam, int mt);
+
 __host__ int getTotalSystemMemory();
 
 #endif //GPU_CRACK_COMMONS_CUH
