@@ -80,8 +80,7 @@ __device__ void initLoadingBar() {
     unsigned char a = 177, b = 219;
 
     printf("\n\n\n\n");
-    printf("\n\n\n\n\t\t\t\t\t"
-           + "Generating table...\n\n");
+    printf("\n\n\n\n\t\t\t\t\t Generating table...\n\n");
     printf("\t\t\t\t\t");
 
     // Print initial loading bar
@@ -108,7 +107,7 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
     for (int i = 0; i < chainLength; i++) {
 
         if (index == 0) {
-            if (((double) i / (double) chainLength) > progress / 10) incrementLoadingBar(progress);
+            if (((double) i / (double) chainLength) > progress / 10) incrementLoadingBar();
             progress += 1.;
         }
 
