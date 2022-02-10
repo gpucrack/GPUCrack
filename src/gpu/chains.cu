@@ -1,14 +1,17 @@
 #include "chains.cuh"
 
-__device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C',
-                                                     'D', 'E',
-                                                     'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-                                                     'S', 'T',
-                                                     'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
-                                                     'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
-                                                     'q', 'r',
-                                                     's', 't',
-                                                     'u', 'v', 'w', 'x', 'y', 'z'};
+__device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
+                                                                 'B', 'C',
+                                                                 'D', 'E',
+                                                                 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+                                                                 'Q', 'R',
+                                                                 'S', 'T',
+                                                                 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
+                                                                 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                                                                 'o', 'p',
+                                                                 'q', 'r',
+                                                                 's', 't',
+                                                                 'u', 'v', 'w', 'x', 'y', 'z'};
 
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
@@ -62,19 +65,19 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plain_text) {
     (*plain_text).i[0] =
             charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
-            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8) |
+            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16) |
             (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
     (*plain_text).i[1] =
             charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8)|
-            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8) |
+            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16) |
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
 __device__ void progressBar(double percentage) {
-    if((percentage * 10) % 10 )
-    unsigned char x = 219;
+    if ((percentage * 10) % 10)
+        unsigned char x = 219;
     cout << x;
 }
 
@@ -110,7 +113,7 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
     for (int i = 0; i < chainLength; i++) {
 
         if (index == 0) {
-            if (((double)i/(double)chainLength) > progress/10) incrementLoadingBar(progress);
+            if (((double) i / (double) chainLength) > progress / 10) incrementLoadingBar(progress);
             progress += 1.;
         }
 
@@ -125,8 +128,7 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
     if (save) {
         createFile((char *) "../src/tables/testStart.txt", true);
-        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber
-                   , true);
+        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber, true);
     }
 
     // Device copies for endpoints
