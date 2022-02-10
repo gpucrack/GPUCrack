@@ -12,6 +12,8 @@
 #include "commons.cuh"
 #include "rainbow.cuh"
 
+#define CHARSET_LENGTH 62
+
 __global__ void ntlm_chain_kernel(Password * passwords, Digest * digests, int chainLength);
 __device__ void reduce_digest(unsigned int index, Digest * digest, Password  * plain_text);
 __host__ void

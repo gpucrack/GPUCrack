@@ -1,6 +1,6 @@
 #include "chains.cuh"
 
-__device__ static const unsigned char charset[64] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C',
+__device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C',
                                                      'D', 'E',
                                                      'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
                                                      'S', 'T',
@@ -8,7 +8,7 @@ __device__ static const unsigned char charset[64] = {'0', '1', '2', '3', '4', '5
                                                      'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
                                                      'q', 'r',
                                                      's', 't',
-                                                     'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
+                                                     'u', 'v', 'w', 'x', 'y', 'z'};
 
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
@@ -56,9 +56,16 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 }
 
 __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plain_text) {
-    for (int i = 0; i < PASSWORD_LENGTH - 1; i++) {
-        (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % 64];
-    }
+    (*plain_text).i[0] =
+            charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
+            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
+    (*plain_text).i[1] =
+            charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8)|
+            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
 __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {

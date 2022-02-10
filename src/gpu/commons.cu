@@ -172,9 +172,10 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
     file.close();
 }
 
-__host__ long computeT(int goRam) {
-    int mZero;
-    int mtMax;
+__host__ int computeT(int goRam, int mt) {
+    double mZero;
+    double mtMax;
+    double tmpMZero;
 
     // Recommended value
     double r = 19.83;
@@ -187,12 +188,21 @@ __host__ long computeT(int goRam) {
     else mZero = getNumberPassword(32);
 
     // Need to compute mtMax first
-    mtMax = mZero / (int) r;
+    mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
-    long domain = 35184372088832;
+    double domain = pow(62, 7);
+
+    tmpMZero = r * mtMax;
+
+    if (tmpMZero > mZero) {
+        printf("CHOSEN MT REQUIRE A BIGGER M0 THAN THE MEMORY AVAILABLE\n");
+        exit(1);
+    }else {
+        mZero = tmpMZero;
+    }
 
     // Compute t knowing mtMax
-    return ((2*domain) / mtMax) - 2;
+    return (int)((2*domain) / mtMax) - 2;
 }
 
 __host__ int getNumberPassword(int goRam) {

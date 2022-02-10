@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <random>
 #include <unistd.h>
+#include <cmath>
 
 #include "./hash/hash_functions/ntlm.cuh"
 #include "./chains.cuh"
@@ -79,7 +80,7 @@ __host__ void writePoint(char *path, Password **passwords, int startNumber, bool
 __host__ void
 writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug = false);
 
-__host__ long computeT(int goRam);
+__host__ int computeT(int goRam, int mt);
 
 __host__ int getNumberPassword(int goRam);
 

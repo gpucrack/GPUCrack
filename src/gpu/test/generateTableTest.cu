@@ -1,6 +1,6 @@
 #include "generateTableTest.cuh"
 
-int main(){
+int main(int argc, char *argv[]){
     int passwordNumber = getNumberPassword(8);
 
     Password * passwords;
