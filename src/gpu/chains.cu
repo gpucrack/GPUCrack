@@ -72,14 +72,46 @@ __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plai
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
+__device__ void progressBar(double percentage) {
+    if((percentage * 10) % 10 )
+    unsigned char x = 219;
+    cout << x;
+}
+
+
+void initLoadingBar() {
+    // Initialize chars for printing loading bar
+    unsigned char a = 177, b = 219;
+
+    printf("\n\n\n\n");
+    printf("\n\n\n\n\t\t\t\t\t"
+           + "Generating table...\n\n");
+    printf("\t\t\t\t\t");
+
+    // Print initial loading bar
+    for (int i = 0; i < 20; i++)
+        printf("%c", a);
+}
+
+void incrementLoadingBar() {
+    // Set the cursor again starting
+    // point of loading bar
+    printf("\r");
+    printf("\t\t\t\t\t");
+
+    printf("%c", b);
+}
+
 __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    double progress = 1.;
 
     for (int i = 0; i < chainLength; i++) {
 
         if (index == 0) {
-            if ((i % 10000) == 0) printf("Column %d\n", i);
+            if (((double)i/(double)chainLength) > progress/10) incrementLoadingBar(progress);
+            progress += 1.;
         }
 
         ntlm(&passwords[index], &digests[index]);

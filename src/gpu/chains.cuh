@@ -14,11 +14,25 @@
 
 #define CHARSET_LENGTH 62
 
-__global__ void ntlm_chain_kernel(Password * passwords, Digest * digests, int chainLength);
-__device__ void reduce_digest(unsigned int index, Digest * digest, Password  * plain_text);
+__global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength);
+
+__device__ void reduce_digest(unsigned int index, Digest *digest, Password *plain_text);
+
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
                bool save, int theadsPerBlock, bool debug);
+
+/**
+ * Initializes a progress bar to be displayed in the console.
+ */
+void initLoadingBar()
+
+/**
+ * Update the progress bar.
+ */
+void incrementLoadingBar()
+
+
 __host__ void
 chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug);
