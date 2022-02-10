@@ -2,9 +2,11 @@
 
 int main(int argc, char *argv[]){
     if (argc != 2) {
-        printf("Not enough arguments! Please input mt\n");
+        printf("Error: not enough arguments given.\n Usage: 'generateTable mt', where mt is the desired number of end points.");
         exit(1);
     }
+
+    printSignature();
 
     int passwordNumber = getM0(32, atoi(argv[1]));
 

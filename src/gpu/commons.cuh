@@ -35,6 +35,11 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, int passwo
 __host__ void initArrays(Password **passwords, Digest **results, int passwordNumber);
 
 /**
+ * Prints the name and the version of the product in the console.
+ */
+__host__ void printSignature();
+
+/**
  * Prints a single digest in the console.
  * @param dig the digest to display.
  */
