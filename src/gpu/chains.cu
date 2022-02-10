@@ -75,38 +75,12 @@ __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plai
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
-__device__ void incrementLoadingBar(double n, int length) {
-    int perc = (int) n;
-    printf("\r");
-    char b = 'X';
-    for (unsigned char i = 0; i < perc; i++) {
-        printf("%c", 'X');
-    }
-    for (unsigned char j = 0; j < length - perc; j++) {
-        printf("%c", '0');
-    }
-}
-
 __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {
-
-    char barLength = 50;
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-    double progress = 1.;
-
-    if (index==0) printf("\nGenerating table...\n\n");
-
     for (int i = 0; i < chainLength; i++) {
-        if (index == 0) {
-            if (((double) i / (double) chainLength) > (progress / barLength)) {
-                incrementLoadingBar(progress, barLength);
-                progress += 1.;
-            }
-        }
-
         ntlm(&passwords[index], &digests[index]);
         reduce_digest(i, &digests[index], &passwords[index]);
     }
-    incrementLoadingBar(progress, barLength);
 }
 
 __host__ void
