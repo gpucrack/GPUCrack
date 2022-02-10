@@ -2,7 +2,7 @@
 
 __host__ void printSignature() {
     printf("GPUCrack v0.1.0\n"
-           "<https://github.com/gpucrack/GPUCrack/>\n\n")
+           "<https://github.com/gpucrack/GPUCrack/>\n\n");
 }
 
 __host__ void handleCudaError(cudaError_t status) {
