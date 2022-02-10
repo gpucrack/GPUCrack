@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[]){
     if (argc != 2) {
-        printf("NOT ENOUGH ARGUMENTS\n");
+        printf("Not enough arguments! Please input mt\n");
         exit(1);
     }
 
@@ -17,10 +17,13 @@ int main(int argc, char *argv[]){
 
     int t = computeT(32, atoi(argv[1]));
 
-    printf("NUMBER OF COLUMNS: %d\n", t);
+    printf("Number of columns: %d\n", t);
+    printf("Generating chains...\n");
 
     generateChains(passwords, result, passwordNumber, numberOfPass, t,
                    true, THREAD_PER_BLOCK, false);
+
+    printf("Chains generated!\n");
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

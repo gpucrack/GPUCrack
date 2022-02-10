@@ -32,7 +32,7 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
             byte = charSet[distr(gen)];
         }
     }
-    printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
+    printf("Done, %d passwords generated\n", passwordNumber);
 }
 
 // Returns the number of batch that we need to do
