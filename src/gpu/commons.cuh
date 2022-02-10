@@ -24,6 +24,8 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber);
 
 __host__ void generatePasswords(Password **result, int passwordNumber);
 
+__host__ void generateNewPasswords2(Password **result, int passwordNumber);
+
 // Returns the number of batches that we need to do
 __host__ int memoryAnalysis(int passwordNumber);
 
