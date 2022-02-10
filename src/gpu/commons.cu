@@ -29,7 +29,7 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<> distr(0, 61); // define the range
 
-    printf("\n==========GENERATING PASSWORDS==========\n");
+    printf("\nGenerating passwords...\n");
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
@@ -96,7 +96,7 @@ __host__ int memoryAnalysis(int passwordNumber) {
     printf("Memory used by password array : %ld Megabytes\n",
            (memPasswords / 1000000));
 
-    printf("This much memory will be used : %ld Megabytes\n",
+    printf("This much memory will be used : %ld Megabytes\n\n",
            (memUsed / 1000000));
 
     if((memUsed / 1000000000) >= getTotalSystemMemory() - 4) {
@@ -180,7 +180,7 @@ __host__ void writePoint(char *path, Password **passwords, int number, bool debu
         file << std::endl;
     }
 
-    if (debug) printf("The point file was written.\n");
+    if (debug) printf("The point file was written.\n\n");
     file.close();
 }
 

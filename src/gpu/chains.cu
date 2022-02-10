@@ -77,6 +77,11 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     for (int i = 0; i < chainLength; i++) {
+
+        if (index == 0) {
+            if ((i % 10000) == 0) printf("Column %d\n", i);
+        }
+
         ntlm(&passwords[index], &digests[index]);
         reduce_digest(i, &digests[index], &passwords[index]);
     }
@@ -108,7 +113,7 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
     int chainsRemaining = passwordNumber;
     int currentIndex = 0;
 
-    printf("Generating chains...\n");
+    printf("Generating chains...\n\n");
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes

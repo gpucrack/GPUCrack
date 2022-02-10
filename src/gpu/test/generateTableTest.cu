@@ -8,7 +8,7 @@ int main(int argc, char *argv[]){
 
     printSignature();
 
-    int passwordNumber = getM0(32, atoi(argv[1]));
+    int passwordNumber = getM0(getTotalSystemMemory(), atoi(argv[1]));
 
     Password * passwords;
     Digest * result;
@@ -17,9 +17,9 @@ int main(int argc, char *argv[]){
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    int t = computeT(32, atoi(argv[1]));
+    int t = computeT(getTotalSystemMemory(), atoi(argv[1]));
 
-    printf("Number of columns: %d\n", t);
+    printf("Number of columns: %d\n\n", t);
 
     generateChains(passwords, result, passwordNumber, numberOfPass, t,
                    true, THREAD_PER_BLOCK, false);
