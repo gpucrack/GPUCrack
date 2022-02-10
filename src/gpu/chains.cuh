@@ -25,12 +25,12 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 /**
  * Initializes a progress bar to be displayed in the console.
  */
-__device__ void initLoadingBar()
+__device__ void initLoadingBar();
 
 /**
  * Update the progress bar.
  */
-__device__ void incrementLoadingBar()
+__device__ void incrementLoadingBar();
 
 
 __host__ void
