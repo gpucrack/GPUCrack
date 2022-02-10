@@ -145,7 +145,10 @@ __host__ void writePoint(char *path, Password **passwords, int number, bool debu
 
     // Iterate through every point
     for (int i = 0; i < number; i++) {
-        file << (*passwords)[i].bytes << std::endl;
+        for(int j=0; j < PASSWORD_LENGTH; j++) {
+            file << (*passwords)[i].bytes[j];
+        }
+        file << std::endl;
     }
 
     if (debug) printf("The point file was written.\n");
