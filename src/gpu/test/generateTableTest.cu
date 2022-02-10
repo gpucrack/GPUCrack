@@ -6,6 +6,8 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
+    setvbuf(stdout, NULL, _IONBF, 0); // Disables buffer in console (for progress bar)
+
     printSignature();
 
     int passwordNumber = getM0(getTotalSystemMemory(), atoi(argv[1]));

@@ -89,12 +89,11 @@ __device__ void incrementLoadingBar(double n, int length) {
 
 __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {
 
-    setvbuf(stdout, NULL, _IONBF, 0); // Disables buffer in console (for progress bar)
     char barLength = 50;
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     double progress = 1.;
 
-    printf("\nGenerating table...\n\n");
+    if (index==0) printf("\nGenerating table...\n\n");
 
     for (int i = 0; i < chainLength; i++) {
         if (index == 0) {
