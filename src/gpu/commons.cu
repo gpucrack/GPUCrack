@@ -37,13 +37,13 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
             byte = charSet[distr(gen)];
         }
     }
-    printf("DONE, %d PASSWORDS GENERATED\n", passwordNumber);
+    printf("Done, %d passwords generated\n", passwordNumber);
 }
 
 // Returns the number of batch that we need to do
 __host__ int memoryAnalysis(int passwordNumber) {
 
-    printf("\n==========MEMORY ANALYSIS==========\n");
+    printf("\n==========GPU MEMORY ANALYSIS==========\n");
 
     int nDevices;
     cudaGetDeviceCount(&nDevices);
@@ -71,7 +71,7 @@ __host__ int memoryAnalysis(int passwordNumber) {
 
     // Checking if THREAD_PER_BLOCK is a power of 2 because we will have memory problems otherwise
     if ((ceil(log2(THREAD_PER_BLOCK)) != floor(log2(THREAD_PER_BLOCK)))) {
-        printf("THREAD PER BLOCK VALUE IS NOT A POWER OF 2 !\n");
+        printf("Thread per block value is not a power of 2 !\n");
         exit(1);
     }
 
@@ -84,23 +84,23 @@ __host__ int memoryAnalysis(int passwordNumber) {
     // Just to keep a little of memory, just in case
     freeMem -= 500000000;
 
-    printf("MEMORY AVAILABLE : %ld Megabytes\n", (freeMem / 1000000));
+    printf("GPU memory available: %ld Megabytes\n", (freeMem / 1000000));
 
     // Computing memory used by password and result array
     size_t memResult = sizeof(Digest) * passwordNumber;
     size_t memPasswords = sizeof(Password) * passwordNumber;
     size_t memUsed = memPasswords + memResult;
 
-    printf("MEMORY USED BY RESULT ARRAY : %ld Megabytes\n",
+    printf("Memory used by digest array : %ld Megabytes\n",
            (memResult / 1000000));
-    printf("MEMORY USED BY PASSWORD ARRAY : %ld Megabytes\n",
+    printf("Memory used by password array : %ld Megabytes\n",
            (memPasswords / 1000000));
 
-    printf("THIS MUCH MEMORY WILL BE USED : %ld Megabytes\n",
+    printf("This much memory will be used : %ld Megabytes\n",
            (memUsed / 1000000));
 
     if((memUsed / 1000000000) >= getTotalSystemMemory() - 4) {
-        printf("NOT ENOUGH RAM FOR THIS NUMBER OF PASSWORDS !\n");
+        printf("Not enough GPU memory for this number of passwords !\n");
         exit(1);
     }
 
@@ -114,7 +114,7 @@ __host__ int memoryAnalysis(int passwordNumber) {
     int finalNumberOfPass = (int) numberOfPass;
     if ((finalNumberOfPass % 2) != 0) finalNumberOfPass++;
 
-    printf("NUMBER OF PASS : %d\n", finalNumberOfPass);
+    printf("Number of passes : %d\n", finalNumberOfPass);
 
     return finalNumberOfPass;
 }
@@ -227,7 +227,7 @@ __host__ int computeT(int goRam, int mt) {
     tmpMZero = r * mtMax;
 
     if (tmpMZero > mZero) {
-        printf("CHOSEN MT REQUIRE A BIGGER M0 THAN THE MEMORY AVAILABLE\n");
+        printf("Chosen mt require a bigger m0 than memory available!\n");
         exit(1);
     }else {
         mZero = tmpMZero;
@@ -258,7 +258,7 @@ __host__ int getM0(int goRam, int mt) {
     tmpMZero = r * mtMax;
 
     if (tmpMZero > mZero) {
-        printf("CHOSEN MT REQUIRE A BIGGER M0 THAN THE MEMORY AVAILABLE\n");
+        printf("Chosen mt require a bigger m0 than memory available!\n");
         exit(1);
     }else {
         return (int)tmpMZero;

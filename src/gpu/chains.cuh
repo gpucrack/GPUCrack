@@ -18,9 +18,9 @@ __global__ void ntlm_chain_kernel(Password * passwords, Digest * digests, int ch
 __device__ void reduce_digest(unsigned int index, Digest * digest, Password  * plain_text);
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock);
+               bool save, int theadsPerBlock, bool debug);
 __host__ void
 chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            Digest **h_results, int threadPerBlock, int chainLength, bool save);
+            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug);
 
 #endif //GPU_CRACK_CHAINS_CUH
