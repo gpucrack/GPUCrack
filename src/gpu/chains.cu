@@ -103,7 +103,7 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
 
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     double progress = 1.;
-    initLoadingBar();
+    if (index == 0) initLoadingBar();
 
     for (int i = 0; i < chainLength; i++) {
 
