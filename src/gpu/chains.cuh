@@ -23,14 +23,11 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
                bool save, int theadsPerBlock, bool debug);
 
 /**
- * Initializes a progress bar to be displayed in the console.
+ * Updates the progress bar in the console.
+ * @param n the progress count.
+ * @param length the max number of characters in the bar.
  */
-__device__ void initLoadingBar();
-
-/**
- * Update the progress bar.
- */
-__device__ void incrementLoadingBar();
+__device__ void incrementLoadingBar(double n, int length);
 
 
 __host__ void

@@ -75,40 +75,31 @@ __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plai
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
-__device__ void initLoadingBar() {
-    // Initialize chars for printing loading bar
-    unsigned char a = 177, b = 219;
-
-    printf("\n\t\t\t\t\t Generating table...\n\n");
-    printf("\t\t\t\t\t");
-
-    // Print initial loading bar
-    for (int i = 0; i < 20; i++) {
-        printf("%c", a);
-    }
-
-    // Set the cursor again starting
-    // point of loading bar
+__device__ void incrementLoadingBar(double n, int length) {
+    int perc = (int) n;
     printf("\r");
-    printf("\t\t\t\t\t");
-}
-
-__device__ void incrementLoadingBar() {
-    unsigned char b = 219;
-    printf("%c", b);
+    char b = 'X';
+    for (unsigned char i = 0; i < perc; i++) {
+        printf("%c", 'X');
+    }
+    for (unsigned char j = 0; j < length - perc; j++) {
+        printf("%c", '0');
+    }
 }
 
 __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {
 
+    setvbuf(stdout, NULL, _IONBF, 0); // Disables buffer in console (for progress bar)
+    char barLength = 50;
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     double progress = 1.;
-    if (index == 0) initLoadingBar();
+
+    printf("\nGenerating table...\n\n");
 
     for (int i = 0; i < chainLength; i++) {
-
         if (index == 0) {
-            if (((double) i / (double) chainLength) > (progress / 10)) {
-                incrementLoadingBar();
+            if (((double) i / (double) chainLength) > (progress / barLength)) {
+                incrementLoadingBar(progress, barLength);
                 progress += 1.;
             }
         }
@@ -116,6 +107,7 @@ __global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chai
         ntlm(&passwords[index], &digests[index]);
         reduce_digest(i, &digests[index], &passwords[index]);
     }
+    incrementLoadingBar(progress, barLength);
 }
 
 __host__ void
