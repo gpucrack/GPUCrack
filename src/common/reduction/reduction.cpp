@@ -1,16 +1,19 @@
 #include "reduction.h"
 
 // The character set used for passwords.
-static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
-                                          'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-                                          'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
-                                          'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                                          's', 't',
-                                          'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
+static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C',
+                                                      'D', 'E',
+                                                      'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+                                                      'S', 'T',
+                                                      'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
+                                                      'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+                                                      'q', 'r',
+                                                      's', 't',
+                                                      'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
 // The character set used for digests (NTLM hashes).
 static const unsigned char hashset[DIGEST_CHARSET_LENGTH] = {0x88, 0x46, 0xF7, 0xEA, 0xEE, 0x8F, 0xB1,
-                                 0x17, 0xAD, 0x06, 0xBD, 0xD8, 0x30, 0xB7,
-                                 0x58, 0x6C};
+                                                             0x17, 0xAD, 0x06, 0xBD, 0xD8, 0x30, 0xB7,
+                                                             0x58, 0x6C};
 
 void generate_pwd_from_text(char text[], Password *password) {
     for (int i = 0; i < PASSWORD_LENGTH; i++) {
@@ -19,20 +22,20 @@ void generate_pwd_from_text(char text[], Password *password) {
 }
 
 void display_password(Password &pwd, bool br = true) {
-    for(unsigned char i = 0; i < PASSWORD_LENGTH; i++) {
+    for (unsigned char i = 0; i < PASSWORD_LENGTH; i++) {
         printf("%c", (unsigned char) pwd.bytes[i]);
     }
     if (br) printf("\n");
 }
 
-void display_passwords(Password **passwords) {
-    for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
+void display_passwords(Password **passwords, int n) {
+    for (int j = 0; j < n; j++) {
         display_password((*passwords)[j]);
     }
 }
 
 void display_digest(Digest &digest, bool br = true) {
-    for(unsigned char i = 0; i < HASH_LENGTH; i++) {
+    for (unsigned char i = 0; i < HASH_LENGTH; i++) {
         printf("%02X", (unsigned char) digest.bytes[i]);
     }
     if (br) printf("\n");
@@ -51,9 +54,9 @@ void generate_password(unsigned long counter, Password &plain_text) {
     }
 }
 
-void generate_passwords(Password **passwords, int n) {
-    for (int j = 0; j < n; j++) {
-        generate_password(j, (*passwords)[j]);
+void generate_passwords(Password **passwords, int n, unsigned long long h = 0) {
+    for (int j = h; j < n + h; j++) {
+        generate_password(j, (*passwords)[j - h]);
     }
 }
 
@@ -169,7 +172,7 @@ void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_
 /*
  * Tests the reduction speed and searches for duplicates in reduced hashes.
  */
-int main() {
+/*int main() {
 
     // Initialize and allocate memory for a password array
     Password *passwords = NULL;
@@ -207,5 +210,67 @@ int main() {
            ((double) dup / DEFAULT_PASSWORD_NUMBER) * 100);
 
     //display_passwords(&passwords);
+    return 0;
+}*/
+
+void printbits(unsigned char v) {
+    int i; // for C89 compatability
+    for (i = 7; i >= 0; i--) putchar('0' + ((v >> i) & 1));
+}
+
+void print_pwd_as_binary(Password &password) {
+    for (int i = 0; i < PASSWORD_LENGTH; i++) {
+        printbits(password.bytes[i]);
+        printf(" ");
+    }
+}
+
+void print_pwds_as_binary(Password **passwords) {
+    for (int i = 0; i < DEFAULT_PASSWORD_NUMBER; i++) {
+        print_pwd_as_binary((*passwords)[i]);
+        printf("\n");
+    }
+}
+
+
+int main() {
+
+    int n = 7 * 8;
+    int p = 12;
+    int s = n - p;
+
+    // Initialize and allocate memory for a password array
+    Password *start_p = NULL;
+    Password *end_p = NULL;
+    start_p = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
+    end_p = (Password *) malloc(sizeof(Password) * DEFAULT_PASSWORD_NUMBER);
+
+    // Generate DEFAULT_PASSWORD_NUMBER digests
+    printf("Generating start and end points...\n");
+    generate_passwords(&start_p, DEFAULT_PASSWORD_NUMBER, 0);
+    generate_passwords(&end_p, DEFAULT_PASSWORD_NUMBER, 2100000000);
+    printf("Generation done!\n");
+
+    display_passwords(&start_p, DEFAULT_PASSWORD_NUMBER);
+    display_passwords(&end_p, DEFAULT_PASSWORD_NUMBER);
+
+    print_pwds_as_binary(&start_p);
+    print_pwds_as_binary(&end_p);
+
+    printf("\n");
+
+    // Start the chronometer...
+    clock_t t;
+    t = clock();
+
+    // End the chronometer!
+    t = clock() - t;
+    double time_taken = ((double) t) / CLOCKS_PER_SEC; // in seconds
+    double reduce_rate = (DEFAULT_PASSWORD_NUMBER / 1000000) / time_taken;
+
+    printf("Storage of %d points ended after %f seconds.\n%f MR/s.\n", DEFAULT_PASSWORD_NUMBER,
+           time_taken, reduce_rate);
+
+
     return 0;
 }

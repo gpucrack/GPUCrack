@@ -24,7 +24,7 @@
 // One hundred million 100000000
 // Ten millions 10000000
 // One thousand 1000
-#define DEFAULT_PASSWORD_NUMBER 10000
+#define DEFAULT_PASSWORD_NUMBER 10
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
@@ -59,7 +59,7 @@ void display_password(Password &pwd, bool br);
  * Displays a password array properly with chars.
  * @param passwords the password array to display.
  */
-void display_passwords(Password **passwords);
+void display_passwords(Password **passwords, int n);
 
 /**
  * Displays a single digest properly.
@@ -86,7 +86,7 @@ void generate_password(unsigned long counter, Password &plain_text);
  * @param passwords the password array to fill.
  * @param n the number of passwords to be generated.
  */
-void generate_passwords(Password **passwords, int n);
+void generate_passwords(Password **passwords, int n, unsigned long long j);
 
 /**
  * Generates a digest, filling it from right to left.
