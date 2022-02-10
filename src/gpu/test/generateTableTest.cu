@@ -15,9 +15,11 @@ int main(int argc, char *argv[]){
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    // int t = computeT(16);
+    int t = computeT(32, atoi(argv[1]));
 
-    generateChains(passwords, result, passwordNumber, numberOfPass, 100,
+    printf("NUMBER OF COLUMNS: %d\n", t);
+
+    generateChains(passwords, result, passwordNumber, numberOfPass, t,
                    true, THREAD_PER_BLOCK);
 
     cudaFreeHost(passwords);
