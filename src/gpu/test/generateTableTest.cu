@@ -18,7 +18,6 @@ int main(int argc, char *argv[]){
     int t = computeT(32, atoi(argv[1]));
 
     printf("Number of columns: %d\n", t);
-    printf("Generating chains...\n");
 
     generateChains(passwords, result, passwordNumber, numberOfPass, t,
                    true, THREAD_PER_BLOCK, false);

@@ -37,16 +37,16 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
                 numberOfColumn / 2, save, false);
 
     if (debug) {
-        printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
-        printf("CHAIN RATE : %f MC/s\n",
+        printf("Total GPU time : %f milliseconds\n", milliseconds);
+        printf("Chain rate : %f MC/s\n",
                ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
-        printf("HASH/REDUCTION : %f MHR/s\n",
+        printf("Hash/Reduction : %f MHR/s\n",
                (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) numberOfColumn);
 
         program_end = clock();
         program_time_used =
                 ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
-        printf("TOTAL EXECUTION TIME : %f seconds\n", program_time_used);
+        printf("Total execution time : %f seconds\n", program_time_used);
     }
 
     if (debug) {
@@ -107,6 +107,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
     int chainsRemaining = passwordNumber;
     int currentIndex = 0;
+
+    printf("Generating chains...\n");
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
