@@ -239,7 +239,7 @@ __host__ int computeT(int goRam, int mt) {
     // Need to compute mtMax first
     mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
-    double domain = pow(62, 7);
+    double domain = pow(62, PASSWORD_LENGTH);
 
     tmpMZero = r * mtMax;
 
@@ -278,6 +278,7 @@ __host__ int getM0(int goRam, int mt) {
         printf("Chosen mt require a bigger m0 than memory available!\n");
         exit(1);
     }else {
+        printf("m0: %d\n", (int)tmpMZero);
         return (int)tmpMZero;
     }
 }
