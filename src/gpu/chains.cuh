@@ -14,14 +14,50 @@
 
 #define CHARSET_LENGTH 62
 
-__global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength);
+/**
+ * Main kernel used by GPU to hash and reduce
+ * @param passwords : Password array used by both reduction and hash
+ * @param digests : Digest array used by both reduction and hash
+ * @param chainLength : chainLength = how many columns in the chain
+ */
+__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength);
 
-__device__ void reduce_digest(unsigned int index, Digest *digest, Password *plain_text);
+/**
+ * Reduction function used by kernel
+ * @param index : column index to change the reduction function
+ * @param digest : Digest array to be reduced
+ * @param plain_text : Password array to store reduction results
+ */
+__device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text);
 
+/**
+ * Main function called to generate chains
+ * @param h_passwords : CPU Password array used to generate chains
+ * @param h_results : CPU Digest array used to generate chains
+ * @param passwordNumber : How many password we use as input (m0)
+ * @param numberOfPass : How many passes we need to do to compute all batches
+ * @param numberOfColumn : How many column there is in a chain
+ * @param save : Boolean used to say if we want to save start and end points in .txt files (long operation)
+ * @param theadsPerBlock : How many threads per block we will use
+ * @param debug : Show debug print
+ */
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
                bool save, int theadsPerBlock, bool debug);
 
+/**
+ * Function used to call chain Kernel inside generateChains
+ * @param passwordNumber : How many password we use as input (m0)
+ * @param numberOfPass : How many passes we need to do to compute all batches
+ * @param batchSize : Size of the batch
+ * @param milliseconds : Used to measure GPU time
+ * @param h_passwords : CPU Password array used to generate chains
+ * @param h_results : CPU Digest array used to generate chains
+ * @param threadPerBlock : How many threads per block we will use
+ * @param chainLength : chainLength = how many columns in the chain
+ * @param save : Boolean used to say if we want to save start and end points in .txt files (long operation)
+ * @param debug : Show debug print
+ */
 __host__ void
 chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug);

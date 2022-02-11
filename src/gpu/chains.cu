@@ -62,7 +62,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 
 }
 
-__device__ void reduce_digest(unsigned int index, Digest *digest, Password *plain_text) {
+__device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text) {
     (*plain_text).i[0] =
             charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
             (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8) |
@@ -75,11 +75,11 @@ __device__ void reduce_digest(unsigned int index, Digest *digest, Password *plai
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
 }
 
-__global__ void ntlm_chain_kernel(Password *passwords, Digest *digests, int chainLength) {
+__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
-        reduce_digest(i, &digests[index], &passwords[index]);
+        reduceDigest(i, &digests[index], &passwords[index]);
     }
 }
 
@@ -135,7 +135,7 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
                         cudaMemcpyHostToDevice, stream1);
 
         cudaEventRecord(start);
-        ntlm_chain_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+        ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
                 d_passwords, d_results, chainLength);
         cudaEventRecord(end);
         cudaEventSynchronize(end);

@@ -13,11 +13,13 @@
 // MUST BE A POWER OF 2
 #define THREAD_PER_BLOCK 32
 
+// Default number of passwords (m0) to use
 #define DEFAULT_PASSWORD_NUMBER 268435456
 
 // A macro to have a ceil-like function.
 #define CEILING(x, y) (((x) + (y)-1) / (y))
 
+// This is the maximum number of thread that we can used on a GPU
 #define MAX_THREAD_NUMBER 1024
 
 // A password put into a union. This is easier to use with malloc and crypto
