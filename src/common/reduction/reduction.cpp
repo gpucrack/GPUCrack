@@ -106,6 +106,19 @@ void reduce_digest(unsigned long index, Digest &digest, Password &plain_text) {
     }
 }
 
+void reduceDigest(unsigned int index, Digest * digest, Password * plain_text) {
+    (*plain_text).i[0] =
+            charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
+            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
+    (*plain_text).i[1] =
+            charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8)|
+            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
+}
+
 // Does not work: 27 MR/s and 99.62% of duplicates in 10.000 reductions.
 void reduce_digest_2(unsigned long index, Digest &digest, Password &plain_text) {
     uint8_t counter = digest.bytes[7];
@@ -128,7 +141,7 @@ void reduce_digest_3(Password &plain_text) {
 
 void reduce_digests(Digest **digests, Password **plain_texts) {
     for (int j = 0; j < DEFAULT_PASSWORD_NUMBER; j++) {
-        reduce_digest(j, (*digests)[j], (*plain_texts)[j]);
+        reduceDigest(j, (*digests)[j], (*plain_texts)[j]);
     }
 }
 
