@@ -161,84 +161,96 @@ char *ntlm(char *key) {
     return hex_format;
 }
 
-void fileToRainbow(char *path, Password *startPoints, Password *endPoints) {
-    // TODO
+void fileToArray(char *path, Password **points, int mt) {
+    // Create a text string, which is used to output the text file
+    string myText;
+
+    // Read from the text file
+    ifstream MyReadFile(path);
+
+    // Use a while loop together with the getline() function to read the file line by line
+    for (int j = 0; j < mt; j++) {
+        char *tmp = (char *) malloc(sizeof(char) * 7);
+        getline(MyReadFile, myText);
+        strcpy(tmp, myText.c_str());
+        for (int i = 0; i < 7; i++) {
+            (*points)[j].bytes[i] = tmp[i];
+        }
+    }
+
+    // Close the file
+    MyReadFile.close();
+}
+
+int findPwdInEndpoints(Password password, Password *endPoints, int mt) {
+    for (int i = 0; i < mt; i++) {
+        if (pwdcmp(password, endPoints[i])) return i;
+    }
+    return -1;
 }
 
 void online(Password *startPoints, Password *endPoints, Digest digest, Password password) {
-    /*
-        Iterate column by column, starting from the last digest.
-        https://stackoverflow.com/questions/3623263/reverse-iteration-with-an-unsigned-loop-variable
-*/
+    // DISCLAIMER : here, mt and t are hard-coded for the moment.
+    int mt = 1'000'000'000; // the number of end points
+    int t = 1'000; // the length of a chain
 
-    // DISCLAIMER : here, mt is hard-coded for the moment.
-    int mt = 1'000'000'000;
+    // Iterate over the columns of the table, starting from the end points toward the start points.
+    for (unsigned long i = t - 1; i > 0; i--) {
+        Password currentPwd;
+        Digest currentDigest;
+        memcpy(currentDigest, digest, HASH_LENGTH);
 
-    for (int j = 0; j < mt; j++) {
-
-        char column_plain_text[PASSWORD_LENGTH + 1];
-        unsigned char column_digest[HASH_LENGTH];
-        memcpy(column_digest, digest, HASH_LENGTH);
-
-        // get the reduction corresponding to the current column
-        for (unsigned long k = i; k < TABLE_T - 2; k++) {
-            reduce_digest(column_digest, k, tn, column_plain_text);
-            HASH(column_plain_text, strlen(column_plain_text),
-                 column_digest);
+        // Get the reduction corresponding to the current column
+        for (unsigned long k = i; k < t - 2; k++) {
+            reduceDigest(k, currentDigest, currentPwd);
+            currentDigest = ntlm(currentPwd);
         }
-        reduce_digest(column_digest, TABLE_T - 2, tn, column_plain_text);
+        reduceDigest(t - 2, currentDigest, currentPwd);
 
-        RainbowChain *found =
-                binary_search(&rainbow_tables[j], column_plain_text);
+        // Search for the reduction in the end points...
+        int found = findPwdInEndpoints(currentPwd, endPoints);
 
-        if (!found) {
-            continue;
-        }
+        // If the currentPwd matches one of the end points, then reconstruct the chain
+        if (found != -1) {
+            printf("Found a match! Reconstructing the chain...");
+            Password chain_plain_text;
+            Digest chain_digest;
+            strcpy(chain_plain_text, startPoints);
 
-        // we found a matching endpoint, reconstruct the chain
-        char chain_plain_text[PASSWORD_LENGTH + 1];
-        unsigned char chain_digest[HASH_LENGTH];
-        strcpy(chain_plain_text, found->startpoint);
+            for (unsigned long k = 0; k < i; k++) {
+                chain_digest = ntlm(chain_plain_text);
+                reduceDigest(k, chain_digest, chain_plain_text);
+            }
+            chain_digest = ntlm(chain_plain_text);
 
-        for (unsigned long k = 0; k < i; k++) {
-            HASH(chain_plain_text, strlen(chain_plain_text), chain_digest);
-            reduce_digest(chain_digest, k, tn, chain_plain_text);
-        }
-        HASH(chain_plain_text, strlen(chain_plain_text), chain_digest);
-
-        /*
-            The digest was indeed present in the chain, this was
-            not a false positive from a reduction. We found a
-            plain text that matches the digest!
-        */
-        if (!memcmp(chain_digest, digest, HASH_LENGTH)) {
-            strcpy(password, chain_plain_text);
-            return;
+            // Verify whether it was a false alarm or not
+            if (!memcmp(chain_digest, digest, HASH_LENGTH)) {
+                strcpy(password, chain_plain_text);
+                return;
+            } else printf(" False alarm.\n");
         }
     }
 
-    // no match found
+    // No match found
     password[0] = '\0';
 }
 
-/*
-    Example showcasing rainbow table generation (offline phase)
-    and password attack (online phase).
-*/
 int main(int argc, char *argv[]) {
 
     // Check if the arguments were given correctly
-    if (argc != 2) {
-        printf("Error: not enough arguments given.\nUsage: 'online table password'.\n'table' is the path to the rainbow table file.\n'password' is the password you are looking to crack.");
+    if (argc != 3) {
+        printf("Error: not enough arguments given.\nUsage: 'online startpoint endpoint password'.\n'startpoint' is the path to the start points file.\n'endpoints' is the path to the end points file.\n'password' is the password you are looking to crack.");
         exit(1);
     }
+
+    int mt = 100;
 
     Password *startPoints;
     Password *endPoints;
 
     // Read the rainbow table from its file
-    // TODO
-    fileToRainbow(argv[1], startPoints, endPoints);
+    fileToArray(argv[1], &startPoints, mt);
+    fileToArray(argv[2], &endPoints, mt);
 
     // the password we will be looking to crack, after it's hashed
     Password *password = argv[2];
@@ -251,7 +263,7 @@ int main(int argc, char *argv[]) {
     Digest digest;
     digest = ntlm(password);
 
-    printf("\nLooking for password '%s', hashed into ", password);
+    printf("\nLooking for password '%s', hashed into ", (char *) password);
     display_digest(digest, false);
     printf(".\nStarting attack...\n");
 
