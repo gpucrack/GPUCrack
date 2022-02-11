@@ -53,8 +53,26 @@ int count_duplicates(Password **passwords, bool debug, int passwordNumber);
  */
 void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_PASSWORD_NUMBER);
 
+/**
+ * Function called by reduce to use reduce kernel
+ * @param passwordNumber : How many password we use as input (m0)
+ * @param numberOfPass : How many passes we need to do to compute all batches
+ * @param batchSize : Size of the batch
+ * @param milliseconds : Used to measure GPU time
+ * @param h_passwords : CPU Password array used to generate chains
+ * @param h_results : CPU Digest array used to generate chains
+ * @param threadPerBlock : How many threads per block we will use
+ */
 __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
                            Password **h_passwords, Digest **h_results, int threadPerBlock);
 
+/**
+ * Function called to reduce
+ * @param h_passwords : CPU Password array used to generate chains
+ * @param h_results : CPU Digest array used to generate chains
+ * @param passwordNumber : How many password we use as input (m0)
+ * @param numberOfPass : How many passes we need to do to compute all batches
+ * @param threadsPerBlock : How many threads per block we will use
+ */
 __host__ void
 reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int threadsPerBlock);

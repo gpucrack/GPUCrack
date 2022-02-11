@@ -87,12 +87,33 @@ __host__ void writePoint(char *path, Password **passwords, int startNumber, bool
 __host__ void
 writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug = false);
 
+/**
+ * Function used to compute t
+ * @param goRam : How many Go of RAM we will use to compute t
+ * @param mt : Number of chains we want in the end points (mt < m0)
+ * @return t : number of column in a chain
+ */
 __host__ int computeT(int goRam, int mt);
 
+/**
+ * Function used to get the maximum number of password to input based on RAM
+ * @param goRam : How many Go of RAM we will use to compute t
+ * @return maximum m0 based on the RAM (goRAM) available
+ */
 __host__ int getNumberPassword(int goRam);
 
+/**
+ * Function used to get m0 value based on mt and RAM
+ * @param goRam : How many Go of RAM we will use to compute t
+ * @param mt : Number of chains we want in the end points (mt < m0)
+ * @return m0 based on both memory available (to check if mt is correct) and mt
+ */
 __host__ int getM0(int goRam, int mt);
 
+/**
+ * Automatically detect system RAM
+ * @return system RAM (CPU)
+ */
 __host__ int getTotalSystemMemory();
 
 #endif //GPU_CRACK_COMMONS_CUH
