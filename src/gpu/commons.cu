@@ -189,6 +189,9 @@ __host__ std::ofstream openFile(const char *path) {
 __host__ void writePoint(char *path, Password **passwords, int number, bool debug) {
     std::ofstream file = openFile(path);
 
+    file << number << std::endl;
+    file << PASSWORD_LENGTH << std::endl;
+
     // Iterate through every point
     for (int i = 0; i < number; i++) {
         for(int j=0; j < PASSWORD_LENGTH; j++) {
