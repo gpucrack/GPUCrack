@@ -77,7 +77,7 @@ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain
 
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-    Digest tmp = digests[index];
+   //  Digest tmp = digests[index];
     for (int i = 0; i < chainLength; i++) {
         if(index == 0) {
             // printf("i=%d   -   Hashed '", i);
