@@ -94,7 +94,7 @@ __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainL
         }
         reduceDigest(i, &digests[index], &passwords[index]);
         // Clear the hash
-        digests[index] = tmp;
+        //digests[index] = tmp;
         if(index == 0) {
             //printPassword(&passwords[0]);
             //printf(" --> ");
