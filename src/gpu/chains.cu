@@ -77,29 +77,29 @@ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain
 
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if(index == 0) {
-        printf("Start point: '");
-        printPassword(&passwords[index]);
-        printf("'\n");
-    }
+    Digest tmp = digests[index];
     for (int i = 0; i < chainLength; i++) {
-        ntlm(&passwords[index], &digests[index]);
         if(index == 0) {
-            printf("i=%d", i);
-            printf("   -   hash: '");
-            printDigest(&digests[index]);
+            // printf("i=%d   -   Hashed '", i);
+            //printPassword(&passwords[0]);
+            //printf(" --> ");
+            // printf("' into '");
+        }
+        ntlm(&passwords[index], &digests[index], index);
+        if(index == 0) {
+            //printDigest(&digests[0]);
+            //printf("'.   ---   Reduced '");
+            // printDigest(&digests[0]);
+            //printf("' into '");
         }
         reduceDigest(i, &digests[index], &passwords[index]);
+        // Clear the hash
+        digests[index] = tmp;
         if(index == 0) {
-            printf("'   -   password: '");
-            printPassword(&passwords[index]);
-            printf("'\n");
+            //printPassword(&passwords[0]);
+            //printf(" --> ");
+            //printf("'.\n");
         }
-    }
-    if(index == 0) {
-        printf("End point: '");
-        printPassword(&passwords[index]);
-        printf("'\n");
     }
 }
 

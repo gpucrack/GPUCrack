@@ -29,7 +29,7 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
 
     printf("SAMPLE RESULT FROM GPU FUNCTION : \n");
     for (unsigned char byte: result[666].bytes) {
-        printf("%x", byte);
+        printf("%X", byte);
     }
     printf("\n\n");
 
@@ -43,7 +43,7 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
             printf("FAILED @ DIGEST N°%d\n", i);
             printf("THIS IS THE FAIL SAMPLE: ");
             for (unsigned char byte: result[i].bytes) {
-                printf("%x", byte);
+                printf("%X", byte);
             }
             printf("\n");
             exit(1);

@@ -58,7 +58,7 @@ __global__ void ntlm_kernel(Password *passwords, Digest *digests);
     `password` contains the password to hash.
     `digest` contains the hashed password.
 */
-__device__ void ntlm(Password *password, Digest *digest);
+__device__ void ntlm(Password *password, Digest *digest, unsigned int index);
 
 __device__ uint32_t rotl32(const uint32_t a, const int n);
 
