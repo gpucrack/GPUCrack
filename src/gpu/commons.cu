@@ -158,7 +158,7 @@ __device__ __host__ void printDigest(Digest *dig) {
         printf("%02X", byte); // %02X formats as uppercase hex with leading zeroes
     }
 
-    printf("\n");
+    //printf("\n");
 }
 
 __device__ __host__ void printPassword(Password *pwd) {
@@ -166,7 +166,7 @@ __device__ __host__ void printPassword(Password *pwd) {
     for (unsigned char byte : pwd->bytes) {
         printf("%c", byte);
     }
-    printf("\n");
+    //printf("\n");
 }
 
 __host__ void createFile(char *path, bool debug) {
@@ -186,11 +186,12 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writePoint(char *path, Password **passwords, int number, bool debug) {
+__host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug) {
     std::ofstream file = openFile(path);
 
     file << number << std::endl;
     file << PASSWORD_LENGTH << std::endl;
+    file << t << std::endl;
 
     // Iterate through every point
     for (int i = 0; i < number; i++) {
