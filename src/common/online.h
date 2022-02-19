@@ -1,45 +1,123 @@
-#ifndef GPUCRACK_ONLINE_H
-#define GPUCRACK_ONLINE_H
+#ifndef RAINBOW_H
+#define RAINBOW_H
 
-#include "../gpu/constants.cuh"
-#include "./reduction/reduction.h"
-#include <iostream>
-#include <fstream>
+#define _CRT_SECURE_NO_WARNINGS
 
-using namespace std;
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// The password length in the rainbow tables.
+#define PASSWORD_LENGTH 7
+
+// The length of the charset.
+#define CHARSET_LENGTH 62
+
+// The length of the digest produced by the hash function (NTLM).
+#define HASH_LENGTH 16
+
+// A macro to have a ceil-like function.
+#define CEILING(x, y) (((x) + (y)-1) / (y))
+
+// Handy macro for debug prints.
+#if !defined NDEBUG || defined DEBUG_TEST
+#define DEBUG_TEST 1
+#else
+#define DEBUG_TEST 0
+#endif
+#define DEBUG_PRINT(fmt, ...)                              \
+    do {                                                   \
+        if (DEBUG_TEST) fprintf(stderr, fmt, __VA_ARGS__); \
+    } while (0)
+
+// A password put into a union. This is easier to use with malloc and crypto
+// functions.
+typedef union {
+    uint8_t bytes[PASSWORD_LENGTH];
+    uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
+} Password;
+
+// A digest put into a union.
+typedef union {
+    uint8_t bytes[HASH_LENGTH];
+    uint32_t i[CEILING(HASH_LENGTH, 4)];
+} Digest;
 
 /**
- * Hashes a char array using NTLM.
- * @param key the character array to sort.
- * @return a character array containing the NTLM hash of the given key.
- * https://github.com/tux-mind/autocrack/blob/master/common/crypto.c
+ * Prints a hash properly in the console.
+ * @param digest the hash to print.
  */
-char *ntlm(char *key);
+void print_hash(const unsigned char *digest);
 
 /**
- * Reads a file containing start or end points, and turns it into an array.
- * @param path the path of the start/end point file.
- * @param points the start/end point array.
- * @param mt the number of start/end point.
+ * Searches for a specific char array in a list of endpoints.
+ * @param endpoints the list of endpoints (as a char array array).
+ * @param plain_text the endpoint to find.
+ * @param mt the number of endpoints in the list.
+ * @return the index of found value in the list if found, -1 otherwise.
  */
-void fileToArray(char *path, Password **points, int mt);
+int search_endpoint(char** endpoints, char* plain_text, int mt);
 
 /**
- * Tries to find a given password in an array of end points.
- * @param password the password to find.
- * @param endPoints the end point array where the password is searched for.
- * @param mt the number of end points.
- * @return the index where the password was found, -1 if not found.
+ * Transforms a char array to a password.
+ * @param text the char array.
+ * @param password the resulting password.
  */
-int findPwdInEndpoints(Password password, Password *endPoints, int mt);
+void char_to_password(char text[], Password *password);
 
 /**
- * Perform the online (or attack) phase, i.e. retrieve a password from its hash using rainbow tables.
- * @param startPoints the start point array.
- * @param endPoints the end point array.
- * @param digest the digest to crack.
- * @param password the retrieved password, if found.
+ * Transforms a password to a char array.
+ * @param password the password.
+ * @param text the resulting chay array.
  */
-void online(Password *startPoints, Password *endPoints, Digest digest, Password password);
+void password_to_char(Password *password, char text[]);
 
-#endif //GPUCRACK_ONLINE_H
+/**
+ * Transforms a char array into a digest.
+ * @param text the char array.
+ * @param digest the resulting digest.
+ */
+void char_to_digest(char text[], Digest *digest);
+
+/**
+ * Prints a digest in the console.
+ * @param digest the digest to print.
+ */
+void display_digest(Digest *digest);
+
+/**
+ * Prints a password in the console.
+ * @param pwd the password to print.
+ */
+void display_password(Password *pwd);
+
+/**
+ * Reduces a digest into a password.
+ * @param char_digest the digest to reduce.
+ * @param index the column index (using rainbow table means the reduction function depends on the column).
+ * @param char_plain the result of the reduction.
+ * @param pwd_length the length of the password to produce.
+ */
+void reduce_digest2(char* char_digest, unsigned int index, char* char_plain, int pwd_length);
+
+/**
+ * Hashes a key into its NTLM digest.
+ * @param key the char array to hash.
+ * @param hash the NTLM hash of key.
+ */
+void ntlm(char *key, char *hash);
+
+/**
+ * Perform the online attack with the startpoint and endpoint files.
+ * @param start_path the path to the startpoint file.
+ * @param end_path the path to the endpoint file.
+ * @param digest the digest we're looking to crack.
+ * @param password if found, the password corresponding to the digest.
+ */
+void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password);
+
+
+#endif
