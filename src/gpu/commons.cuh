@@ -71,10 +71,10 @@ __host__ std::ofstream openFile(const char *path);
  * Writes start points (passwords) into a text file.
  * @param path the path of the file to save.
  * @param passwords the array containing every password located in first row.
- * @param startNumber the number of start points (called m_0).
+ * @param number the number of points (called m_t if end points, m_0 if start points).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writePoint(char *path, Password **passwords, int startNumber, bool debug = false);
+__host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug = false);
 
 /**
  * Writes the last reductions of a table (password --> end point) into a text file.
