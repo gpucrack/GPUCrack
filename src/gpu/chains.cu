@@ -77,9 +77,29 @@ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain
 
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if(index == 0) {
+        printf("Start point: '");
+        printPassword(&passwords[index]);
+        printf("'\n");
+    }
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
+        if(index == 0) {
+            printf("i=%d", i);
+            printf("   -   hash: '");
+            printDigest(&digests[index]);
+        }
         reduceDigest(i, &digests[index], &passwords[index]);
+        if(index == 0) {
+            printf("'   -   password: '");
+            printPassword(&passwords[index]);
+            printf("'\n");
+        }
+    }
+    if(index == 0) {
+        printf("End point: '");
+        printPassword(&passwords[index]);
+        printf("'\n");
     }
 }
 
