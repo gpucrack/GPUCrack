@@ -361,8 +361,17 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 */
 int main(int argc, char *argv[]) {
 
-    if (argc != 5) {
+    if (argc < 5) {
         printf("Error: not enough arguments given.\nUsage: 'online startpath endpath -p password', where:"
+               "\n   - startpath is ABSOLUTE path to the start points file."
+               "\n   - endpath is ABSOLUTE path to the end points file."
+               "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
+               "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.");
+        exit(1);
+    }
+
+    if (argc > 5) {
+        printf("Error: too many arguments given.\nUsage: 'online startpath endpath -p password', where:"
                "\n   - startpath is ABSOLUTE path to the start points file."
                "\n   - endpath is ABSOLUTE path to the end points file."
                "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
@@ -419,11 +428,4 @@ int main(int argc, char *argv[]) {
         }
         return 0;
     }
-
-    printf("Error: not enough arguments given.\nUsage: 'online startpath endpath -p password', where:"
-           "\n   - startpath is ABSOLUTE path to the start points file."
-           "\n   - endpath is ABSOLUTE path to the end points file."
-           "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
-           "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.");
-    exit(1);
 }
