@@ -23,16 +23,9 @@ void generate_digests_random(Digest **digests, int n) {
 }
 
 __device__ void reduceDigest(unsigned int index, Digest * digest, Password * plain_text) {
-    (*plain_text).i[0] =
-            charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
-            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16)|
-            (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
-    (*plain_text).i[1] =
-            charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8)|
-            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16)|
-            (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
+    for(int i=0; i<PASSWORD_LENGTH; i++){
+        (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % CHARSET_LENGTH];
+    }
 }
 
 __global__ void reduceDigests(Digest *digests, Password *plain_texts) {

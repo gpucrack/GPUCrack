@@ -62,19 +62,6 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 
 }
 
-__device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text) {
-    (*plain_text).i[0] =
-            charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8) |
-            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16) |
-            (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
-    (*plain_text).i[1] =
-            charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8) |
-            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16) |
-            (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
-}
-
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {

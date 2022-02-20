@@ -46,7 +46,8 @@ add_executable(generateTableTest
         src/gpu/chains.cu
         src/gpu/commons.cu
         src/gpu/test/generateTableTest.cu
-        src/gpu/hash/hash_functions/ntlm.cu)
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/gpu/reduction/reduction.cu)
 
 set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
