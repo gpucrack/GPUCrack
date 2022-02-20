@@ -359,32 +359,76 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 /*
     Example showing how we create a rainbow table given its start and end point files.
 */
-int main() {
-    const char* start_path = "testStart.txt";
-    const char* end_path = "testEnd.txt";
+int main(int argc, char *argv[]) {
 
-    // the password we will be looking to crack, after it's hashed
-    const char* password = "kiaaaaa";
-
-    // `digest` now contains the hashed password
-    unsigned char digest[HASH_LENGTH];
-    //HASH(password, strlen(password), digest);
-    ntlm(password, digest);
-
-    printf("\nLooking for password '%s', hashed as %s", password, digest);
-    // print_hash(digest);
-    printf(".\nStarting attack...\n");
-
-    // try to crack the password
-    char found[PASSWORD_LENGTH + 1];
-    online_from_files(start_path, end_path, digest, found);
-
-    // if `found` is not empty, then we successfully cracked the password
-    if (!strcmp(found, "")) {
-        printf("No password found for the given hash.\n");
-    } else {
-        printf("Password '%s' found for the given hash!\n", found);
+    if (argc != 5) {
+        printf("Error: not enough arguments given.\nUsage: 'online startpath endpath -p password', where:"
+               "\n   - startpath is ABSOLUTE path to the start points file."
+               "\n   - endpath is ABSOLUTE path to the end points file."
+               "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
+               "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.");
+        exit(1);
     }
 
-    return 0;
+    const char* start_path = argv[1];
+    const char* end_path = argv[2];
+
+    if(strcmp(argv[3], "-p") == 0) {
+        // A plain text password was given.
+        // the password we will be looking to crack, after it's hashed
+        const char* password = argv[4];
+        // `digest` now contains the hashed password
+        unsigned char digest[HASH_LENGTH];
+        ntlm(password, digest);
+
+        printf("\nLooking for password '%s', hashed as %s", password, digest);
+        printf(".\nStarting attack...\n");
+
+        // try to crack the password
+        char found[PASSWORD_LENGTH + 1];
+        online_from_files(start_path, end_path, digest, found);
+
+        // if `found` is not empty, then we successfully cracked the password
+        if (!strcmp(found, "")) {
+            printf("No password found for the given hash.\n");
+        } else {
+            printf("Password '%s' found for the given hash!\n", found);
+        }
+
+        return 0;
+    }
+
+    else if(strcmp(argv[3], "-h") == 0) {
+        // the password we will be looking to crack, after it's hashed
+
+        // `digest` now contains the hashed password
+        char* digest = argv[4];
+        for(int i = 0; digest[i]; i++){
+            digest[i] = tolower(digest[i]);
+        }
+
+        printf("\nLooking to crack the ntlm hash '%s'", digest);
+        printf(".\nStarting attack...\n");
+
+        // try to crack the password
+        char found[PASSWORD_LENGTH + 1];
+        online_from_files(start_path, end_path, digest, found);
+
+        // if `found` is not empty, then we successfully cracked the password
+        if (!strcmp(found, "")) {
+            printf("No password found for the given hash.\n");
+        } else {
+            printf("Password '%s' found for the given hash!\n", found);
+        }
+        return 0;
+    }
+
+    printf("Error: not enough arguments given.\nUsage: 'online startpath endpath -p password', where:"
+           "\n   - startpath is ABSOLUTE path to the start points file."
+           "\n   - endpath is ABSOLUTE path to the end points file."
+           "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
+           "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.");
+    exit(1);
+
+
 }
