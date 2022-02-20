@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(GPU_crack CUDA CXX)
+project(GPU_crack CUDA CXX C)
 
 set(CMAKE_CUDA_STANDARD 14)
 
@@ -49,6 +49,9 @@ add_executable(generateTableTest
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/reduction/reduction.cu)
 
+add_executable(online
+        src/common/online.c)
+
 set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
@@ -71,4 +74,7 @@ set_target_properties(chainBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(generateTableTest PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(online PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)

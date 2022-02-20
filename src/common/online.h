@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint-gcc.h>
 
 // The password length in the rainbow tables.
 #define PASSWORD_LENGTH 7
