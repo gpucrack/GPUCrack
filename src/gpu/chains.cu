@@ -75,8 +75,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug) {
 
     if (save) {
-        createFile((char *) "../src/tables/testStart.txt", true);
-        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber, true);
+        createFile((char *) "testStart.txt", true);
+        writePoint((char *) "testStart.txt", h_passwords, passwordNumber, chainLength, true);
     }
 
     // Device copies for endpoints
@@ -164,8 +164,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
     cudaStreamDestroy(stream1);
 
     if (save) {
-        createFile((char *) "../src/tables/testEnd.txt", true);
-        writePoint((char *) "../src/tables/testEnd.txt", h_passwords, passwordNumber,
+        createFile((char *) "testEnd.txt", true);
+        writePoint((char *) "testEnd.txt", h_passwords, passwordNumber, chainLength,
                    true);
     }
 }
