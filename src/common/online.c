@@ -333,7 +333,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
             continue;
         }
 
-        printf("Match found at index %d.\n", found);
+        printf("Match found in chain number %d.\n", found+1);
 
         // we found a matching endpoint, reconstruct the chain
         char chain_plain_text[pwd_length + 1];
@@ -379,6 +379,9 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    printf("GPUCrack v0.1.0\n"
+           "<https://github.com/gpucrack/GPUCrack/>\n\n");
+
     const char *start_path = argv[1];
     const char *end_path = argv[2];
 
@@ -390,7 +393,7 @@ int main(int argc, char *argv[]) {
         unsigned char digest[HASH_LENGTH];
         ntlm(password, digest);
 
-        printf("\nLooking for password '%s', hashed as %s", password, digest);
+        printf("Looking for password '%s', hashed as %s", password, digest);
         printf(".\nStarting attack...\n");
 
         // try to crack the password
@@ -413,7 +416,7 @@ int main(int argc, char *argv[]) {
             digest[i] = tolower(digest[i]);
         }
 
-        printf("\nLooking to crack the ntlm hash '%s'", digest);
+        printf("Looking to crack the ntlm hash '%s'", digest);
         printf(".\nStarting attack...\n");
 
         // try to crack the password
