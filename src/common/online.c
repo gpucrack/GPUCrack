@@ -15,11 +15,8 @@ void print_hash(const unsigned char *digest) {
 
 int search_endpoint(char** endpoints, char* plain_text, int mt) {
     for(int i = 0; i < mt; i++){
-        //printf("Comparing %s and ", endpoints[i]);
-        //printf("%s", plain_text);
-        //printf("\n");
-        if (!strcmp(endpoints[i], plain_text)) {
-            printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
+        if (strcmp(endpoints[i], plain_text) == 0) {
+            // printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
             return i;
         }
     }
@@ -275,7 +272,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     int t;
     fgets(buff, 255, (FILE *) fp);
     sscanf(buff, "%d", &t);
-    printf("Chain length (t): %d\n", t);
+    printf("Chain length (t): %d\n\n", t);
 
     char **startpoints = malloc(sizeof(char*) * mt);
     for(int i = 0; i < mt; i++) {
@@ -284,6 +281,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     for (int i = 0; i < mt; i++) {
         fgets(buff, 255, (FILE*)fp);
         startpoints[i] = strdup(buff);
+        startpoints[i][strcspn(startpoints[i],"\n")] = '\0'; // remove line break
     }
 
     // Close the start file
@@ -303,6 +301,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     for (int i = 0; i < mt; i++) {
         fgets(buff2, 255, (FILE*)fp);
         endpoints[i] = strdup(buff2);
+        endpoints[i][strcspn(endpoints[i],"\n")] = '\0'; // remove line break
     }
 
     // Close the end file
@@ -316,25 +315,25 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         // printf("\nstrcpy : digest: %s\n", digest);
         // printf("strcpy : column_digest: %s\n", column_digest);
 
-        printf("\nWe suppose that the digest '%s' is in row %lu\n", digest, i);
+        // printf("\nWe suppose that the digest '%s' is in row %lu\n", digest, i);
 
         // get the reduction corresponding to the current column
         for (unsigned long k = i; k < t - 1; k++) {
             reduce_digest2(column_digest, k, column_plain_text, pwd_length);
             ntlm(column_plain_text, column_digest);
-            printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
+            // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
         }
         reduce_digest2(column_digest, t - 1, column_plain_text, pwd_length);
-        printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
+        // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
-        printf("Trying to find %s in endpoints...\n", column_plain_text);
+        // printf("Trying to find %s in endpoints...\n", column_plain_text);
         int found = search_endpoint(endpoints, column_plain_text, mt);
 
         if (found == -1) {
             continue;
         }
 
-        printf("Found at index %d", found);
+        printf("Match found at index %d.\n", found);
 
         // we found a matching endpoint, reconstruct the chain
         char chain_plain_text[pwd_length + 1];
@@ -365,7 +364,7 @@ int main() {
     const char* end_path = "testEnd.txt";
 
     // the password we will be looking to crack, after it's hashed
-    const char* password = "aaaaaaa";
+    const char* password = "kiaaaaa";
 
     // `digest` now contains the hashed password
     unsigned char digest[HASH_LENGTH];
