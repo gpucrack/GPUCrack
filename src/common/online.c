@@ -363,8 +363,8 @@ int main(int argc, char *argv[]) {
 
     if (argc < 5) {
         printf("Error: not enough arguments given.\nUsage: 'online startpath endpath -p password', where:"
-               "\n   - startpath is ABSOLUTE path to the start points file."
-               "\n   - endpath is ABSOLUTE path to the end points file."
+               "\n   - startpath is the path to the start points file."
+               "\n   - endpath is the path to the end points file."
                "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
                "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.\n\n");
         exit(1);
@@ -372,8 +372,8 @@ int main(int argc, char *argv[]) {
 
     if (argc > 5) {
         printf("Error: too many arguments given.\nUsage: 'online startpath endpath -p password', where:"
-               "\n   - startpath is ABSOLUTE path to the start points file."
-               "\n   - endpath is ABSOLUTE path to the end points file."
+               "\n   - startpath is the path to the start points file."
+               "\n   - endpath is the path to the end points file."
                "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
                "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.\n\n");
         exit(1);
