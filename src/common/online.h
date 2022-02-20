@@ -61,7 +61,7 @@ void print_hash(const unsigned char *digest);
  * @param mt the number of endpoints in the list.
  * @return the index of found value in the list if found, -1 otherwise.
  */
-int search_endpoint(char** endpoints, char* plain_text, int mt);
+int search_endpoint(char **endpoints, char *plain_text, int mt);
 
 /**
  * Transforms a char array to a password.
@@ -103,7 +103,7 @@ void display_password(Password *pwd);
  * @param char_plain the result of the reduction.
  * @param pwd_length the length of the password to produce.
  */
-void reduce_digest2(char* char_digest, unsigned int index, char* char_plain, int pwd_length);
+void reduce_digest2(char *char_digest, unsigned int index, char *char_plain, int pwd_length);
 
 /**
  * Hashes a key into its NTLM digest.

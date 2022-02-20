@@ -13,8 +13,8 @@ void print_hash(const unsigned char *digest) {
     }
 }
 
-int search_endpoint(char** endpoints, char* plain_text, int mt) {
-    for(int i = 0; i < mt; i++){
+int search_endpoint(char **endpoints, char *plain_text, int mt) {
+    for (int i = 0; i < mt; i++) {
         if (strcmp(endpoints[i], plain_text) == 0) {
             // printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
             return i;
@@ -38,9 +38,9 @@ void password_to_char(Password *password, char text[]) {
 void char_to_digest(char text[], Digest *digest) {
     for (int i = 0; i < HASH_LENGTH; i++) {
         char hex[2];
-        hex[0] = text[i*2];
-        hex[1] = text[(i*2)+1];
-        uint32_t num = (int)strtol(hex, NULL, 16);
+        hex[0] = text[i * 2];
+        hex[1] = text[(i * 2) + 1];
+        uint32_t num = (int) strtol(hex, NULL, 16);
         digest->bytes[i] = num;
     }
 }
@@ -57,7 +57,7 @@ void display_password(Password *pwd) {
     }
 }
 
-void reduce_digest2(char* char_digest, unsigned int index, char* char_plain, int pwd_length) {
+void reduce_digest2(char *char_digest, unsigned int index, char *char_plain, int pwd_length) {
     Digest *digest = (Digest *) malloc(sizeof(Digest));
     // printf("\nDEBUT REDUCTION : %s", char_digest);
     //print_hash(char_digest);
@@ -74,13 +74,13 @@ void reduce_digest2(char* char_digest, unsigned int index, char* char_plain, int
 
     (*plain_text).i[0] =
             charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8)|
-            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8) |
+            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16) |
             (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
     (*plain_text).i[1] =
             charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
-            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8)|
-            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16)|
+            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8) |
+            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16) |
             (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
     password_to_char(plain_text, char_plain);
 
@@ -274,14 +274,14 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     sscanf(buff, "%d", &t);
     printf("Chain length (t): %d\n\n", t);
 
-    char **startpoints = malloc(sizeof(char*) * mt);
-    for(int i = 0; i < mt; i++) {
+    char **startpoints = malloc(sizeof(char *) * mt);
+    for (int i = 0; i < mt; i++) {
         startpoints[i] = malloc(sizeof(char) * pwd_length);
     }
     for (int i = 0; i < mt; i++) {
-        fgets(buff, 255, (FILE*)fp);
+        fgets(buff, 255, (FILE *) fp);
         startpoints[i] = strdup(buff);
-        startpoints[i][strcspn(startpoints[i],"\n")] = '\0'; // remove line break
+        startpoints[i][strcspn(startpoints[i], "\n")] = '\0'; // remove line break
     }
 
     // Close the start file
@@ -294,14 +294,14 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     fgets(buff2, 255, (FILE *) fp2);
     fgets(buff2, 255, (FILE *) fp2);
 
-    char **endpoints = malloc(sizeof(char*) * mt);
-    for(int i = 0; i < mt; i++) {
+    char **endpoints = malloc(sizeof(char *) * mt);
+    for (int i = 0; i < mt; i++) {
         endpoints[i] = malloc(sizeof(char) * pwd_length);
     }
     for (int i = 0; i < mt; i++) {
-        fgets(buff2, 255, (FILE*)fp);
+        fgets(buff2, 255, (FILE *) fp);
         endpoints[i] = strdup(buff2);
-        endpoints[i][strcspn(endpoints[i],"\n")] = '\0'; // remove line break
+        endpoints[i][strcspn(endpoints[i], "\n")] = '\0'; // remove line break
     }
 
     // Close the end file
@@ -370,13 +370,13 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    const char* start_path = argv[1];
-    const char* end_path = argv[2];
+    const char *start_path = argv[1];
+    const char *end_path = argv[2];
 
-    if(strcmp(argv[3], "-p") == 0) {
+    if (strcmp(argv[3], "-p") == 0) {
         // A plain text password was given.
         // the password we will be looking to crack, after it's hashed
-        const char* password = argv[4];
+        const char *password = argv[4];
         // `digest` now contains the hashed password
         unsigned char digest[HASH_LENGTH];
         ntlm(password, digest);
@@ -394,16 +394,13 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Password '%s' found for the given hash!\n", found);
         }
-
         return 0;
-    }
-
-    else if(strcmp(argv[3], "-h") == 0) {
+    } else if (strcmp(argv[3], "-h") == 0) {
         // the password we will be looking to crack, after it's hashed
 
         // `digest` now contains the hashed password
-        char* digest = argv[4];
-        for(int i = 0; digest[i]; i++){
+        char *digest = argv[4];
+        for (int i = 0; digest[i]; i++) {
             digest[i] = tolower(digest[i]);
         }
 
@@ -429,6 +426,4 @@ int main(int argc, char *argv[]) {
            "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
            "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack.");
     exit(1);
-
-
 }
