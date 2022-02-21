@@ -376,6 +376,8 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         }
         ntlm(chain_plain_text, chain_digest);
 
+        printf("FALSE ALERT ???????? C'EST : %s et %s\n", password, chain_plain_text);
+
         if (!memcmp(chain_digest, digest, HASH_LENGTH)) {
             strcpy(password, chain_plain_text);
             return;
