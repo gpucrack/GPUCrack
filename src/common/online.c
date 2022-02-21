@@ -280,14 +280,8 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         fgets(buff, 255, (FILE *) fp);
         for (int j = i; j < i + pwd_length; j++) {
             startpoints[j] = buff[j - i];
-            if(j < 50) {
-                printf("buff[%d - %d] = %c\n", j, i, buff[j - i]);
-                printf("startpoints[%d] = %c\n", j, startpoints[j]);
-            }
         }
     }
-
-    printf("Startpoints OK");
 /*    for (int i = 0; i < mt; i++) {
         fgets(buff, 255, (FILE *) fp);
         startpoints[i] = strdup(buff);
@@ -306,14 +300,13 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     fgets(buff2, 255, (FILE *) fp2);
     fgets(buff2, 255, (FILE *) fp2);
 
-    char **endpoints = malloc(sizeof(char *) * mt);
-    for (int i = 0; i < mt; i++) {
-        endpoints[i] = malloc(sizeof(char) * pwd_length);
-    }
-    for (int i = 0; i < mt; i++) {
-        fgets(buff2, 255, (FILE *) fp);
-        endpoints[i] = strdup(buff2);
-        endpoints[i][strcspn(endpoints[i], "\n")] = '\0'; // remove line break
+    char *endpoints = malloc(sizeof(char) * pwd_length * mt);
+
+    for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
+        fgets(buff2 255, (FILE *) fp);
+        for (int j = i; j < i + pwd_length; j++) {
+            search_endpoint()[j] = buff2[j - i];
+        }
     }
 
     // Close the end file
