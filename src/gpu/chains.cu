@@ -62,14 +62,44 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 
 }
 
+__device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text) {
+    (*plain_text).i[0] =
+            charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8) |
+            (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16) |
+            (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
+    (*plain_text).i[1] =
+            charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
+            (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8) |
+            (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16) |
+            (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
+}
+
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+   //  Digest tmp = digests[index];
     for (int i = 0; i < chainLength; i++) {
-        /*if (index == 0) {
-            printf("\r%.2f %%", ((double)i/(double)chainLength) * 100);
-        }*/
-        ntlm(&passwords[index], &digests[index]);
+        if(index == 0) {
+            // printf("i=%d   -   Hashed '", i);
+            //printPassword(&passwords[0]);
+            //printf(" --> ");
+            // printf("' into '");
+        }
+        ntlm(&passwords[index], &digests[index], index);
+        if(index == 0) {
+            //printDigest(&digests[0]);
+            //printf("'.   ---   Reduced '");
+            // printDigest(&digests[0]);
+            //printf("' into '");
+        }
         reduceDigest(i, &digests[index], &passwords[index]);
+        // Clear the hash
+        //digests[index] = tmp;
+        if(index == 0) {
+            //printPassword(&passwords[0]);
+            //printf(" --> ");
+            //printf("'.\n");
+        }
     }
 }
 
@@ -78,8 +108,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug) {
 
     if (save) {
-        createFile((char *) "testStart.txt", true);
-        writePoint((char *) "testStart.txt", h_passwords, passwordNumber, chainLength, true);
+        createFile((char *) "../src/tables/testStart.txt", true);
+        writePoint((char *) "../src/tables/testStart.txt", h_passwords, passwordNumber, true);
     }
 
     // Device copies for endpoints
@@ -167,8 +197,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
     cudaStreamDestroy(stream1);
 
     if (save) {
-        createFile((char *) "testEnd.txt", true);
-        writePoint((char *) "testEnd.txt", h_passwords, passwordNumber, chainLength,
+        createFile((char *) "../src/tables/testEnd.txt", true);
+        writePoint((char *) "../src/tables/testEnd.txt", h_passwords, passwordNumber,
                    true);
     }
 }

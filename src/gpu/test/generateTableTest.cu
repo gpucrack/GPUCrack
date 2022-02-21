@@ -17,7 +17,8 @@ int main(int argc, char *argv[]){
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    int t = computeT(getTotalSystemMemory(), atoi(argv[1]));
+    //int t = computeT(getTotalSystemMemory(), atoi(argv[1]));
+    int t = 100;
 
     printf("Number of columns: %d\n\n", t);
 

@@ -1145,7 +1145,17 @@ __device__ void md4_final_vector(md4_ctx_vector_t *ctx) {
     md4_transform_vector(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
-__device__ void ntlm(Password *password, Digest *digest) {
+__device__ void ntlm(Password *password, Digest *digest, unsigned int index) {
+    if (index == 1) {
+        printf("\n\n     --- NTLM ---     ");
+        for (unsigned char byte : password->bytes) {
+            printf("%c", byte);
+        }
+        printf("  ");
+        for (unsigned char byte : digest->bytes) {
+            printf("%02X", byte); // %02X formats as uppercase hex with leading zeroes
+        }
+    }
     uint32_t w[16] = {0};
 
     for (uint32_t i = 0, idx = 0; i < PASSWORD_LENGTH; i += 4, idx += 1) {
@@ -1161,10 +1171,21 @@ __device__ void ntlm(Password *password, Digest *digest) {
     digest->i[1] = ctx.h[1];
     digest->i[2] = ctx.h[2];
     digest->i[3] = ctx.h[3];
+
+    if (index == 1) {
+        printf("   -->   ");
+        for (unsigned char byte : password->bytes) {
+            printf("%c", byte);
+        }
+        printf("  ");
+        for (unsigned char byte : digest->bytes) {
+            printf("%02X", byte); // %02X formats as uppercase hex with leading zeroes
+        }
+    }
 }
 
 __global__ void ntlm_kernel(Password *passwords, Digest *digests) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    ntlm(&passwords[index], &digests[index]);
+    ntlm(&passwords[index], &digests[index], -1);
 }
