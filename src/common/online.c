@@ -18,13 +18,11 @@ int search_endpoint(char *endpoints, char *plain_text, int mt, int pwd_length) {
     for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
         char res = 0;
         for (int j = i; (j < i + pwd_length && res != -1); j++) {
-            //printf("endpoints[j] = %c   :   plain_text[j - i] = %c\n", endpoints[j], plain_text[j - i]);
             if (endpoints[j] != plain_text[j - i]) {
                 res = -1;
             }
         }
         if (res==0) {
-            printf("endpoint found!!!!!!!!!!!\n")
             return i;
         }
     }
@@ -366,7 +364,11 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         // we found a matching endpoint, reconstruct the chain
         char chain_plain_text[pwd_length + 1];
         unsigned char chain_digest[HASH_LENGTH];
-        strcpy(chain_plain_text, startpoints[found]);
+
+        // Copy the startpoint into chain_plain_text
+        for (int l = found; l < found + pwd_length ; l++) {
+            chain_plain_text[l - found] = startpoints[found*pwd_length + l];
+        }
 
         for (unsigned long k = 0; k < i; k++) {
             ntlm(chain_plain_text, chain_digest);
