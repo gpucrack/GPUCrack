@@ -337,6 +337,8 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     // Close the end file
     fclose(fp2);
 
+    printf("0.00 %%");
+
     for (long i = t - 1; i >= 0; i--) {
 
         printf("\r%.2f %%", ((double)(t-1-i)/(double)t-1) * 100);
