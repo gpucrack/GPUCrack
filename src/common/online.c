@@ -13,15 +13,44 @@ void print_hash(const unsigned char *digest) {
     }
 }
 
-int search_endpoint(char **endpoints, char *plain_text, int mt) {
-    for (int i = 0; i < mt; i++) {
-        if (strcmp(endpoints[i], plain_text) == 0) {
-            // printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
+int search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length) {
+    for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
+        if (memcmp(endpoints[i], plain_text, pwd_length) == 0) {
+            return i/pwd_length;
+        }
+    }
+
+    return -1;
+
+
+    /*for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
+        char res = 0;
+        for (int j = i; (j < i + pwd_length && res != -1); j++) {
+            if ((*endpoints)[j] != plain_text[j - i]) {
+                res = -1;
+            }
+        }
+        if (res==0) {
             return i;
         }
     }
-    return -1;
+
+    return -1;*/
 }
+
+/*
+ *     for (long i = 0; i < mt*pwd_length; i=i+pwd_length) {
+        if(i < 50) {
+            printf("aaa");
+            printf("Comparing starting from %c :::: %s", endpoints[i], plain_text);
+        }
+        if (memcmp(endpoints[i], plain_text, pwd_length) == 0) {
+            // printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
+            return i/pwd_length;
+        }
+    }
+    return -1;
+ */
 
 void char_to_password(char text[], Password *password) {
     for (int i = 0; i < PASSWORD_LENGTH; i++) {
@@ -54,6 +83,12 @@ void display_digest(Digest *digest) {
 void display_password(Password *pwd) {
     for (unsigned char i = 0; i < PASSWORD_LENGTH; i++) {
         printf("%c", (unsigned char) pwd->bytes[i]);
+    }
+}
+
+void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int pwd_length) {
+    for (int i = 0; i < pwd_length - 1; i++) {
+        char_plain[i] = charset[(char_digest[i] + index) % CHARSET_LENGTH];
     }
 }
 
@@ -274,15 +309,19 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     sscanf(buff, "%d", &t);
     printf("Chain length (t): %d\n\n", t);
 
-    char **startpoints = malloc(sizeof(char *) * mt);
-    for (int i = 0; i < mt; i++) {
-        startpoints[i] = malloc(sizeof(char) * pwd_length);
+    char *startpoints = malloc(sizeof(char) * pwd_length * mt);
+
+    for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
+        fgets(buff, 255, (FILE *) fp);
+        for (int j = i; j < i + pwd_length; j++) {
+            startpoints[j] = buff[j - i];
+        }
     }
-    for (int i = 0; i < mt; i++) {
+/*    for (int i = 0; i < mt; i++) {
         fgets(buff, 255, (FILE *) fp);
         startpoints[i] = strdup(buff);
         startpoints[i][strcspn(startpoints[i], "\n")] = '\0'; // remove line break
-    }
+    }*/
 
     // Close the start file
     fclose(fp);
@@ -294,20 +333,24 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     fgets(buff2, 255, (FILE *) fp2);
     fgets(buff2, 255, (FILE *) fp2);
 
-    char **endpoints = malloc(sizeof(char *) * mt);
-    for (int i = 0; i < mt; i++) {
-        endpoints[i] = malloc(sizeof(char) * pwd_length);
-    }
-    for (int i = 0; i < mt; i++) {
+    char *endpoints = malloc(sizeof(char) * pwd_length * mt);
+
+    for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
         fgets(buff2, 255, (FILE *) fp);
-        endpoints[i] = strdup(buff2);
-        endpoints[i][strcspn(endpoints[i], "\n")] = '\0'; // remove line break
+        for (int j = i; j < i + pwd_length; j++) {
+            endpoints[j] = buff2[j - i];
+        }
     }
 
     // Close the end file
     fclose(fp2);
 
+    printf("0.00 %%");
+
     for (long i = t - 1; i >= 0; i--) {
+
+        printf("\r%ld", i);
+
         char column_plain_text[pwd_length + 1];
         unsigned char column_digest[HASH_LENGTH];
         strcpy(column_digest, digest);
@@ -327,7 +370,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
         // printf("Trying to find %s in endpoints...\n", column_plain_text);
-        int found = search_endpoint(endpoints, column_plain_text, mt);
+        int found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
 
         if (found == -1) {
             continue;
@@ -338,7 +381,11 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         // we found a matching endpoint, reconstruct the chain
         char chain_plain_text[pwd_length + 1];
         unsigned char chain_digest[HASH_LENGTH];
-        strcpy(chain_plain_text, startpoints[found]);
+
+        // Copy the startpoint into chain_plain_text
+        for (int l = found; l < found + pwd_length ; l++) {
+            chain_plain_text[l - found] = startpoints[found*pwd_length + l];
+        }
 
         for (unsigned long k = 0; k < i; k++) {
             ntlm(chain_plain_text, chain_digest);
@@ -346,11 +393,13 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         }
         ntlm(chain_plain_text, chain_digest);
 
+        // printf("FALSE ALERT ???????? C'EST : %s et %s\n", chain_digest, digest);
+
         if (!memcmp(chain_digest, digest, HASH_LENGTH)) {
             strcpy(password, chain_plain_text);
             return;
         }
-        printf("   ---   False alert.\n", i);
+        printf("   ---   False alert %ld.\n", i);
     }
 
     strcpy(password, "");
@@ -406,7 +455,7 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Password '%s' found for the given hash!\n", found);
         }
-        return 0;
+        exit(0);
     } else if (strcmp(argv[3], "-h") == 0) {
         // the password we will be looking to crack, after it's hashed
 
@@ -429,6 +478,6 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Password '%s' found for the given hash!\n", found);
         }
-        return 0;
+        exit(0);
     }
 }
