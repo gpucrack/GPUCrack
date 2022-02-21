@@ -312,8 +312,6 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     // Close the start file
     fclose(fp);
 
-    printf("Startpoints OK");
-
     FILE *fp2;
     char buff2[255];
     fp2 = fopen(end_path, "r");
@@ -380,7 +378,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
             strcpy(password, chain_plain_text);
             return;
         }
-        printf("   ---   False alert.\n", i);
+        printf("   ---   False alert %ld.\n", i);
     }
 
     strcpy(password, "");
@@ -436,7 +434,7 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Password '%s' found for the given hash!\n", found);
         }
-        return 0;
+        exit(0);
     } else if (strcmp(argv[3], "-h") == 0) {
         // the password we will be looking to crack, after it's hashed
 
@@ -459,6 +457,6 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Password '%s' found for the given hash!\n", found);
         }
-        return 0;
+        exit(0);
     }
 }
