@@ -354,11 +354,11 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 
         // get the reduction corresponding to the current column
         for (unsigned long k = i; k < t - 1; k++) {
-            reduce_digest(column_digest, k, column_plain_text, pwd_length);
+            reduce_digest2(column_digest, k, column_plain_text, pwd_length);
             ntlm(column_plain_text, column_digest);
             // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
         }
-        reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
+        reduce_digest2(column_digest, t - 1, column_plain_text, pwd_length);
         // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
         // printf("Trying to find %s in endpoints...\n", column_plain_text);
@@ -381,7 +381,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 
         for (unsigned long k = 0; k < i; k++) {
             ntlm(chain_plain_text, chain_digest);
-            reduce_digest(chain_digest, k, chain_plain_text, pwd_length);
+            reduce_digest2(chain_digest, k, chain_plain_text, pwd_length);
         }
         ntlm(chain_plain_text, chain_digest);
 
