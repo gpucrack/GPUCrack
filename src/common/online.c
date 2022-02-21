@@ -338,6 +338,9 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     fclose(fp2);
 
     for (long i = t - 1; i >= 0; i--) {
+
+        printf("\r%.2f %%", ((double)(t-1-i)/(double)t-1) * 100);
+
         char column_plain_text[pwd_length + 1];
         unsigned char column_digest[HASH_LENGTH];
         strcpy(column_digest, digest);
