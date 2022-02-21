@@ -274,18 +274,30 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     sscanf(buff, "%d", &t);
     printf("Chain length (t): %d\n\n", t);
 
-    char **startpoints = malloc(sizeof(char *) * mt);
-    for (int i = 0; i < mt; i++) {
-        startpoints[i] = malloc(sizeof(char) * pwd_length);
+    char *startpoints = malloc(sizeof(char) * pwd_length * mt);
+
+    for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
+        fgets(buff, 255, (FILE *) fp);
+        for (int j = i; j < i + pwd_length; j++) {
+            startpoints[j] = buff[j - i];
+            if(j < 50) {
+                printf("buff[%d - %d] = %c\n", j, i, buff[j - i]);
+                printf("startpoints[%d] = %c\n", j, startpoints[j]);
+            }
+        }
     }
-    for (int i = 0; i < mt; i++) {
+
+    printf("Startpoints OK");
+/*    for (int i = 0; i < mt; i++) {
         fgets(buff, 255, (FILE *) fp);
         startpoints[i] = strdup(buff);
         startpoints[i][strcspn(startpoints[i], "\n")] = '\0'; // remove line break
-    }
+    }*/
 
     // Close the start file
     fclose(fp);
+
+    printf("Startpoints OK");
 
     FILE *fp2;
     char buff2[255];
