@@ -14,18 +14,33 @@ void print_hash(const unsigned char *digest) {
 }
 
 int search_endpoint(char *endpoints, char *plain_text, int mt, int pwd_length) {
-    for (int i = 0; i < mt*pwd_length; i=i+pwd_length) {
+
+    for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
+        int res = 0;
+        for (int j = i; (j < i + pwd_length && res != -1); j++) {
+            if (endpoints[j] != plain_text[j - i]) {
+                res = -1
+            }
+        }
+        if (res==0) return i;
+    }
+
+    return -1
+}
+
+/*
+ *     for (long i = 0; i < mt*pwd_length; i=i+pwd_length) {
         if(i < 50) {
             printf("aaa");
             printf("Comparing starting from %c :::: %s", endpoints[i], plain_text);
         }
-        if (memcmp(&endpoints[i], plain_text, pwd_length) == 0) {
+        if (memcmp(endpoints[i], plain_text, pwd_length) == 0) {
             // printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
-            return i;
+            return i/pwd_length;
         }
     }
     return -1;
-}
+ */
 
 void char_to_password(char text[], Password *password) {
     for (int i = 0; i < PASSWORD_LENGTH; i++) {
