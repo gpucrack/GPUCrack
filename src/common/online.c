@@ -13,12 +13,12 @@ void print_hash(const unsigned char *digest) {
     }
 }
 
-int search_endpoint(char *endpoints, char *plain_text, int mt, int pwd_length) {
+int search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length) {
 
     for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
         char res = 0;
         for (int j = i; (j < i + pwd_length && res != -1); j++) {
-            if (endpoints[j] != plain_text[j - i]) {
+            if ((*endpoints)[j] != plain_text[j - i]) {
                 res = -1;
             }
         }
@@ -362,7 +362,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
         // printf("Trying to find %s in endpoints...\n", column_plain_text);
-        int found = search_endpoint(endpoints, column_plain_text, mt, pwd_length);
+        int found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
 
         if (found == -1) {
             continue;
