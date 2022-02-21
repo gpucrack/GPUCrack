@@ -13,9 +13,12 @@ void print_hash(const unsigned char *digest) {
     }
 }
 
-int search_endpoint(char **endpoints, char *plain_text, int mt) {
-    for (int i = 0; i < mt; i++) {
-        if (strcmp(endpoints[i], plain_text) == 0) {
+int search_endpoint(char *endpoints, char *plain_text, int mt, int pwd_length) {
+    for (int i = 0; i < mt*pwd_length; i=i+pwd_length) {
+        if(i < 50) {
+            printf("Comparing starting from %c :::: %s", endpoints[i], plain_text);
+        }
+        if (memcmp(&endpoints[i], plain_text, pwd_length) == 0) {
             // printf("Match found when comparing %s and %s (row %d).\n", endpoints[i], plain_text, i);
             return i;
         }
@@ -303,9 +306,9 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     char *endpoints = malloc(sizeof(char) * pwd_length * mt);
 
     for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
-        fgets(buff2 255, (FILE *) fp);
+        fgets(buff2, 255, (FILE *) fp);
         for (int j = i; j < i + pwd_length; j++) {
-            search_endpoint()[j] = buff2[j - i];
+            endpoints[j] = buff2[j - i];
         }
     }
 
@@ -332,7 +335,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
         // printf("Trying to find %s in endpoints...\n", column_plain_text);
-        int found = search_endpoint(endpoints, column_plain_text, mt);
+        int found = search_endpoint(endpoints, column_plain_text, mt, pwd_length);
 
         if (found == -1) {
             continue;
