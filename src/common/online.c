@@ -16,6 +16,7 @@ void print_hash(const unsigned char *digest) {
 int search_endpoint(char *endpoints, char *plain_text, int mt, int pwd_length) {
     for (int i = 0; i < mt*pwd_length; i=i+pwd_length) {
         if(i < 50) {
+            printf("aaa");
             printf("Comparing starting from %c :::: %s", endpoints[i], plain_text);
         }
         if (memcmp(&endpoints[i], plain_text, pwd_length) == 0) {
