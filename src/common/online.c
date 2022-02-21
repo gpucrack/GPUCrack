@@ -16,7 +16,7 @@ void print_hash(const unsigned char *digest) {
 int search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length) {
     for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
         if (memcmp(endpoints[i], plain_text, pwd_length) == 0) {
-            return i/pwd_length;
+            return i;
         }
     }
 
