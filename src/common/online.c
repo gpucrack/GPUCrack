@@ -16,13 +16,10 @@ void print_hash(const unsigned char *digest) {
 int search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length) {
 
     for (int i = 0; i < mt; i = i + sizeof(char) * pwd_length) {
-        char res = 0;
-        for (int j = i; (j < i + pwd_length && res != -1); j++) {
+        for (int j = i; j < i + pwd_length; j++) {
             if ((*endpoints)[j] != plain_text[j - i]) {
-                res = -1;
+                break;
             }
-        }
-        if (res==0) {
             return i;
         }
     }
