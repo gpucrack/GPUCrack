@@ -58,7 +58,7 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
 
 int main() {
 
-    int passwordNumber = getNumberPassword(8);
+    int passwordNumber = getNumberPassword(32);
 
     Password * passwords;
     Digest * result;

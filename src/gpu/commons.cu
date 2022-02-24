@@ -298,7 +298,7 @@ __host__ int getNumberPassword(int goRam) {
     // memUsed = totalMem - 4 Go
     // totalMem * 1000000000 pour passer de Giga octets à  octets
 
-    long memUsed = ((long)goRam * (long)1000000000) - ((long)4 * (long)1000000000);
+    long memUsed = ((long)goRam * (long)1000000000) - ((long)2 * (long)1000000000);
 
     int result = (int)pow(2, (int)log2((int)((long)memUsed / (int)memLine)));
     printf("M0: %d\n", result);
