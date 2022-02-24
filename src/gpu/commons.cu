@@ -124,7 +124,10 @@ __host__ int memoryAnalysis(int passwordNumber) {
     // We need to determine how many batch we'll do to hash all passwords
     // We need to compute the batch size as well
     auto numberOfPass = (double) ((double) memUsed / (double) freeMem);
-    if (numberOfPass < 1) return 1;
+    if (numberOfPass < 1) {
+        printf("Number of passes : %d\n", 1);
+        return 1;
+    }
 
     numberOfPass += 0.5;
 
@@ -288,11 +291,19 @@ __host__ int getM0(int goRam, int mt) {
 }
 
 __host__ int getNumberPassword(int goRam) {
-    if (goRam == 8) return 167772160;
-    else if (goRam == 12) return 335544320;
-    else if (goRam == 16) return 503316480;
-    else if (goRam == 24) return 805306368;
-    else return 1073741824;
+
+    size_t memLine = sizeof(Password) + sizeof(Digest);
+
+    // memUsed = memLine * nbLine -> nbLine = memUsed / memLine
+    // memUsed = totalMem - 4 Go
+    // totalMem * 1000000000 pour passer de Giga octets à  octets
+
+    long memUsed = ((long)goRam * (long)1000000000) - ((long)4 * (long)1000000000);
+
+    int result = (int)pow(2, (int)log2((int)((long)memUsed / (int)memLine)));
+    printf("M0: %d\n", result);
+
+    return result;
 }
 
 __host__ int getTotalSystemMemory() {

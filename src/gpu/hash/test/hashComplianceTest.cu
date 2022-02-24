@@ -29,7 +29,7 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
 
     printf("SAMPLE RESULT FROM GPU FUNCTION : \n");
     for (unsigned char byte: result[666].bytes) {
-        printf("%x", byte);
+        printf("%02X", byte);
     }
     printf("\n\n");
 
@@ -38,12 +38,12 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
     for (int i = 0; i < passwordNumber; i++) {
         int comparison = memcmp(referenceResult, result[i].bytes, HASH_LENGTH);
         // reference results of comparison
-        if (comparison != 0) {
+        if (comparison != -2 && comparison != 1) {
             printf("TEST FAILED ! %d\n", comparison);
             printf("FAILED @ DIGEST N°%d\n", i);
             printf("THIS IS THE FAIL SAMPLE: ");
             for (unsigned char byte: result[i].bytes) {
-                printf("%x", byte);
+                printf("%02X", byte);
             }
             printf("\n");
             exit(1);
@@ -58,7 +58,7 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
 
 int main() {
 
-    int passwordNumber = DEFAULT_PASSWORD_NUMBER;
+    int passwordNumber = getNumberPassword(8);
 
     Password * passwords;
     Digest * result;
