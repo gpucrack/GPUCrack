@@ -229,36 +229,20 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
 }
 
 __host__ int computeT(int goRam, int mt) {
-    double mZero;
     double mtMax;
-    double tmpMZero;
 
     // Recommended value
     double r = 19.83;
-
-    // Choosing m0 based on host memory
-    if (goRam == 8) mZero = getNumberPassword(8);
-    else if (goRam == 12) mZero = getNumberPassword(12);
-    else if (goRam == 16) mZero = getNumberPassword(16);
-    else if (goRam == 24) mZero = getNumberPassword(24);
-    else mZero = getNumberPassword(32);
 
     // Need to compute mtMax first
     mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
     double domain = pow(62, PASSWORD_LENGTH);
 
-    tmpMZero = r * mtMax;
-
-    if (tmpMZero > mZero) {
-        printf("Chosen mt require a bigger m0 than memory available!\n");
-        exit(1);
-    }else {
-        mZero = tmpMZero;
-    }
-
     // Compute t knowing mtMax
-    return (int)((2*domain) / mtMax) - 2;
+    int result = (int)((2*domain) / (int)mtMax) - 2;
+    if (result < 1) return 1;
+    else return result;
 }
 
 __host__ int getM0(int goRam, int mt) {
@@ -270,27 +254,25 @@ __host__ int getM0(int goRam, int mt) {
     double r = 19.83;
 
     // Choosing m0 based on host memory
-    if (goRam == 8) mZero = getNumberPassword(8);
-    else if (goRam == 12) mZero = getNumberPassword(12);
-    else if (goRam == 16) mZero = getNumberPassword(16);
-    else if (goRam == 24) mZero = getNumberPassword(24);
-    else mZero = getNumberPassword(32);
+    mZero = getNumberPassword(goRam);
 
     // Need to compute mtMax first
     mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
     tmpMZero = r * mtMax;
 
-    if (tmpMZero > mZero) {
+    if (tmpMZero > mZero && pow(62, PASSWORD_LENGTH) > tmpMZero) {
         printf("Chosen mt require a bigger m0 than memory available!\n");
         exit(1);
     }else {
-        printf("m0: %d\n", (int)tmpMZero);
-        return (int)tmpMZero;
+        printf("m0: %d\n", (int)mZero);
+        return (int)mZero;
     }
 }
 
 __host__ int getNumberPassword(int goRam) {
+
+    double domain = pow(62, PASSWORD_LENGTH);
 
     size_t memLine = sizeof(Password) + sizeof(Digest);
 
@@ -301,8 +283,12 @@ __host__ int getNumberPassword(int goRam) {
     long memUsed = ((long)goRam * (long)1000000000) - ((long)2 * (long)1000000000);
 
     int result = (int)pow(2, (int)log2((int)((long)memUsed / (int)memLine)));
-    printf("M0: %d\n", result);
 
+    if (result > domain){
+        result = (int)pow(2, ceil((int)log((int)domain)/log(2)));
+    }
+
+    printf("M0: %d\n", result);
     return result;
 }
 

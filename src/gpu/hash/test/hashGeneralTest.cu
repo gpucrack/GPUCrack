@@ -17,6 +17,15 @@ int main() {
 
     //hash(passwords, result, passwordNumber, numberOfPass, false);
 
+    printPassword(&passwords[0]);
+    printf(" --> ");
+    printDigest(&result[0]);
+    printf("...\n");
+    printPassword(&passwords[passwordNumber-1]);
+    printf(" --> ");
+    printDigest(&result[passwordNumber-1]);
+    printf("\n");
+
     cudaFreeHost(passwords);
     cudaFreeHost(result);
 

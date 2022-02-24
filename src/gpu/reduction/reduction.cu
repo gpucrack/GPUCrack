@@ -151,7 +151,7 @@ reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberO
 
     printf("TOTAL GPU TIME : %f milliseconds\n", milliseconds);
 
-    double reduce_rate = (passwordNumber / (milliseconds / 1000)) / 1000000;
+    double reduce_rate = ((double)passwordNumber / (milliseconds / 1000)) / 1000000;
 
     printf("Reduction of %d digests ended after %f milliseconds.\n Reduction rate: %f MR/s.\n", passwordNumber,
            (double) milliseconds, reduce_rate);

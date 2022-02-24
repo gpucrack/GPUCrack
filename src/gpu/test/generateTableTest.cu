@@ -26,6 +26,18 @@ int main(int argc, char *argv[]){
 
     printf("Chains generated!\n");
 
+
+    printPassword(&passwords[0]);
+    printf(" --> ");
+    printDigest(&result[0]);
+    printf(" --> ");
+    printPassword(&passwords[1]);
+    printf("...\n");
+    printDigest(&result[passwordNumber-1]);
+    printf(" --> ");
+    printPassword(&passwords[passwordNumber-1]);
+    printf("\n");
+
     cudaFreeHost(passwords);
     cudaFreeHost(result);
 
