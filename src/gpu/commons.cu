@@ -241,7 +241,7 @@ __host__ int computeT(int goRam, int mt) {
 
     // Compute t knowing mtMax
     int result = (int)((2*domain) / (int)mtMax) - 2;
-    if (result < 1) return 1;
+    if (result < 1) return 2;
     else return result;
 }
 
