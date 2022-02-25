@@ -11,7 +11,7 @@
 
 // How many thread per block to launch the hashKernel
 // MUST BE A POWER OF 2
-#define THREAD_PER_BLOCK 32
+#define THREAD_PER_BLOCK 128
 
 // Default number of passwords (m0) to use
 #define DEFAULT_PASSWORD_NUMBER 268435456
@@ -33,5 +33,6 @@ typedef union {
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[CEILING(HASH_LENGTH, 4)];
+    uint64_t value;
 } Digest;
 #endif  // CONSTANTS_CUH

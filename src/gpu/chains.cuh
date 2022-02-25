@@ -23,14 +23,6 @@
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength);
 
 /**
- * Reduction function used by kernel
- * @param index : column index to change the reduction function
- * @param digest : Digest array to be reduced
- * @param plain_text : Password array to store reduction results
- */
-__device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text);
-
-/**
  * Main function called to generate chains
  * @param h_passwords : CPU Password array used to generate chains
  * @param h_results : CPU Digest array used to generate chains

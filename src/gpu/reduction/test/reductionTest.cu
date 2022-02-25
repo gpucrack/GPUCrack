@@ -1,7 +1,7 @@
 #include "reductionTest.cuh"
 
 int main() {
-    int passwordNumber = getNumberPassword(8);
+    int passwordNumber = getNumberPassword(getTotalSystemMemory());
 
     Password * passwords;
     Digest * result;
@@ -11,6 +11,17 @@ int main() {
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
     reduce(passwords, result, passwordNumber, numberOfPass, THREAD_PER_BLOCK);
+
+
+    for(int i=0; i<1; i++) {
+        printPassword(&passwords[i]);
+        printf("\n\n CPU: ");
+
+        reduceDigest(1, &result[i], &passwords[i]);
+
+        printPassword(&passwords[i]);
+        printf("\n");
+    }
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);
