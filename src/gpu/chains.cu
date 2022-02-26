@@ -31,8 +31,8 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
         printf("Total GPU time : %f milliseconds\n", milliseconds);
         printf("Chain rate : %f MC/s\n",
                ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
-        printf("Hash/Reduction : %f MHR/s\n",
-               (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) numberOfColumn);
+        printf("Column rate : %f MCo/s\n",
+               (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float)(numberOfColumn));
     }
 }
 
