@@ -190,22 +190,69 @@ __host__ std::ofstream openFile(const char *path) {
 }
 
 __host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug) {
-    std::ofstream file = openFile(path);
 
+
+    FILE * file = fopen(path, "w");
+
+    if (file == nullptr) exit(1);
+
+    int numLen = 0;
+    int numSave = number;
+    while(numSave != 0){
+        numSave /=10;
+        numLen++;
+    }
+    char num[numLen];
+    sprintf(num, "%d", number);
+
+    int pwdlLen = 1;
+    char pwdl[pwdlLen];
+    sprintf(pwdl, "%d", PASSWORD_LENGTH);
+
+    int tLen = 1;
+    int tlSave = t;
+    while(tlSave != 0){
+        tlSave /=10;
+        tLen++;
+    }
+    char tc[tLen];
+    sprintf(tc, "%d", t);
+
+    fwrite(&num, sizeof(char)*numLen, 1, file);
+    fwrite("\n", sizeof(char), 1, file);
+    fwrite(&pwdl, sizeof(char)*pwdlLen, 1, file);
+    fwrite("\n", sizeof(char), 1, file);
+    fwrite(&tc, sizeof(char)*tLen, 1, file);
+    fwrite("\n", sizeof(char), 1, file);
+
+    // Iterate through every point
+    for (int i = 0; i < number; i++) {
+        fwrite((*passwords)[i].bytes, sizeof(uint8_t) * PASSWORD_LENGTH, 1, file);
+        fwrite("\n", sizeof(char), 1, file);
+    }
+
+    fclose(file);
+
+
+    /*
+    std::ofstream file = openFile(path);
     file << number << std::endl;
     file << PASSWORD_LENGTH << std::endl;
     file << t << std::endl;
 
     // Iterate through every point
     for (int i = 0; i < number; i++) {
-        for(int j=0; j < PASSWORD_LENGTH; j++) {
-            file << (*passwords)[i].bytes[j];
+        for(unsigned char byte : (*passwords)[i].bytes) {
+            file << byte;
         }
         file << std::endl;
+
     }
+    file.close();
+    */
 
     if (debug) printf("The point file was written.\n\n");
-    file.close();
+
 }
 
 
