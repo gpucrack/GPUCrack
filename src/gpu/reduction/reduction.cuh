@@ -24,7 +24,7 @@ void generate_digests_random(Digest **digests, int n);
  * digest: the digest to reduce
  * plain_text: the generated reduction
  */
-__host__ __device__ void reduceDigest(unsigned int pos, Digest * digest, Password  *plain_text);
+__host__ __device__ void reduceDigest(unsigned int pos, Digest *digest, Password *plain_text, unsigned long domain);
 
 /*
  * Reduces every digest of an array into plain texts on GPU.
@@ -32,7 +32,7 @@ __host__ __device__ void reduceDigest(unsigned int pos, Digest * digest, Passwor
  * digests: the digest array to reduce
  * plain_texts: the generated reductions
  */
-__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column);
+__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column, unsigned long domain);
 
 /*
  * Compares two passwords.

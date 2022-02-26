@@ -15,11 +15,6 @@ int main() {
 
     for(int i=0; i<1; i++) {
         printPassword(&passwords[i]);
-        printf("\n\n CPU: ");
-
-        reduceDigest(1, &result[i], &passwords[i]);
-
-        printPassword(&passwords[i]);
         printf("\n");
     }
 

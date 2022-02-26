@@ -36,15 +36,15 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     }
 }
 
-__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
+__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, unsigned long domain) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
-        reduceDigest(i, &digests[index], &passwords[index]);
+        reduceDigest(i, &digests[index], &passwords[index], domain);
     }
 }
 
-__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength) {
+__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, unsigned long domain) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         if(index == 0){
@@ -56,7 +56,7 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
             printDigest(&digests[index]);
             printf(" --> ");
         }
-        reduceDigest(i, &digests[index], &passwords[index]);
+        reduceDigest(i, &digests[index], &passwords[index], domain);
         if(index == 0){
             printPassword(&passwords[index]);
             printf("\n");
@@ -95,6 +95,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
     printf("Generating chains...\n\n");
 
+    unsigned long domain = pow(CHARSET_LENGTH, PASSWORD_LENGTH);
+
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
     for (int i = 0; i < numberOfPass; i++) {
@@ -120,10 +122,12 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
                         cudaMemcpyHostToDevice, stream1);
 
         cudaEventRecord(start);
-        if (debug) ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength);
-        else ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                d_passwords, d_results, chainLength);
+        if (debug)
+            ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+                    d_passwords, d_results, chainLength, domain);
+        else
+            ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+                    d_passwords, d_results, chainLength, domain);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 

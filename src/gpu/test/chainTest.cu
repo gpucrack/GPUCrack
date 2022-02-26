@@ -10,7 +10,7 @@ int main(){
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    generateChains(passwords, result, passwordNumber, numberOfPass, 1000,
+    generateChains(passwords, result, passwordNumber, numberOfPass, 10,
                    false, THREAD_PER_BLOCK, true, true);
 
     cudaFreeHost(passwords);

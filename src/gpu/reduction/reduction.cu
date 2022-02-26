@@ -22,10 +22,10 @@ void generate_digests_random(Digest **digests, int n) {
     }
 }
 
-__host__ __device__ void reduceDigest(unsigned int pos, Digest * digest, Password * plain_text) {
+__host__ __device__ void reduceDigest(unsigned int pos, Digest *digest, Password *plain_text, unsigned long domain) {
 
     // index so that we are inside the right domain
-    unsigned long index = ((*digest).value + pos) % 3521614606208UL;
+    unsigned long index = ((*digest).value + pos) % domain;
 
     for(int i=PASSWORD_LENGTH-1; i>=0; i--){
         (*plain_text).bytes[i] = charset[index % (unsigned long)CHARSET_LENGTH];
@@ -40,9 +40,9 @@ __host__ __device__ void reduceDigest(unsigned int pos, Digest * digest, Passwor
     }*/
 }
 
-__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column) {
+__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column, unsigned long domain) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    reduceDigest(column, &digests[idx], &plain_texts[idx]);
+    reduceDigest(column, &digests[idx], &plain_texts[idx], domain);
 }
 
 int count_duplicates(Password **passwords, bool debug, int passwordNumber) {
@@ -82,6 +82,8 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
     int reductionRemaining = passwordNumber;
     int currentIndex = 0;
 
+    unsigned long domain = pow(CHARSET_LENGTH, PASSWORD_LENGTH);
+
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
     for (int i = 0; i < numberOfPass; i++) {
@@ -108,7 +110,8 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
 
         cudaEventRecord(start);
         // Reduce all those digests into passwords
-        reduceDigests<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results, d_passwords, 1);
+        reduceDigests<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results,
+                                                                          d_passwords, 1, domain);
 
         cudaEventRecord(end);
         cudaEventSynchronize(end);

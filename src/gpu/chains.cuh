@@ -20,9 +20,9 @@
  * @param digests : Digest array used by both reduction and hash
  * @param chainLength : chainLength = how many columns in the chain
  */
-__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength);
+__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, unsigned long domain);
 
-__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength);
+__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, unsigned long domain);
 
 /**
  * Main function called to generate chains
