@@ -51,7 +51,7 @@ int count_duplicates(Password **passwords, bool debug, int passwordNumber);
  * passwords: the array of passwords
  * n (optional): only display the n first recutions
  */
-void display_reductions(Digest **digests, Password **passwords, int n = DEFAULT_PASSWORD_NUMBER);
+void display_reductions(Digest **digests, Password **passwords, int n);
 
 /**
  * Function called by reduce to use reduce kernel

@@ -27,8 +27,8 @@ __host__ __device__ void reduceDigest(unsigned int pos, Digest * digest, Passwor
     // index so that we are inside the right domain
     unsigned long index = ((*digest).value + pos) % 3521614606208UL;
 
-    for(int i=PASSWORD_LENGTH; i>=0; i--){
-        (*plain_text).bytes[i] = charset[index % CHARSET_LENGTH];
+    for(int i=PASSWORD_LENGTH-1; i>=0; i--){
+        (*plain_text).bytes[i] = charset[index % (unsigned long)CHARSET_LENGTH];
 
         // Dividing by index, so we lose a power each time to stay in the correct domain for the next character
         index /= CHARSET_LENGTH;

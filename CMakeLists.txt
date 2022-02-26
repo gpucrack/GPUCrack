@@ -34,7 +34,8 @@ add_executable(chainTest
         src/gpu/chains.cu
         src/gpu/commons.cu
         src/gpu/test/chainTest.cu
-        src/gpu/hash/hash_functions/ntlm.cu)
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/gpu/reduction/reduction.cu)
 
 add_executable(chainBenchmarkTest
         src/gpu/chains.cu
