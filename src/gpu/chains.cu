@@ -17,18 +17,6 @@ __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
                bool save, int theadsPerBlock, bool debug) {
 
-    if (debug) {
-        printf("\n==========INPUTS==========\n");
-        for (int i = passwordNumber - 1; i < passwordNumber; i++) {
-            printPassword(&(h_passwords[i]));
-        }
-        printf("\n");
-    }
-
-    double program_time_used;
-    clock_t program_start, program_end;
-    program_start = clock();
-
     float milliseconds = 0;
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
@@ -37,7 +25,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, &h_results, theadsPerBlock,
-                numberOfColumn / 2, save, false);
+                numberOfColumn / 2, save, debug);
 
     if (debug) {
         printf("Total GPU time : %f milliseconds\n", milliseconds);
@@ -45,31 +33,34 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
                ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
         printf("Hash/Reduction : %f MHR/s\n",
                (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float) numberOfColumn);
-
-        program_end = clock();
-        program_time_used =
-                ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
-        printf("Total execution time : %f seconds\n", program_time_used);
     }
-
-    if (debug) {
-        printf("\n==========OUTPUTS==========\n");
-        for (int i = passwordNumber - 1; i < passwordNumber; i++) {
-            printPassword(&(h_passwords[i]));
-        }
-        printf("\n");
-    }
-
 }
 
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
-        /*if (index == 0) {
-            printf("\r%.2f %%", ((double)i/(double)chainLength) * 100);
-        }*/
         ntlm(&passwords[index], &digests[index]);
         reduceDigest(i, &digests[index], &passwords[index]);
+    }
+}
+
+__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength) {
+    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    for (int i = 0; i < chainLength; i++) {
+        if(index == 0){
+            printPassword(&passwords[index]);
+            printf(" --> ");
+        }
+        ntlm(&passwords[index], &digests[index]);
+        if (index == 0){
+            printDigest(&digests[index]);
+            printf(" --> ");
+        }
+        reduceDigest(i, &digests[index], &passwords[index]);
+        if(index == 0){
+            printPassword(&passwords[index]);
+            printf("\n");
+        }
     }
 }
 
@@ -81,6 +72,10 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
         createFile((char *) "testStart.txt", true);
         writePoint((char *) "testStart.txt", h_passwords, passwordNumber, chainLength, true);
     }
+
+    double program_time_used;
+    clock_t program_start, program_end;
+    program_start = clock();
 
     // Device copies for endpoints
     Digest *d_results;
@@ -125,7 +120,9 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
                         cudaMemcpyHostToDevice, stream1);
 
         cudaEventRecord(start);
-        ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+        if (debug) ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+                    d_passwords, d_results, chainLength);
+        else ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
                 d_passwords, d_results, chainLength);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -165,6 +162,12 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
         cudaFree(d_results);
     }
     cudaStreamDestroy(stream1);
+
+    program_end = clock();
+    program_time_used =
+            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
+    printf("Total execution time : %f seconds = %f minutes = %f hours\n", program_time_used,
+           program_time_used/60, program_time_used/60);
 
     if (save) {
         createFile((char *) "testEnd.txt", true);

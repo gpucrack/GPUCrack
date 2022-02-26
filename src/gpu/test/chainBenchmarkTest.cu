@@ -1,7 +1,7 @@
 #include "chainBenchmarkTest.cuh"
 
 int main(){
-    int passwordNumber = getNumberPassword(8);
+    int passwordNumber = getNumberPassword(getTotalSystemMemory());
 
     double maxHashRedRate = 0;
     double bestHashRedRateMean = 0;
@@ -14,8 +14,7 @@ int main(){
 
     auto numberOfPass = memoryAnalysis(passwordNumber);
 
-    // int numberOfColumn = computeT(16);
-    int numberOfColumn = 100;
+    int numberOfColumn = 1000;
 
     float milliseconds = 0;
     float tempMilli = 0;

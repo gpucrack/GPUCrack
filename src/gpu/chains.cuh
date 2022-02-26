@@ -22,6 +22,8 @@
  */
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength);
 
+__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength);
+
 /**
  * Main function called to generate chains
  * @param h_passwords : CPU Password array used to generate chains

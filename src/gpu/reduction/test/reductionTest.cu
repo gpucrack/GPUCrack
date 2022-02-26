@@ -1,7 +1,7 @@
 #include "reductionTest.cuh"
 
 int main() {
-    int passwordNumber = getNumberPassword(getTotalSystemMemory());
+    int passwordNumber = getNumberPassword(8);
 
     Password * passwords;
     Digest * result;
