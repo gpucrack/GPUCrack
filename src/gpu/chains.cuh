@@ -37,7 +37,7 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
  */
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock, bool debug);
+               bool save, int theadsPerBlock, bool debug, bool debugKernel);
 
 /**
  * Function used to call chain Kernel inside generateChains

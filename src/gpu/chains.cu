@@ -15,7 +15,7 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock, bool debug) {
+               bool save, int theadsPerBlock, bool debug, bool debugKernel) {
 
     float milliseconds = 0;
 
@@ -25,7 +25,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, &h_results, theadsPerBlock,
-                numberOfColumn / 2, save, debug);
+                numberOfColumn / 2, save, debugKernel);
 
     if (debug) {
         printf("Total GPU time : %f milliseconds\n", milliseconds);
@@ -167,7 +167,7 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
     program_time_used =
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("Total execution time : %f seconds = %f minutes = %f hours\n", program_time_used,
-           program_time_used/60, program_time_used/60);
+           program_time_used/60, (program_time_used/60)/60);
 
     if (save) {
         createFile((char *) "testEnd.txt", true);

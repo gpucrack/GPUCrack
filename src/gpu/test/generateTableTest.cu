@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
     printf("Number of columns: %d\n\n", t);
 
     generateChains(passwords, result, passwordNumber, numberOfPass, t,
-                   true, THREAD_PER_BLOCK, false);
+                   true, THREAD_PER_BLOCK, false, false);
 
     printf("Chains generated!\n");
 
