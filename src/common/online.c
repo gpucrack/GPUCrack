@@ -429,6 +429,157 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     strcpy(password, "");
 }
 
+int online_from_files_coverage(char *start_path, char *end_path) {
+    FILE *fp;
+    fp = fopen(start_path, "rb");
+
+    if(fp == NULL)(exit(1));
+
+    char buff[255];
+    // Retrieve the number of points
+    fscanf(fp, "%s", buff);
+    int mt;
+    sscanf(buff, "%d", &mt);
+    printf("Number of points (mt): %d\n", mt);
+    fgets(buff, 255, (FILE *) fp);
+
+    // Retrieve the password length
+    int pwd_length;
+    fgets(buff, 255, (FILE *) fp);
+    sscanf(buff, "%d", &pwd_length);
+    printf("Password length: %d\n", pwd_length);
+
+    // Retrieve the chain length (t)
+    int t;
+    fgets(buff, 255, (FILE *) fp);
+    sscanf(buff, "%d", &t);
+    printf("Chain length (t): %d\n\n", t);
+
+    char *startpoints = malloc(sizeof(char) * pwd_length * mt);
+
+    long limit = (long)mt*(long)pwd_length;
+
+    for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+        fgets(buff, 255, (FILE *) fp);
+        for (long j = i; j < i + pwd_length; j++) {
+            startpoints[j] = buff[j - i];
+        }
+    }
+/*    for (int i = 0; i < mt; i++) {
+        fgets(buff, 255, (FILE *) fp);
+        startpoints[i] = strdup(buff);
+        startpoints[i][strcspn(startpoints[i], "\n")] = '\0'; // remove line break
+    }*/
+
+    // Close the start file
+    fclose(fp);
+
+    FILE *fp2;
+    char buff2[255];
+    fp2 = fopen(end_path, "rb");
+    fgets(buff2, 255, (FILE *) fp2);
+    fgets(buff2, 255, (FILE *) fp2);
+    fgets(buff2, 255, (FILE *) fp2);
+
+    char *endpoints = malloc(sizeof(char) * pwd_length * mt);
+
+    //unsigned long domain = 916132832;
+
+    for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+        fgets(buff2, 255, (FILE *) fp);
+        for (long j = i; j < i + pwd_length; j++) {
+            endpoints[j] = buff2[j - i];
+        }
+        //printf("%d  -  %s", i/pwd_length, buff2);
+        //printf("%d  -  %c%c%c%c%c%c%c\n\n",(i/pwd_length), endpoints[i],endpoints[i+1],endpoints[i+2],endpoints[i+3],endpoints[i+4],endpoints[i+5],endpoints[i+6]);
+    }
+
+    // Close the end file
+    fclose(fp2);
+
+    int numberFound = 0;
+    // printf("0.00 %%");
+
+    srand(time(NULL));
+
+    for(int p = 0; p<10; p++) {
+
+        char password[pwd_length];
+        unsigned char digest[HASH_LENGTH*2];
+
+        for(int n=0; n<pwd_length; n++){
+            password[n] = charset[rand()%CHARSET_LENGTH];
+        }
+
+        printf("Trying with: %s\n", password);
+
+        ntlm(password, digest);
+
+        printf("As hash: %s\n", digest);
+
+        for (long i = t - 1; i >= 0; i--) {
+
+            // printf("\r%ld", i);
+
+            char column_plain_text[pwd_length];
+            unsigned char column_digest[HASH_LENGTH * 2];
+            strncpy(column_digest, digest, sizeof(unsigned char)*HASH_LENGTH*2);
+
+            // printf("\nstrcpy : digest: %s\n", digest);
+            // printf("strcpy : column_digest: %s\n", column_digest);
+
+            //printf("\nWe suppose that the digest '%s' is in row %lu\n", digest, i);
+
+            // get the reduction corresponding to the current column
+            for (unsigned long k = i; k < t - 1; k++) {
+                //reduce_digest(column_digest, k, column_plain_text, pwd_length, domain);
+                reduce_digest_old(column_digest, k, column_plain_text, pwd_length);
+                ntlm(column_plain_text, column_digest);
+                //printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
+            }
+            //reduce_digest(column_digest, t - 1, column_plain_text, pwd_length, domain);
+            reduce_digest_old(column_digest, t - 1, column_plain_text, pwd_length);
+            //printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
+
+            //printf("Trying to find %s in endpoints...\n", column_plain_text);
+            unsigned long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
+
+            if (found == -1) {
+                continue;
+            }
+
+            //printf("Match found in chain number %ld.\n", found);
+
+            // we found a matching endpoint, reconstruct the chain
+            char chain_plain_text[pwd_length];
+            unsigned char chain_digest[HASH_LENGTH];
+
+            // Copy the startpoint into chain_plain_text
+            for (unsigned long l = found; l < found + pwd_length; l++) {
+                chain_plain_text[l - found] = startpoints[found * pwd_length + l - found];
+            }
+
+            //printf("chain_plain_text: %s\n", chain_plain_text);
+
+            for (unsigned long k = 0; k < i; k++) {
+                ntlm(chain_plain_text, chain_digest);
+                //reduce_digest(chain_digest, k, chain_plain_text, pwd_length, domain);
+                reduce_digest_old(chain_digest, k, chain_plain_text, pwd_length);
+            }
+            ntlm(chain_plain_text, chain_digest);
+
+            //printf("FALSE ALERT ???????? C'EST : %s et %s\n", chain_digest, digest);
+
+            if (!memcmp(chain_digest, digest, HASH_LENGTH)) {
+                strcpy(password, chain_plain_text);
+                numberFound++;
+            }
+            //printf("   ---   False alert (column=%ld).\n", i);
+        }
+    }
+    return numberFound;
+}
+
 /*
     Example showing how we create a rainbow table given its start and end point files.
 */
@@ -505,5 +656,9 @@ int main(int argc, char *argv[]) {
             printf("Password '%s' found for the given hash!\n", found);
         }
         exit(0);
+    }else if (strcmp(argv[3], "-c") == 0) {
+        printf(".\nStarting attack...\n");
+        int foundNumber = online_from_files_coverage(start_path, end_path);
+        printf("Number of passwords found: %d\n", foundNumber);
     }
 }

@@ -12,9 +12,10 @@
 #include <stdint-gcc.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 
 // The password length in the rainbow tables.
-#define PASSWORD_LENGTH 7
+#define PASSWORD_LENGTH 5
 
 // The length of the charset.
 #define CHARSET_LENGTH 62
@@ -122,6 +123,8 @@ void ntlm(char *key, char *hash);
  * @param password if found, the password corresponding to the digest.
  */
 void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password);
+
+int online_from_files_coverage(char *start_path, char *end_path);
 
 
 #endif
