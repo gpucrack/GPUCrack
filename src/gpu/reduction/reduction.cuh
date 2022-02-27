@@ -26,6 +26,8 @@ void generate_digests_random(Digest **digests, int n);
  */
 __host__ __device__ void reduceDigest(unsigned int pos, Digest *digest, Password *plain_text, unsigned long domain);
 
+__host__ __device__ void reduceDigestOld(unsigned int index, Digest *digest, Password *plain_text);
+
 /*
  * Reduces every digest of an array into plain texts on GPU.
  * Every thread of the GPU will compute a single reduction.

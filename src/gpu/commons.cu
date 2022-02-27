@@ -191,6 +191,9 @@ __host__ std::ofstream openFile(const char *path) {
 
 __host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug) {
 
+    double program_time_used;
+    clock_t program_start, program_end;
+    program_start = clock();
 
     FILE * file = fopen(path, "w");
 
@@ -251,7 +254,11 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, bo
     file.close();
     */
 
-    if (debug) printf("The point file was written.\n\n");
+    program_end = clock();
+    program_time_used =
+            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
+
+    if (debug) printf("File %s was written in %f seconds.\n\n", path, program_time_used);
 
 }
 

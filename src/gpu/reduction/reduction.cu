@@ -23,7 +23,6 @@ void generate_digests_random(Digest **digests, int n) {
 }
 
 __host__ __device__ void reduceDigest(unsigned int pos, Digest *digest, Password *plain_text, unsigned long domain) {
-
     // index so that we are inside the right domain
     unsigned long index = ((*digest).value + pos) % domain;
 
@@ -33,11 +32,12 @@ __host__ __device__ void reduceDigest(unsigned int pos, Digest *digest, Password
         // Dividing by index, so we lose a power each time to stay in the correct domain for the next character
         index /= CHARSET_LENGTH;
     }
+}
 
-    /*
+__host__ __device__ void reduceDigestOld(unsigned int index, Digest *digest, Password *plain_text) {
     for(int i=0; i<PASSWORD_LENGTH; i++){
         (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % CHARSET_LENGTH];
-    }*/
+    }
 }
 
 __global__ void reduceDigests(Digest *digests, Password *plain_texts, int column, unsigned long domain) {

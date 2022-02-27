@@ -40,7 +40,7 @@ __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainL
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
-        reduceDigest(i, &digests[index], &passwords[index], domain);
+        reduceDigestOld(i, &digests[index], &passwords[index]);
     }
 }
 
