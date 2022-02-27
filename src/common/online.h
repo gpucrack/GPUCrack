@@ -17,6 +17,8 @@
 // The password length in the rainbow tables.
 #define PASSWORD_LENGTH 5
 
+#define TEST_COVERAGE 10
+
 // The length of the charset.
 #define CHARSET_LENGTH 62
 

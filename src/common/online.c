@@ -500,7 +500,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
     srand(time(NULL));
 
-    for(int p = 0; p<10; p++) {
+    for(int p = 0; p<TEST_COVERAGE; p++) {
 
         char password[pwd_length];
         unsigned char digest[HASH_LENGTH*2];
@@ -571,6 +571,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
             if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
                 strcpy(password, chain_plain_text);
                 numberFound++;
+                printf("%s found!\n", password);
                 break;
             }
             //printf("   ---   False alert (column=%ld).\n", i);
@@ -672,5 +673,6 @@ int main(int argc, char *argv[]) {
         printf(".\nStarting attack...\n");
         int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length);
         printf("Number of passwords found: %d\n", foundNumber);
+        printf("Coverage: %f %%", ((double)foundNumber/TEST_COVERAGE)*100);
     }
 }
