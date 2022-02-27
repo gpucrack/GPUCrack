@@ -61,6 +61,7 @@ void print_hash(const unsigned char *digest);
  * @param endpoints the list of endpoints (as a char array array).
  * @param plain_text the endpoint to find.
  * @param mt the number of endpoints in the list.
+ * @param pwd_length the length of the password
  * @return the index of found value in the list if found, -1 otherwise.
  */
 unsigned long search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length);
@@ -69,15 +70,17 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, int mt, int pw
  * Transforms a char array to a password.
  * @param text the char array.
  * @param password the resulting password.
+ * @param pwd_length the length of the password.
  */
-void char_to_password(char text[], Password *password);
+void char_to_password(char text[], Password *password, int pwd_length);
 
 /**
  * Transforms a password to a char array.
  * @param password the password.
  * @param text the resulting chay array.
+ * @param pwd_length the length of the password.
  */
-void password_to_char(Password *password, char text[]);
+void password_to_char(Password *password, char text[], int pwd_length);
 
 /**
  * Transforms a char array into a digest.
@@ -112,7 +115,7 @@ void reduce_digest_old(char *char_digest, unsigned int index, char *char_plain, 
  * @param key the char array to hash.
  * @param hash the NTLM hash of key.
  */
-void ntlm(char *key, char *hash);
+void ntlm(char *key, char *hash, int pwd_length);
 
 /**
  * Perform the online attack with the startpoint and endpoint files.
@@ -120,8 +123,9 @@ void ntlm(char *key, char *hash);
  * @param end_path the path to the endpoint file.
  * @param digest the digest we're looking to crack.
  * @param password if found, the password corresponding to the digest.
+ * @param pwd_length the password length, read in the files.
  */
-void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password);
+void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password, int pwd_length);
 
 
 #endif
