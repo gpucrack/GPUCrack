@@ -429,7 +429,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     strcpy(password, "");
 }
 
-int online_from_files_coverage(char *start_path, char *end_path) {
+int online_from_files_coverage(char *start_path, char *end_path, int pwd_length) {
     FILE *fp;
     fp = fopen(start_path, "rb");
 
@@ -444,9 +444,7 @@ int online_from_files_coverage(char *start_path, char *end_path) {
     fgets(buff, 255, (FILE *) fp);
 
     // Retrieve the password length
-    int pwd_length;
     fgets(buff, 255, (FILE *) fp);
-    sscanf(buff, "%d", &pwd_length);
     printf("Password length: %d\n", pwd_length);
 
     // Retrieve the chain length (t)
@@ -513,7 +511,7 @@ int online_from_files_coverage(char *start_path, char *end_path) {
 
         printf("Trying with: %s\n", password);
 
-        ntlm(password, digest);
+        ntlm(password, digest, pwd_length);
 
         printf("As hash: %s\n", digest);
 
@@ -534,7 +532,7 @@ int online_from_files_coverage(char *start_path, char *end_path) {
             for (unsigned long k = i; k < t - 1; k++) {
                 //reduce_digest(column_digest, k, column_plain_text, pwd_length, domain);
                 reduce_digest_old(column_digest, k, column_plain_text, pwd_length);
-                ntlm(column_plain_text, column_digest);
+                ntlm(column_plain_text, column_digest, pwd_length);
                 //printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
             }
             //reduce_digest(column_digest, t - 1, column_plain_text, pwd_length, domain);
@@ -562,11 +560,11 @@ int online_from_files_coverage(char *start_path, char *end_path) {
             //printf("chain_plain_text: %s\n", chain_plain_text);
 
             for (unsigned long k = 0; k < i; k++) {
-                ntlm(chain_plain_text, chain_digest);
+                ntlm(chain_plain_text, chain_digest, pwd_length);
                 //reduce_digest(chain_digest, k, chain_plain_text, pwd_length, domain);
                 reduce_digest_old(chain_digest, k, chain_plain_text, pwd_length);
             }
-            ntlm(chain_plain_text, chain_digest);
+            ntlm(chain_plain_text, chain_digest, pwd_length);
 
             //printf("FALSE ALERT ???????? C'EST : %s et %s\n", chain_digest, digest);
 
@@ -671,7 +669,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }else if (strcmp(argv[3], "-c") == 0) {
         printf(".\nStarting attack...\n");
-        int foundNumber = online_from_files_coverage(start_path, end_path);
+        int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length);
         printf("Number of passwords found: %d\n", foundNumber);
     }
 }
