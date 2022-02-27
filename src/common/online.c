@@ -550,7 +550,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
             // we found a matching endpoint, reconstruct the chain
             char chain_plain_text[pwd_length];
-            unsigned char chain_digest[HASH_LENGTH];
+            unsigned char chain_digest[HASH_LENGTH*2];
 
             // Copy the startpoint into chain_plain_text
             for (unsigned long l = found; l < found + pwd_length; l++) {
@@ -568,9 +568,10 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
             //printf("FALSE ALERT ???????? C'EST : %s et %s\n", chain_digest, digest);
 
-            if (!memcmp(chain_digest, digest, HASH_LENGTH)) {
+            if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
                 strcpy(password, chain_plain_text);
                 numberFound++;
+                break;
             }
             //printf("   ---   False alert (column=%ld).\n", i);
         }
