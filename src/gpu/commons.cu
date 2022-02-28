@@ -1,7 +1,7 @@
 #include "commons.cuh"
 
 __host__ void printSignature() {
-    printf("GPUCrack v0.1.1\n"
+    printf("GPUCrack v0.1.2\n"
            "<https://github.com/gpucrack/GPUCrack/>\n\n");
 }
 
