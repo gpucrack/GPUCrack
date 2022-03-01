@@ -13,7 +13,7 @@ void print_hash(const unsigned char *digest) {
     }
 }
 
-unsigned long search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length) {
+unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long mt, int pwd_length) {
     long limit = (long)mt * (long)pwd_length;
     for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
         if (memcmp(&(*endpoints)[i], plain_text, pwd_length) == 0) {
@@ -305,9 +305,9 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     char buff[255];
     // Retrieve the number of points
     fscanf(fp, "%s", buff);
-    int mt;
-    sscanf(buff, "%d", &mt);
-    printf("Number of points (mt): %d\n", mt);
+    unsigned long mt;
+    sscanf(buff, "%ld", &mt);
+    printf("Number of points (mt): %lu\n", mt);
     fgets(buff, 255, (FILE *) fp);
 
     // Retrieve the password length
@@ -438,9 +438,9 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
     char buff[255];
     // Retrieve the number of points
     fscanf(fp, "%s", buff);
-    int mt;
-    sscanf(buff, "%d", &mt);
-    printf("Number of points (mt): %d\n", mt);
+    unsigned long mt;
+    sscanf(buff, "%ld", &mt);
+    printf("Number of points (mt): %lu\n", mt);
     fgets(buff, 255, (FILE *) fp);
 
     // Retrieve the password length

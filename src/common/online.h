@@ -67,7 +67,7 @@ void print_hash(const unsigned char *digest);
  * @param pwd_length the length of the password
  * @return the index of found value in the list if found, -1 otherwise.
  */
-unsigned long search_endpoint(char **endpoints, char *plain_text, int mt, int pwd_length);
+unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long mt, int pwd_length);
 
 /**
  * Transforms a char array to a password.
