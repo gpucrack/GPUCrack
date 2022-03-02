@@ -33,6 +33,5 @@ typedef union {
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[CEILING(HASH_LENGTH, 4)];
-    uint64_t value;
 } Digest;
 #endif  // CONSTANTS_CUH

@@ -92,20 +92,7 @@ void display_digest(Digest *digest) {
         printf("%c", (unsigned char) pwd->bytes[i]);
     }
 }*/
-
-void reduce_digest(Digest *digest, unsigned int pos, Password *plain, int pwd_length, unsigned long domain) {
-    // index so that we are inside the right domain
-    unsigned long index = ((*digest).value + pos) % domain;
-
-    for(int i=PASSWORD_LENGTH-1; i>=0; i--){
-        (*plain).bytes[i] = charset[index % (unsigned long)CHARSET_LENGTH];
-
-        // Dividing by index, so we lose a power each time to stay in the correct domain for the next character
-        index /= CHARSET_LENGTH;
-    }
-}
-
-void reduce_digest_old(char *char_digest, unsigned int index, char *char_plain, int pwd_length) {
+void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int pwd_length) {
     Digest *digest = (Digest *) malloc(sizeof(Digest));
     // printf("\nDEBUT REDUCTION : %s", char_digest);
     //print_hash(char_digest);
@@ -351,8 +338,6 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 
     char *endpoints = malloc(sizeof(char) * pwd_length * mt);
 
-    //unsigned long domain = 916132832;
-
     for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
         fgets(buff2, 255, (FILE *) fp);
         for (long j = i; j < i + pwd_length; j++) {
@@ -382,13 +367,11 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 
         // get the reduction corresponding to the current column
         for (unsigned long k = i; k < t - 1; k++) {
-            //reduce_digest(column_digest, k, column_plain_text, pwd_length, domain);
-            reduce_digest_old(column_digest, k, column_plain_text, pwd_length);
+            reduce_digest(column_digest, k, column_plain_text, pwd_length);
             ntlm(column_plain_text, column_digest, pwd_length);
             // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
         }
-        //reduce_digest(column_digest, t - 1, column_plain_text, pwd_length, domain);
-        reduce_digest_old(column_digest, t-1, column_plain_text, pwd_length);
+        reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
         // printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
         // printf("Trying to find %s in endpoints...\n", column_plain_text);
@@ -413,8 +396,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
 
         for (unsigned long k = 0; k < i; k++) {
             ntlm(chain_plain_text, chain_digest, pwd_length);
-            //reduce_digest(chain_digest, k, chain_plain_text, pwd_length, domain);
-            reduce_digest_old(chain_digest, k, chain_plain_text, pwd_length);
+            reduce_digest(chain_digest, k, chain_plain_text, pwd_length);
         }
         ntlm(chain_plain_text, chain_digest, pwd_length);
 
@@ -482,8 +464,6 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
     char *endpoints = malloc(sizeof(char) * pwd_length * mt);
 
-    //unsigned long domain = 916132832;
-
     for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
         fgets(buff2, 255, (FILE *) fp);
         for (long j = i; j < i + pwd_length; j++) {
@@ -531,13 +511,11 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
             // get the reduction corresponding to the current column
             for (unsigned long k = i; k < t - 1; k++) {
-                //reduce_digest(column_digest, k, column_plain_text, pwd_length, domain);
-                reduce_digest_old(column_digest, k, column_plain_text, pwd_length);
+                reduce_digest(column_digest, k, column_plain_text, pwd_length);
                 ntlm(column_plain_text, column_digest, pwd_length);
                 //printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
             }
-            //reduce_digest(column_digest, t - 1, column_plain_text, pwd_length, domain);
-            reduce_digest_old(column_digest, t - 1, column_plain_text, pwd_length);
+            reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
             //printf("k=%d   -   password: '%s'   -   hash: '%s'\n", t - 1, column_plain_text, column_digest);
 
             //printf("Trying to find %s in endpoints...\n", column_plain_text);
@@ -562,8 +540,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
             for (unsigned long k = 0; k < i; k++) {
                 ntlm(chain_plain_text, chain_digest, pwd_length);
-                //reduce_digest(chain_digest, k, chain_plain_text, pwd_length, domain);
-                reduce_digest_old(chain_digest, k, chain_plain_text, pwd_length);
+                reduce_digest(chain_digest, k, chain_plain_text, pwd_length);
             }
             ntlm(chain_plain_text, chain_digest, pwd_length);
 

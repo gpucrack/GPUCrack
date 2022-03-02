@@ -36,15 +36,15 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     }
 }
 
-__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, unsigned long domain) {
+__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
-        reduceDigestOld(i, &digests[index], &passwords[index]);
+        reduceDigest(i, &digests[index], &passwords[index]);
     }
 }
 
-__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, unsigned long domain) {
+__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         if(index == 0){
@@ -56,7 +56,7 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
             printDigest(&digests[index]);
             printf(" --> ");
         }
-        reduceDigest(i, &digests[index], &passwords[index], domain);
+        reduceDigest(i, &digests[index], &passwords[index]);
         if(index == 0){
             printPassword(&passwords[index]);
             printf("\n");
@@ -69,8 +69,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug) {
 
     if (save) {
-        createFile((char *) "testStart.txt", true);
-        writePoint((char *) "testStart.txt", h_passwords, passwordNumber, chainLength, true);
+        createFile((char *) "testStart.bin", true);
+        writePoint((char *) "testStart.bin", h_passwords, passwordNumber, chainLength, true);
     }
 
     double program_time_used;
@@ -94,8 +94,6 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
     int currentIndex = 0;
 
     printf("Generating chains...\n\n");
-
-    unsigned long domain = pow(CHARSET_LENGTH, PASSWORD_LENGTH);
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
@@ -124,10 +122,10 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
         cudaEventRecord(start);
         if (debug)
             ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength, domain);
+                    d_passwords, d_results, chainLength);
         else
             ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength, domain);
+                    d_passwords, d_results, chainLength);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
@@ -174,8 +172,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
            program_time_used/60, (program_time_used/60)/60);
 
     if (save) {
-        createFile((char *) "testEnd.txt", true);
-        writePoint((char *) "testEnd.txt", h_passwords, passwordNumber, chainLength,
+        createFile((char *) "testEnd.bin", true);
+        writePoint((char *) "testEnd.bin", h_passwords, passwordNumber, chainLength,
                    true);
     }
 }

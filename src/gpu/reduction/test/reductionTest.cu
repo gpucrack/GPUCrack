@@ -15,7 +15,7 @@ int main() {
     for(int i=0; i<10; i++) {
         printPassword(&passwords[i]);
         printf("\n");
-        reduceDigest(0, &result[i], &passwords[i], 916132832);
+        reduceDigest(0, &result[i], &passwords[i]);
         printf("CPU with different column index: ");
         printPassword(&passwords[i]);
         printf("\n");

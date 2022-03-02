@@ -50,7 +50,6 @@ typedef union {
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[CEILING(HASH_LENGTH, 4)];
-    uint64_t value;
 } Digest;
 
 /**
@@ -111,7 +110,7 @@ void display_password(Password *pwd);
  * @param char_plain the result of the reduction.
  * @param pwd_length the length of the password to produce.
  */
-void reduce_digest_old(char *char_digest, unsigned int index, char *char_plain, int pwd_length);
+void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int pwd_length);
 
 /**
  * Hashes a key into its NTLM digest.
