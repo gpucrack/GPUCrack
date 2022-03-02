@@ -12,8 +12,11 @@ int main() {
 
     reduce(passwords, result, passwordNumber, numberOfPass, THREAD_PER_BLOCK);
 
-
-    for(int i=0; i<1; i++) {
+    for(int i=0; i<10; i++) {
+        printPassword(&passwords[i]);
+        printf("\n");
+        reduceDigest(0, &result[i], &passwords[i], 916132832);
+        printf("CPU: ");
         printPassword(&passwords[i]);
         printf("\n");
     }
