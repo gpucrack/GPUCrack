@@ -16,7 +16,7 @@ int main() {
         printPassword(&passwords[i]);
         printf("\n");
         reduceDigest(0, &result[i], &passwords[i], 916132832);
-        printf("CPU: ");
+        printf("CPU with different column index: ");
         printPassword(&passwords[i]);
         printf("\n");
     }
