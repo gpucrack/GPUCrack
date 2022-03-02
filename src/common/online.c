@@ -94,13 +94,14 @@ void display_digest(Digest *digest) {
 }*/
 
 void reduce_digest(Digest *digest, unsigned int pos, Password *plain, int pwd_length, unsigned long domain) {
+    // index so that we are inside the right domain
     unsigned long index = ((*digest).value + pos) % domain;
 
-    for(int i=pwd_length-1; i>=0; i--){
+    for(int i=PASSWORD_LENGTH-1; i>=0; i--){
         (*plain).bytes[i] = charset[index % (unsigned long)CHARSET_LENGTH];
 
         // Dividing by index, so we lose a power each time to stay in the correct domain for the next character
-        pos /= CHARSET_LENGTH;
+        index /= CHARSET_LENGTH;
     }
 }
 
