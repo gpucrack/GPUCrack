@@ -28,8 +28,12 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long 
             return mid / pwd_length;
         }
         if (memcmp(&(*endpoints)[mid], plain_text, pwd_length) < 0) {
+            if (mid == 0)
+                break;
             lower = mid + sizeof(char) * pwd_length;
         } else {
+            if (mid == 0)
+                break;
             upper = mid - sizeof(char) * pwd_length;
         }
     }
