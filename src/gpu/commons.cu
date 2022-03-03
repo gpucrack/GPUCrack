@@ -13,21 +13,21 @@ __host__ void handleCudaError(cudaError_t status) {
     }
 }
 
-__host__ void generatePasswords(Password **result, int passwordNumber) {
+__host__ void generatePasswords(Password **result, long passwordNumber) {
     handleCudaError(cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault));
     generateNewPasswords2(result, passwordNumber);
 }
 
-__host__ void generateNewPasswords2(Password **result, int passwordNumber) {
-    char charset[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+__host__ void generateNewPasswords2(Password **result, long passwordNumber) {
+    char charset[CHARSET_LENGTH] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
                         't', 'u', 'v', 'w', 'x',
                         'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
                         'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-    char charsetLength = 61;
+    char charsetLength = CHARSET_LENGTH - 1;
 
-    for (int j = 0; j < passwordNumber; j++) {
+    for (long j = 0; j < passwordNumber; j++) {
         // Generate one password
-        int counter = j;
+        long counter = j;
         for (unsigned char & byte : (*result)[j].bytes) {
             byte = charset[ counter % charsetLength];
             counter /= charsetLength;
@@ -58,7 +58,7 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
 }
 
 // Returns the number of batch that we need to do
-__host__ int memoryAnalysis(int passwordNumber) {
+__host__ int memoryAnalysisGPU(long passwordNumber) {
 
     printf("\n==========GPU MEMORY ANALYSIS==========\n");
 
@@ -139,9 +139,19 @@ __host__ int memoryAnalysis(int passwordNumber) {
     return finalNumberOfPass;
 }
 
-__host__ int computeBatchSize(int numberOfPass, int passwordNumber) {
+__host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory) {
+
+    if (passwordNumber > passwordMemory) {
+        long numberOfPass = (long)((long)passwordNumber / (long)passwordMemory);
+        return (int)numberOfPass+1;
+    }else{
+        return 1;
+    }
+}
+
+__host__ long computeBatchSize(int numberOfPass, long passwordNumber) {
     // If we have less than 1 round then the batch size is the number of passwords
-    if (numberOfPass > 1) return (passwordNumber / numberOfPass);
+    if (numberOfPass > 1) return (passwordNumber / (long)numberOfPass) + 1;
     else return passwordNumber;
 }
 
@@ -153,6 +163,10 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, int passwo
 __host__ void initArrays(Password **passwords, Digest **results, int passwordNumber) {
     generatePasswords(passwords, passwordNumber);
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
+}
+
+__host__ void initPasswordArray(Password **passwords, long passwordNumber) {
+    generatePasswords(passwords, passwordNumber);
 }
 
 __device__ __host__ void printDigest(Digest *dig) {
@@ -189,7 +203,7 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug) {
+__host__ void writePoint(char *path, Password **passwords, long number, int t, bool debug) {
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -200,13 +214,13 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, bo
     if (file == nullptr) exit(1);
 
     int numLen = 0;
-    int numSave = number;
+    long numSave = number;
     while(numSave != 0){
         numSave /=10;
         numLen++;
     }
     char num[numLen];
-    sprintf(num, "%d", number);
+    sprintf(num, "%ld", number);
 
     int pwdlLen = 1;
     char pwdl[pwdlLen];
@@ -236,24 +250,6 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, bo
 
     fclose(file);
 
-
-    /*
-    std::ofstream file = openFile(path);
-    file << number << std::endl;
-    file << PASSWORD_LENGTH << std::endl;
-    file << t << std::endl;
-
-    // Iterate through every point
-    for (int i = 0; i < number; i++) {
-        for(unsigned char byte : (*passwords)[i].bytes) {
-            file << byte;
-        }
-        file << std::endl;
-
-    }
-    file.close();
-    */
-
     program_end = clock();
     program_time_used =
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
@@ -282,67 +278,49 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
     file.close();
 }
 
-__host__ int computeT(int goRam, int mt) {
-    double mtMax;
+__host__ int computeT(long mtMax) {
 
-    // Recommended value
-    double r = 19.83;
-
-    // Need to compute mtMax first
-    mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
-
-    double domain = pow(62, PASSWORD_LENGTH);
+    double domain = pow(62, sizeof(Password));
 
     // Compute t knowing mtMax
-    int result = (int)((2*domain) / (int)mtMax) - 2;
-    if (result < 1) return 2;
+    int result = (int)((double)((double)(2*domain) / (double)mtMax) - 2);
+
+    if (result < 2000) return 2000;
     else return result;
 }
 
-__host__ int getM0(int goRam, int mt) {
+__host__ long getM0(long mtMax) {
     double mZero;
-    double mtMax;
-    double tmpMZero;
+    long domain = (long)pow(CHARSET_LENGTH, sizeof(Password));
+    printf("domain: %ld\n", domain);
 
     // Recommended value
     double r = 19.83;
 
-    // Choosing m0 based on host memory
-    mZero = getNumberPassword(goRam);
+    // mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
-    // Need to compute mtMax first
-    mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
+    mZero = (double)((double)r * (double)mtMax);
 
-    tmpMZero = r * mtMax;
+    printf("m0: %ld\n", (long)mZero);
+    return (long)mZero;
 
-    if (tmpMZero > mZero && pow(62, PASSWORD_LENGTH) > tmpMZero) {
-        printf("Chosen mt require a bigger m0 than memory available!\n");
-        exit(1);
-    }else {
-        printf("m0: %d\n", (int)mZero);
-        return (int)mZero;
-    }
 }
 
-__host__ int getNumberPassword(int goRam) {
+// Returns the number of line we can store inside goRam
+__host__ long getNumberPassword(int goRam) {
 
-    double domain = pow(62, PASSWORD_LENGTH);
+    size_t memLine = sizeof(Password);
 
-    size_t memLine = sizeof(Password) + sizeof(Digest);
+    printf("size of a password: %ld\n", memLine);
 
     // memUsed = memLine * nbLine -> nbLine = memUsed / memLine
-    // memUsed = totalMem - 4 Go
     // totalMem * 1000000000 pour passer de Giga octets à  octets
 
-    long memUsed = ((long)goRam * (long)1000000000) - ((long)2 * (long)1000000000);
+    long memUsed = (long)((long)goRam * (long)1000000000);
 
-    int result = (int)pow(2, (int)log2((int)((long)memUsed / (int)memLine)));
+    long result = (long)((long)memUsed / (long)memLine);
 
-    if (result > domain){
-        result = (int)pow(2, ceil((int)log((int)domain)/log(2)));
-    }
-
-    printf("M0: %d\n", result);
+    printf("Number of password for %dGo of RAM: %ld\n",goRam , result);
     return result;
 }
 

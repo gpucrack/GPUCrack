@@ -14,17 +14,17 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
                                                                  'u', 'v', 'w', 'x', 'y', 'z'};
 
 __host__ void
-generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock, bool debug, bool debugKernel) {
+generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
+               int theadsPerBlock, bool debug, bool debugKernel) {
 
     float milliseconds = 0;
 
-    int batchSize = computeBatchSize(numberOfPass, passwordNumber);
+    long batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     // We send numberOfColumn/2 since one loop of kernel is hashing/reducing at the same time so we need 2x
     // less operations
-    chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
-                &h_passwords, &h_results, theadsPerBlock,
+    chainKernel(passwordNumber, numberOfPass, (int)batchSize, &milliseconds,
+                &h_passwords, theadsPerBlock,
                 numberOfColumn / 2, save, debugKernel);
 
     if (debug) {
@@ -37,7 +37,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 }
 
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
-    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index]);
         reduceDigest(i, &digests[index], &passwords[index]);
@@ -65,8 +65,8 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
 }
 
 __host__ void
-chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug) {
+chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
+            int threadPerBlock, int chainLength, bool save, bool debug) {
 
     if (save) {
         createFile((char *) "testStart.bin", true);
@@ -90,7 +90,7 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
     cudaStreamCreate(&stream1);
 
-    int chainsRemaining = passwordNumber;
+    long chainsRemaining = passwordNumber;
     int currentIndex = 0;
 
     printf("Generating chains...\n\n");
@@ -107,7 +107,7 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
         // If we have less than batchSize password to hash, then hash them all
         // but modify the batchSize to avoid index errors
-        if (chainsRemaining <= batchSize) batchSize = chainsRemaining;
+        if (chainsRemaining <= batchSize) batchSize = (int)chainsRemaining;
 
         // GPU Malloc for the password array, size is batchSize
         cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
@@ -121,10 +121,10 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
         cudaEventRecord(start);
         if (debug)
-            ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+            ntlmChainKernelDebug<<<((batchSize) / threadPerBlock) + 1, threadPerBlock, 0, stream1>>>(
                     d_passwords, d_results, chainLength);
         else
-            ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+            ntlmChainKernel<<<((batchSize) / threadPerBlock) + 1, threadPerBlock, 0, stream1>>>(
                     d_passwords, d_results, chainLength);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -143,12 +143,6 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
                    cudaGetErrorString(cudaerr));
             exit(1);
         }
-
-        Digest *destination = *h_results;
-        // Device to host copy
-
-        cudaMemcpyAsync(&(destination[currentIndex]), d_results,
-                        sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
 
         Password *destination2 = *h_passwords;
         // Device to host copy

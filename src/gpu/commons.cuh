@@ -23,19 +23,23 @@
 // The charset contains [a-zA-Z0-9].
 __host__ void generateNewPasswords(Password **result, int passwordNumber);
 
-__host__ void generatePasswords(Password **result, int passwordNumber);
+__host__ void generatePasswords(Password **result, long passwordNumber);
 
-__host__ void generateNewPasswords2(Password **result, int passwordNumber);
+__host__ void generateNewPasswords2(Password **result, long passwordNumber);
 
 // Returns the number of batches that we need to do
-__host__ int memoryAnalysis(int passwordNumber);
+__host__ int memoryAnalysisGPU(long passwordNumber);
+
+__host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory);
 
 // Returns the size a batch should have
-__host__ int computeBatchSize(int numberOfPass, int passwordNumber);
+__host__ long computeBatchSize(int numberOfPass, long passwordNumber);
 
 __host__ void initEmptyArrays(Password **passwords, Digest **results, int passwordNumber);
 
 __host__ void initArrays(Password **passwords, Digest **results, int passwordNumber);
+
+__host__ void initPasswordArray(Password **passwords, long passwordNumber);
 
 /**
  * Prints the name and the version of the product in the console.
@@ -75,7 +79,7 @@ __host__ std::ofstream openFile(const char *path);
  * @param number the number of points (called m_t if end points, m_0 if start points).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug = false);
+__host__ void writePoint(char *path, Password **passwords, long number, int t, bool debug = false);
 
 /**
  * Writes the last reductions of a table (password --> end point) into a text file.
@@ -91,25 +95,25 @@ writeEndingReduction(char *path, Password **passwords, Digest **results, int end
 /**
  * Function used to compute t
  * @param goRam : How many Go of RAM we will use to compute t
- * @param mt : Number of chains we want in the end points (mt < m0)
+ * @param mtMax : Number of chains we want in the end points (mt < m0)
  * @return t : number of column in a chain
  */
-__host__ int computeT(int goRam, int mt);
+__host__ int computeT(long mtMax);
 
 /**
  * Function used to get the maximum number of password to input based on RAM
  * @param goRam : How many Go of RAM we will use to compute t
  * @return maximum m0 based on the RAM (goRAM) available
  */
-__host__ int getNumberPassword(int goRam);
+__host__ long getNumberPassword(int goRam);
 
 /**
  * Function used to get m0 value based on mt and RAM
  * @param goRam : How many Go of RAM we will use to compute t
- * @param mt : Number of chains we want in the end points (mt < m0)
+ * @param mtMax : Number of chains we want in the end points (mt < m0)
  * @return m0 based on both memory available (to check if mt is correct) and mt
  */
-__host__ int getM0(int goRam, int mt);
+__host__ long getM0(long mtMax);
 
 /**
  * Automatically detect system RAM

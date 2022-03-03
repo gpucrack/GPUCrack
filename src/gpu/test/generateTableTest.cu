@@ -8,26 +8,44 @@ int main(int argc, char *argv[]){
 
     printSignature();
 
-    int passwordNumber = getM0(getTotalSystemMemory(), atoi(argv[1]));
+    long mtMax = getNumberPassword(atoi(argv[1]));
 
-    Password * passwords;
-    Digest * result;
+    printf("mtMax: %ld\n", mtMax);
 
-    initArrays(&passwords, &result, passwordNumber);
+    long passwordNumber = getM0(mtMax);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
-
-    int t = computeT(getTotalSystemMemory(), atoi(argv[1]));
+    int t = computeT(mtMax);
 
     printf("Number of columns: %d\n\n", t);
 
-    generateChains(passwords, result, passwordNumber, numberOfPass, t,
-                   true, THREAD_PER_BLOCK, false, false);
+    Password * passwords;
 
-    printf("Chains generated!\n");
+    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9));
+
+    printf("Number of CPU passes: %d\n", numberOfCPUPass);
+
+    long batchSize = computeBatchSize(numberOfCPUPass, passwordNumber);
+
+    printf("CPU batch size: %ld\n", batchSize);
+
+    long nbOp = t * passwordNumber;
+
+    printf("Number of crypto op: %ld\n", nbOp);
+
+    initPasswordArray(&passwords, batchSize);
+
+    for(int i=0; i<numberOfCPUPass; i++) {
+
+        auto numberOfPass = memoryAnalysisGPU(batchSize);
+
+        generateChains(passwords, batchSize, numberOfPass, t,
+                       true, THREAD_PER_BLOCK, false, false);
+
+        printf("Chains generated!\n");
+
+    }
 
     cudaFreeHost(passwords);
-    cudaFreeHost(result);
 
     return 0;
 }

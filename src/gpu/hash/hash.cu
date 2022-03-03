@@ -81,6 +81,7 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
     for (int i = 0; i<numberOfPass; i++) {
         // Temporary variable to measure GPU time inside this loop
         float tempMilli = 0;
+        printf("batchSize: %d\n", batchSize);
 
         // If the currentIndex to save result is greater than the number of
         // password we must stop
@@ -105,7 +106,7 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
         }
 
         cudaEventRecord(start);
-        ntlm_kernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+        ntlm_kernel<<<((batchSize) / threadPerBlock) +1, threadPerBlock, 0, stream1>>>(
                 d_passwords, d_results);
         cudaEventRecord(end);
         cudaEventSynchronize(end);

@@ -10,7 +10,7 @@ void benchmark(int passwordNumber) {
 
     initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
     for (int k = 2; k <= MAX_THREAD_NUMBER; k = k * 2) {
 

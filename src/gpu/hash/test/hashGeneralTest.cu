@@ -2,14 +2,14 @@
 
 int main() {
 
-    int passwordNumber = getNumberPassword(8);
+    int passwordNumber = getNumberPassword(6);
 
     Password * passwords;
     Digest * result;
 
     initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
     hash(passwords, result, passwordNumber, numberOfPass, false);
 
@@ -20,7 +20,7 @@ int main() {
     printPassword(&passwords[0]);
     printf(" --> ");
     printDigest(&result[0]);
-    printf("...\n");
+    printf("\n...\n");
     printPassword(&passwords[passwordNumber-1]);
     printf(" --> ");
     printDigest(&result[passwordNumber-1]);

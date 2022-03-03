@@ -58,13 +58,13 @@ int compliance(int passwordNumber, Password * passwords, Digest * result, int nu
 
 int main() {
 
-    int passwordNumber = getNumberPassword(32);
+    int passwordNumber = getNumberPassword(8);
     Password * passwords;
     Digest * result;
 
     initEmptyArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
     unsigned char REFERENCE_PASSWORD2[PASSWORD_LENGTH] = {'a','b','c','d','e','f','g'};
 

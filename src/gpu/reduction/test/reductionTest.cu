@@ -8,7 +8,7 @@ int main() {
 
     initEmptyArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
     reduce(passwords, result, passwordNumber, numberOfPass, THREAD_PER_BLOCK);
 
