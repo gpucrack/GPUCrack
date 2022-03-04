@@ -116,11 +116,6 @@ __host__ int memoryAnalysisGPU(long passwordNumber) {
     printf("This much memory will be used : %ld Megabytes\n\n",
            (memUsed / 1000000));
 
-    if((memUsed / 1000000000) >= getTotalSystemMemory() - 4) {
-        printf("Not enough GPU memory for this number of passwords !\n");
-        exit(1);
-    }
-
     // We need to determine how many batch we'll do to hash all passwords
     // We need to compute the batch size as well
     auto numberOfPass = (double) ((double) memUsed / (double) freeMem);
@@ -203,7 +198,7 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writePoint(char *path, Password **passwords, long number, int t, bool debug) {
+__host__ void writePoint(char *path, Password **passwords, long number, int t, bool debug, long start) {
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -211,39 +206,49 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, b
 
     FILE * file = fopen(path, "w");
 
-    if (file == nullptr) exit(1);
-
-    int numLen = 0;
-    long numSave = number;
-    while(numSave != 0){
-        numSave /=10;
-        numLen++;
+    if (file == nullptr)  {
+        printf("Can't open file %s\n", path);
+        exit(1);
     }
-    char num[numLen];
-    sprintf(num, "%ld", number);
 
-    int pwdlLen = 1;
-    char pwdl[pwdlLen];
-    sprintf(pwdl, "%d", PASSWORD_LENGTH);
+    if (start == 0) {
 
-    int tLen = 1;
-    int tlSave = t;
-    while(tlSave != 0){
-        tlSave /=10;
-        tLen++;
+        int numLen = 0;
+        long numSave = number;
+
+        while(numSave != 0){
+            numSave /=10;
+            numLen++;
+        }
+
+        char num[numLen];
+        sprintf(num, "%ld", number);
+
+        int pwdlLen = 1;
+        char pwdl[pwdlLen];
+        sprintf(pwdl, "%d", PASSWORD_LENGTH);
+
+        int tLen = 1;
+        int tlSave = t;
+        while(tlSave != 0){
+            tlSave /=10;
+            tLen++;
+        }
+        char tc[tLen];
+        sprintf(tc, "%d", t);
+
+        fwrite(&num, sizeof(char)*numLen, 1, file);
+        fwrite("\n", sizeof(char), 1, file);
+        fwrite(&pwdl, sizeof(char)*pwdlLen, 1, file);
+        fwrite("\n", sizeof(char), 1, file);
+        fwrite(&tc, sizeof(char)*tLen, 1, file);
+        fwrite("\n", sizeof(char), 1, file);
+    }else{
+        fseek(file, start*(sizeof(char) * PASSWORD_LENGTH), 0);
     }
-    char tc[tLen];
-    sprintf(tc, "%d", t);
-
-    fwrite(&num, sizeof(char)*numLen, 1, file);
-    fwrite("\n", sizeof(char), 1, file);
-    fwrite(&pwdl, sizeof(char)*pwdlLen, 1, file);
-    fwrite("\n", sizeof(char), 1, file);
-    fwrite(&tc, sizeof(char)*tLen, 1, file);
-    fwrite("\n", sizeof(char), 1, file);
 
     // Iterate through every point
-    for (int i = 0; i < number; i++) {
+    for (long i = 0; i < number; i++) {
         fwrite((*passwords)[i].bytes, sizeof(uint8_t) * PASSWORD_LENGTH, 1, file);
         fwrite("\n", sizeof(char), 1, file);
     }

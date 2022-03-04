@@ -79,7 +79,7 @@ __host__ std::ofstream openFile(const char *path);
  * @param number the number of points (called m_t if end points, m_0 if start points).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writePoint(char *path, Password **passwords, long number, int t, bool debug = false);
+__host__ void writePoint(char *path, Password **passwords, long number, int t, bool debug, long start);
 
 /**
  * Writes the last reductions of a table (password --> end point) into a text file.

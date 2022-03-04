@@ -68,11 +68,6 @@ __host__ void
 chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
             int threadPerBlock, int chainLength, bool save, bool debug) {
 
-    if (save) {
-        createFile((char *) "testStart.bin", true);
-        writePoint((char *) "testStart.bin", h_passwords, passwordNumber, chainLength, true);
-    }
-
     double program_time_used;
     clock_t program_start, program_end;
     program_start = clock();
@@ -164,10 +159,4 @@ chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *millise
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("Total execution time : %f seconds = %f minutes = %f hours\n", program_time_used,
            program_time_used/60, (program_time_used/60)/60);
-
-    if (save) {
-        createFile((char *) "testEnd.bin", true);
-        writePoint((char *) "testEnd.bin", h_passwords, passwordNumber, chainLength,
-                   true);
-    }
 }

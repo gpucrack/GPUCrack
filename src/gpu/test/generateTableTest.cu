@@ -48,7 +48,14 @@ int main(int argc, char *argv[]){
 
     initPasswordArray(&passwords, batchSize);
 
+    long currentPos = 0;
+
     for(int i=0; i<numberOfCPUPass; i++) {
+
+        printf("current position: %ld\n",currentPos);
+
+        if (currentPos == 0) createFile((char *) "testStart.bin", true);
+        writePoint((char *) "testStart.bin", &passwords, batchSize, t, true, currentPos);
 
         auto numberOfPass = memoryAnalysisGPU(batchSize);
 
@@ -57,6 +64,10 @@ int main(int argc, char *argv[]){
 
         printf("Chains generated!\n");
 
+        if (currentPos == 0) createFile((char *) "testEnd.bin", true);
+        writePoint((char *) "testEnd.bin", &passwords, batchSize, t, true, currentPos);
+
+        currentPos += batchSize;
     }
 
     cudaFreeHost(passwords);
