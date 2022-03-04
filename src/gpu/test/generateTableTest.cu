@@ -1,6 +1,6 @@
 #include "generateTableTest.cuh"
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         printf("Error: not enough arguments given.\n Usage: 'generateTable mt', where mt is the desired number of end points.");
         exit(1);

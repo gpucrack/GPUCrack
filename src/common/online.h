@@ -17,7 +17,7 @@
 // The password length in the rainbow tables.
 #define PASSWORD_LENGTH 5
 
-#define TEST_COVERAGE 10
+#define TEST_COVERAGE 100000
 
 // The length of the charset.
 #define CHARSET_LENGTH 62
@@ -60,7 +60,8 @@ void print_hash(const unsigned char *digest);
 
 /**
  * Searches for a specific char array in a list of endpoints.
- * @param endpoints the list of endpoints (as a char array array).
+ * Uses binary search algorithm.
+ * @param endpoints the SORTED list of endpoints (as a char array array).
  * @param plain_text the endpoint to find.
  * @param mt the number of endpoints in the list.
  * @param pwd_length the length of the password
