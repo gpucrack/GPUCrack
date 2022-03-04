@@ -20,7 +20,15 @@ int main() {
     printPassword(&passwords[0]);
     printf(" --> ");
     printDigest(&result[0]);
+    printf("\n");
+    printPassword(&passwords[1]);
+    printf(" --> ");
+    printDigest(&result[1]);
     printf("\n...\n");
+    printPassword(&passwords[passwordNumber-2]);
+    printf(" --> ");
+    printDigest(&result[passwordNumber-2]);
+    printf("\n");
     printPassword(&passwords[passwordNumber-1]);
     printf(" --> ");
     printDigest(&result[passwordNumber-1]);

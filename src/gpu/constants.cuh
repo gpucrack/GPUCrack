@@ -26,7 +26,6 @@
 // functions.
 typedef union {
     uint8_t bytes[PASSWORD_LENGTH];
-    uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
 } Password;
 
 // A digest put into an union.
