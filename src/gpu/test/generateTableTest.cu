@@ -67,6 +67,12 @@ int main(int argc, char *argv[]) {
         if (currentPos == 0) createFile((char *) "testEnd.bin", true);
         writePoint((char *) "testEnd.bin", &passwords, batchSize, t, true, currentPos);
 
+        // Clean the table by deleting duplicate endpoints
+        long *res = filter("testStart.bin", "testEnd.bin", "testStart.bin", "testEnd.bin");
+        if (res[2] == res[3]) {
+            printf("The files have been generated with success.\n");
+        }
+
         currentPos += batchSize;
     }
 
