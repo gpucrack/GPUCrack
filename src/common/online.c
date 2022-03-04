@@ -83,19 +83,14 @@ void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int 
     // display_digest(digest);
 
     Password *plain_text = (Password *) malloc(sizeof(Password));
-    char_to_password("abcdefg", plain_text, pwd_length);
+    char_to_password("abcde", plain_text, pwd_length);
 
     // printf("   ---   Password : ");
     // display_password(plain_text);
 
-    (*plain_text).i[0] = charset[((*digest).bytes[0] + index) % CHARSET_LENGTH] |
-                         (charset[((*digest).bytes[1] + index) % CHARSET_LENGTH] << 8) |
-                         (charset[((*digest).bytes[2] + index) % CHARSET_LENGTH] << 16) |
-                         (charset[((*digest).bytes[3] + index) % CHARSET_LENGTH] << 24);
-    (*plain_text).i[1] = charset[((*digest).bytes[4] + index) % CHARSET_LENGTH] |
-                         (charset[((*digest).bytes[5] + index) % CHARSET_LENGTH] << 8) |
-                         (charset[((*digest).bytes[6] + index) % CHARSET_LENGTH] << 16) |
-                         (charset[((*digest).bytes[7] + index) % CHARSET_LENGTH] << 24);
+    for(int i=0; i<PASSWORD_LENGTH; i++){
+        (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % CHARSET_LENGTH];
+    }
     password_to_char(plain_text, char_plain, pwd_length);
 
     // printf("\n");
@@ -328,6 +323,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     fclose(fp2);
 
     // printf("0.00 %%");
+    printf("t= %d\n",t);
 
     for (long i = t - 1; i >= 0; i--) {
 
@@ -472,6 +468,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
         ntlm(password, digest, pwd_length);
 
         printf("As hash: %s\n", digest);
+        printf("t= %d\n",t);
 
         for (long i = t - 1; i >= 0; i--) {
 

@@ -17,7 +17,7 @@
 // The password length in the rainbow tables.
 #define PASSWORD_LENGTH 5
 
-#define TEST_COVERAGE 100000
+#define TEST_COVERAGE 5
 
 // The length of the charset.
 #define CHARSET_LENGTH 62
@@ -43,7 +43,6 @@
 // functions.
 typedef union {
     uint8_t bytes[PASSWORD_LENGTH];
-    uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
 } Password;
 
 // A digest put into a union.

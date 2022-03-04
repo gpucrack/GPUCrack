@@ -1,7 +1,7 @@
 #include "reductionTest.cuh"
 
 int main() {
-    int passwordNumber = getNumberPassword(8);
+    int passwordNumber = getNumberPassword(2);
 
     Password * passwords;
     Digest * result;
@@ -13,6 +13,7 @@ int main() {
     reduce(passwords, result, passwordNumber, numberOfPass, THREAD_PER_BLOCK);
 
     for(int i=0; i<10; i++) {
+        printDigest(&result[i]);
         printPassword(&passwords[i]);
         printf("\n");
         reduceDigest(0, &result[i], &passwords[i]);

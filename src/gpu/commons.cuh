@@ -35,9 +35,9 @@ __host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory);
 // Returns the size a batch should have
 __host__ long computeBatchSize(int numberOfPass, long passwordNumber);
 
-__host__ void initEmptyArrays(Password **passwords, Digest **results, int passwordNumber);
+__host__ void initEmptyArrays(Password **passwords, Digest **results, long passwordNumber);
 
-__host__ void initArrays(Password **passwords, Digest **results, int passwordNumber);
+__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber);
 
 __host__ void initPasswordArray(Password **passwords, long passwordNumber);
 

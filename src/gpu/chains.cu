@@ -15,17 +15,19 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 
 __host__ void
 generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
-               int theadsPerBlock, bool debug, bool debugKernel) {
+               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results) {
 
     float milliseconds = 0;
+
+    printf("Size of password inside generateChains: %d\n", sizeof(Password));
 
     long batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     // We send numberOfColumn/2 since one loop of kernel is hashing/reducing at the same time so we need 2x
     // less operations
-    chainKernel(passwordNumber, numberOfPass, (int)batchSize, &milliseconds,
+    chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, theadsPerBlock,
-                numberOfColumn / 2, save, debugKernel);
+                numberOfColumn, save, debugKernel, &h_results);
 
     if (debug) {
         printf("Total GPU time : %f milliseconds\n", milliseconds);
@@ -45,9 +47,13 @@ __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainL
 }
 
 __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength) {
-    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
+
     for (int i = 0; i < chainLength; i++) {
         if(index == 0){
+            printDigest(&digests[index]);
+            //printf("%d",sizeof(passwords[index]));
+            printf(" --> ");
             printPassword(&passwords[index]);
             printf(" --> ");
         }
@@ -66,7 +72,7 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
 
 __host__ void
 chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            int threadPerBlock, int chainLength, bool save, bool debug) {
+            int threadPerBlock, int chainLength, bool save, bool debug, Digest **h_results) {
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -86,7 +92,7 @@ chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *millise
     cudaStreamCreate(&stream1);
 
     long chainsRemaining = passwordNumber;
-    int currentIndex = 0;
+    long currentIndex = 0;
 
     printf("Generating chains...\n\n");
 
@@ -137,6 +143,14 @@ chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *millise
             printf("hashKernel launch failed with error \"%s\".\n",
                    cudaGetErrorString(cudaerr));
             exit(1);
+        }
+
+        if (debug){
+            Digest *destination = *h_results;
+            // Device to host copy
+
+            cudaMemcpyAsync(&(destination[currentIndex]), d_results,
+                            sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
         }
 
         Password *destination2 = *h_passwords;

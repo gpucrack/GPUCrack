@@ -19,11 +19,11 @@ __host__ void generatePasswords(Password **result, long passwordNumber) {
 }
 
 __host__ void generateNewPasswords2(Password **result, long passwordNumber) {
-    char charset[CHARSET_LENGTH] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+    char charset[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
                         't', 'u', 'v', 'w', 'x',
                         'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
                         'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-    char charsetLength = CHARSET_LENGTH - 1;
+    char charsetLength = 61;
 
     for (long j = 0; j < passwordNumber; j++) {
         // Generate one password
@@ -150,12 +150,12 @@ __host__ long computeBatchSize(int numberOfPass, long passwordNumber) {
     else return passwordNumber;
 }
 
-__host__ void initEmptyArrays(Password **passwords, Digest **results, int passwordNumber) {
+__host__ void initEmptyArrays(Password **passwords, Digest **results, long passwordNumber) {
     handleCudaError(cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault));
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initArrays(Password **passwords, Digest **results, int passwordNumber) {
+__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber) {
     generatePasswords(passwords, passwordNumber);
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }

@@ -13,7 +13,7 @@ int main() {
     int numberOfColumn = 1000;
 
     generateChains(passwords, passwordNumber,
-                   numberOfPass, numberOfColumn, false, THREAD_PER_BLOCK, true, false);
+                   numberOfPass, numberOfColumn, false, THREAD_PER_BLOCK, true, false, NULL);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

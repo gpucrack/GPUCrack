@@ -60,18 +60,20 @@ int main(int argc, char *argv[]) {
         auto numberOfPass = memoryAnalysisGPU(batchSize);
 
         generateChains(passwords, batchSize, numberOfPass, t,
-                       true, THREAD_PER_BLOCK, false, false);
+                       true, THREAD_PER_BLOCK, false, false, NULL);
 
         printf("Chains generated!\n");
 
         if (currentPos == 0) createFile((char *) "testEnd.bin", true);
         writePoint((char *) "testEnd.bin", &passwords, batchSize, t, true, currentPos);
 
+        /*
         // Clean the table by deleting duplicate endpoints
         long *res = filter("testStart.bin", "testEnd.bin", "testStart.bin", "testEnd.bin");
         if (res[2] == res[3]) {
             printf("The files have been generated with success.\n");
         }
+         */
 
         currentPos += batchSize;
     }
