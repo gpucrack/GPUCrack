@@ -285,8 +285,7 @@ __host__ int computeT(long mtMax) {
     // Compute t knowing mtMax
     int result = (int)((double)((double)(2*domain) / (double)mtMax) - 2);
 
-    if (result < 2000) return 2000;
-    else return result;
+    return result;
 }
 
 __host__ long getM0(long mtMax) {

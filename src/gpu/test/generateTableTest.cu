@@ -8,11 +8,25 @@ int main(int argc, char *argv[]){
 
     printSignature();
 
+    long domain = pow(CHARSET_LENGTH, sizeof(Password));
+
     long mtMax = getNumberPassword(atoi(argv[1]));
+
+    long idealM0 = (long)(0.01*(double)domain);
+
+    printf("Ideal m0: %ld\n", idealM0);
+
+    long idealMtMax = (long)((double)idealM0/19.83);
+
+    printf("Ideal mtMax: %ld\n", idealMtMax);
+
+    if (mtMax > idealMtMax) mtMax = idealMtMax;
 
     printf("mtMax: %ld\n", mtMax);
 
     long passwordNumber = getM0(mtMax);
+
+    if (passwordNumber > idealM0) printf("m0 is too big\n");
 
     int t = computeT(mtMax);
 
