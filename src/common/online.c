@@ -11,6 +11,57 @@ void print_hash(const unsigned char *digest) {
     }
 }
 
+unsigned long long power(unsigned long long x, unsigned long long y) {
+    if (y == 0) return 0;
+    unsigned long long res = 1;
+    for(unsigned long long i = 0; i < y; i++) {
+        res *= x;
+    }
+    return res;
+}
+
+// Number of possible passwords given its domain (length and number of characters used).
+unsigned long long compute_N(unsigned char pwd_length) {
+    return power((unsigned long long) CHARSET_LENGTH, (unsigned long long) pwd_length);
+}
+
+// Compute qi using the approximate formula (alpha must be > 0.9)
+unsigned long long compute_qi(unsigned long m, unsigned int t, unsigned long long N, unsigned long i) {
+    return 1 - (m / N) - (i * (i - 1))/(t * (t + 1));
+}
+
+unsigned long long compute_pk(unsigned long m, unsigned long long N, unsigned long k) {
+    return (m / N) * power((1 - (m / N)), k-1);
+}
+
+// l: number of tables
+unsigned long long compute_atk_time(unsigned long m, unsigned char l, unsigned int t, unsigned long long N) {
+
+    unsigned long long left_part = 0;
+
+    for(unsigned long k = 1; k < (l * t) + 1; k++) {
+        unsigned int c = t - ((k - 1) / l);
+
+        // Compute the sum on the left parenthesis with qi
+        unsigned long long left_qsum = 0;
+        for(unsigned int i = c; i < t + 1; i++) {
+            left_qsum += compute_qi(m, t, N, i) * i;
+        }
+
+        left_part += compute_pk(m, N, k) * ((((t - c) * (t - c + 1))/2) + left_qsum) * l;
+    }
+
+    // Compute the sum on the right parenthesis with qi
+    unsigned long long right_qsum = 0;
+    for(unsigned int i = 1; i < t + 1; i++) {
+        right_qsum += compute_qi(m, t, N, i) * i;
+    }
+
+    unsigned long long right_part = (power(1 - (m / N), l * t)) * (((t * (t - 1)) / 2) + right_qsum) * l;
+
+    return left_part + right_part;
+}
+
 unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long mt, int pwd_length) {
     unsigned long lower = 0;
     unsigned long upper = (mt - 1) * sizeof(char) * (unsigned long) pwd_length;
@@ -458,6 +509,8 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
     srand(time(NULL));
 
+    unsigned long long nb_hashes = 0;
+
     for (int p = 0; p < TEST_COVERAGE; p++) {
 
         char password[pwd_length];
@@ -467,11 +520,11 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
             password[n] = charset[rand() % CHARSET_LENGTH];
         }
 
-        printf("Trying with: %s\n", password);
+        printf("Trying with: %.*s", pwd_length, password);
 
         ntlm(password, digest, pwd_length);
 
-        printf("As hash: %s\n", digest);
+        printf(" (%s)...", digest);
 
         for (long i = t - 1; i >= 0; i--) {
 
@@ -490,6 +543,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
             for (unsigned long k = i; k < t - 1; k++) {
                 reduce_digest(column_digest, k, column_plain_text, pwd_length);
                 ntlm(column_plain_text, column_digest, pwd_length);
+                nb_hashes++;
                 //printf("k=%d   -   password: '%s'   -   hash: '%s'\n", k, column_plain_text, column_digest);
             }
             reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
@@ -517,21 +571,27 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
             for (unsigned long k = 0; k < i; k++) {
                 ntlm(chain_plain_text, chain_digest, pwd_length);
+                nb_hashes++;
                 reduce_digest(chain_digest, k, chain_plain_text, pwd_length);
             }
             ntlm(chain_plain_text, chain_digest, pwd_length);
+            nb_hashes++;
 
             //printf("FALSE ALERT ???????? C'EST : %s et %s\n", chain_digest, digest);
 
             if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
                 strcpy(password, chain_plain_text);
                 numberFound++;
-                printf("%s found!\n", password);
+                printf(" Found!");
                 break;
             }
             //printf("   ---   False alert (column=%ld).\n", i);
         }
+        printf("\n");
     }
+
+    printf("\n%llu cryptographic operations were done.\n", nb_hashes);
+    printf("In theory, it should have been %llu.\n\n", compute_atk_time(mt, 1, t, compute_N(pwd_length)));
     return numberFound;
 }
 
@@ -539,7 +599,6 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
     Example showing how we create a rainbow table given its start and end point files.
 */
 int main(int argc, char *argv[]) {
-
     if (argc < 5) {
         printf("Error: too many arguments given.\nUsage: 'online startpath endpath -p password', where:"
                "\n   - startpath is the path to the start points file."
@@ -589,7 +648,7 @@ int main(int argc, char *argv[]) {
         unsigned char digest[HASH_LENGTH * 2];
         ntlm(password, digest, pwd_length);
 
-        printf("Looking for password '%s', hashed as %s", password, digest);
+        printf("Looking for password '%.*s', hashed as %s", pwd_length, password, digest);
         printf(".\nStarting attack...\n");
 
         // try to crack the password
@@ -600,7 +659,7 @@ int main(int argc, char *argv[]) {
         if (!strcmp(found, "")) {
             printf("No password found for the given hash.\n");
         } else {
-            printf("Password '%s' found for the given hash!\n", found);
+            printf("Password '%.*s' found for the given hash!\n", pwd_length, found);
         }
         exit(0);
 
@@ -625,7 +684,7 @@ int main(int argc, char *argv[]) {
         if (!strcmp(found, "")) {
             printf("No password found for the given hash.\n");
         } else {
-            printf("Password '%s' found for the given hash!\n", found);
+            printf("Password '%.*s' found for the given hash!\n", pwd_length, found);
         }
         exit(0);
     } else if (strcmp(argv[3], "-c") == 0) {
