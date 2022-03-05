@@ -691,6 +691,6 @@ int main(int argc, char *argv[]) {
         printf("Starting attack...\n");
         int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length);
         printf("Number of passwords found: %d\n", foundNumber);
-        printf("Coverage: %f %%", ((double) foundNumber / TEST_COVERAGE) * 100);
+        printf("Coverage: %f %%\n\n", ((double) foundNumber / TEST_COVERAGE) * 100);
     }
 }
