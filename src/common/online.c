@@ -591,7 +591,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
     }
 
     printf("\n%llu cryptographic operations were done.\n", nb_hashes);
-    printf("In theory, it should have been %llu.\n\n", compute_atk_time(mt, 1, t, compute_N(pwd_length)));
+    printf("In theory, it should have been %llu.\n\n", TEST_COVERAGE * compute_atk_time(mt, 1, t, compute_N(pwd_length)));
     return numberFound;
 }
 
