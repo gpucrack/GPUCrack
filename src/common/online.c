@@ -621,7 +621,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("GPUCrack v0.1.2\n"
+    printf("GPUCrack v0.1.3\n"
            "<https://github.com/gpucrack/GPUCrack/>\n\n");
 
     const char *start_path = argv[1];
