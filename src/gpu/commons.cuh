@@ -73,9 +73,11 @@ __host__ std::ofstream openFile(const char *path);
  * @param path the path of the file to save.
  * @param passwords the array containing every password located in first row.
  * @param number the number of points (called m_t if end points, m_0 if start points).
+ * @param t the number of columns in a chain.
+ * @param pwd_length the length of a password (in characters).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug = false);
+__host__ void writePoint(char *path, Password **passwords, int number, int t, int pwd_length, bool debug = false);
 
 /**
  * Writes the last reductions of a table (password --> end point) into a text file.
@@ -89,27 +91,30 @@ __host__ void
 writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug = false);
 
 /**
- * Function used to compute t
- * @param goRam : How many Go of RAM we will use to compute t
- * @param mt : Number of chains we want in the end points (mt < m0)
- * @return t : number of column in a chain
+ * Function used to compute t.
+ * @param goRam how many Go of RAM we will use to compute t.
+ * @param mt the number of chains we want in the end points (mt < m0).
+ * @param pwd_length the length of a password (in characters).
+ * @return the number of columns in a chain
  */
-__host__ int computeT(int goRam, int mt);
+__host__ int computeT(int goRam, int mt, int pwd_length);
 
 /**
- * Function used to get the maximum number of password to input based on RAM
- * @param goRam : How many Go of RAM we will use to compute t
+ * Function used to get the maximum number of password to input based on RAM.
+ * @param goRam how many Go of RAM we will use to compute t.
+ * @param pwd_length the length of a password (in characters).
  * @return maximum m0 based on the RAM (goRAM) available
  */
-__host__ int getNumberPassword(int goRam);
+__host__ int getNumberPassword(int goRam, int pwd_length);
 
 /**
- * Function used to get m0 value based on mt and RAM
- * @param goRam : How many Go of RAM we will use to compute t
- * @param mt : Number of chains we want in the end points (mt < m0)
+ * Function used to get m0 value based on mt and RAM.
+ * @param goRam how many Go of RAM we will use to compute t.
+ * @param mt the number of chains we want in the end points (mt < m0).
+ * @param pwd_length the length of a password (in characters).
  * @return m0 based on both memory available (to check if mt is correct) and mt
  */
-__host__ int getM0(int goRam, int mt);
+__host__ int getM0(int goRam, int mt, int pwd_length);
 
 /**
  * Automatically detect system RAM

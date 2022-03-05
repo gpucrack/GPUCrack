@@ -15,7 +15,7 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 
 __host__ void
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock, bool debug, bool debugKernel) {
+               bool save, int theadsPerBlock, bool debug, bool debugKernel, int pwd_length, char* start_path, char* end_path) {
 
     float milliseconds = 0;
 
@@ -25,7 +25,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, &h_results, theadsPerBlock,
-                numberOfColumn / 2, save, debugKernel);
+                numberOfColumn / 2, save, debugKernel, pwd_length, start_path, end_path);
 
     if (debug) {
         printf("Total GPU time : %f milliseconds\n", milliseconds);
@@ -36,27 +36,27 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     }
 }
 
-__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength) {
+__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, int pwd_length) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
-        ntlm(&passwords[index], &digests[index]);
-        reduceDigest(i, &digests[index], &passwords[index]);
+        ntlm(&passwords[index], &digests[index], pwd_length);
+        reduceDigest(i, &digests[index], &passwords[index], pwd_length);
     }
 }
 
-__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength) {
+__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int pwd_length) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         if(index == 0){
             printPassword(&passwords[index]);
             printf(" --> ");
         }
-        ntlm(&passwords[index], &digests[index]);
+        ntlm(&passwords[index], &digests[index], pwd_length);
         if (index == 0){
             printDigest(&digests[index]);
             printf(" --> ");
         }
-        reduceDigest(i, &digests[index], &passwords[index]);
+        reduceDigest(i, &digests[index], &passwords[index], pwd_length);
         if(index == 0){
             printPassword(&passwords[index]);
             printf("\n");
@@ -66,11 +66,12 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
 
 __host__ void
 chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug) {
+            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug, int pwd_length,
+            char* start_path, char* end_path) {
 
     if (save) {
-        createFile((char *) "testStart.bin", true);
-        writePoint((char *) "testStart.bin", h_passwords, passwordNumber, chainLength, true);
+        createFile(start_path, true);
+        writePoint(start_path, h_passwords, passwordNumber, chainLength, pwd_length, true);
     }
 
     double program_time_used;
@@ -122,10 +123,10 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
         cudaEventRecord(start);
         if (debug)
             ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength);
+                    d_passwords, d_results, chainLength, pwd_length);
         else
             ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength);
+                    d_passwords, d_results, chainLength, pwd_length);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
@@ -172,8 +173,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
            program_time_used/60, (program_time_used/60)/60);
 
     if (save) {
-        createFile((char *) "testEnd.bin", true);
-        writePoint((char *) "testEnd.bin", h_passwords, passwordNumber, chainLength,
-                   true);
+        createFile(end_path, true);
+        writePoint(end_path, h_passwords, passwordNumber, chainLength,
+                   pwd_length, true);
     }
 }

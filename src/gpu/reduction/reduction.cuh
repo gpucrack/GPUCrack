@@ -23,16 +23,18 @@ void generate_digests_random(Digest **digests, int n);
  * index: column index
  * digest: the digest to reduce
  * plain_text: the generated reduction
+ * @param pwd_length the length of a password (in characters).
  */
-__host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text);
+__host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text, int pwd_length);
 
 /*
  * Reduces every digest of an array into plain texts on GPU.
  * Every thread of the GPU will compute a single reduction.
  * digests: the digest array to reduce
  * plain_texts: the generated reductions
+ * @param pwd_length the length of a password (in characters).
  */
-__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column);
+__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column, int pwd_length);
 
 /*
  * Compares two passwords.
@@ -43,7 +45,7 @@ inline int pwdcmp(Password &p1, Password &p2);
 /*
  * Finds the number of duplicates in a password array
  */
-int count_duplicates(Password **passwords, bool debug, int passwordNumber);
+int count_duplicates(Password **passwords, bool debug, int passwordNumber, int pwd_length);
 
 /*
  * Displays a reduction as "DIGEST --> PASSWORD"
@@ -62,9 +64,10 @@ void display_reductions(Digest **digests, Password **passwords, int n);
  * @param h_passwords : CPU Password array used to generate chains
  * @param h_results : CPU Digest array used to generate chains
  * @param threadPerBlock : How many threads per block we will use
+ * @param pwd_length the length of a password (in characters).
  */
 __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
-                           Password **h_passwords, Digest **h_results, int threadPerBlock);
+                           Password **h_passwords, Digest **h_results, int threadPerBlock, int pwd_length);
 
 /**
  * Function called to reduce
@@ -73,6 +76,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
  * @param passwordNumber : How many password we use as input (m0)
  * @param numberOfPass : How many passes we need to do to compute all batches
  * @param threadsPerBlock : How many threads per block we will use
+ * @param pwd_length the length of a password (in characters).
  */
 __host__ void
-reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int threadsPerBlock);
+reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int threadsPerBlock, int pwd_length);

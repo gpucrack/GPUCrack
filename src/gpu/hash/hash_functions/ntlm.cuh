@@ -47,8 +47,9 @@ typedef enum md4_constants {
 
     `passwords` is the array containing all passwords to hash.
     `digests` contains all hashed passwords.
+    @param pwd_length the length of a password (in characters).
 */
-__global__ void ntlm_kernel(Password *passwords, Digest *digests);
+__global__ void ntlm_kernel(Password *passwords, Digest *digests, int pwd_length);
 
 /*
     A NTLM hash function.
@@ -57,8 +58,9 @@ __global__ void ntlm_kernel(Password *passwords, Digest *digests);
 
     `password` contains the password to hash.
     `digest` contains the hashed password.
+    @param pwd_length the length of a password (in characters).
 */
-__device__ void ntlm(Password *password, Digest *digest);
+__device__ void ntlm(Password *password, Digest *digest, int pwd_length);
 
 __device__ uint32_t rotl32(const uint32_t a, const int n);
 
@@ -91,7 +93,7 @@ __device__ void md4_update_vector_64(md4_ctx_vector_t *ctx, uint32_t *w0,
                                      const int len);
 
 __device__ void md4_update_vector_utf16le(md4_ctx_vector_t *ctx,
-                                          const uint32_t *w);
+                                          const uint32_t *w, int pwd_length);
 
 __device__ void append_helper_1x4(uint32_t *r, const uint32_t v,
                                   const uint32_t *m);

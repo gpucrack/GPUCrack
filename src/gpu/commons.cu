@@ -1,7 +1,7 @@
 #include "commons.cuh"
 
 __host__ void printSignature() {
-    printf("GPUCrack v0.1.2\n"
+    printf("GPUCrack v0.1.3\n"
            "<https://github.com/gpucrack/GPUCrack/>\n\n");
 }
 
@@ -189,7 +189,7 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writePoint(char *path, Password **passwords, int number, int t, bool debug) {
+__host__ void writePoint(char *path, Password **passwords, int number, int t, int pwd_length, bool debug) {
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -210,7 +210,7 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, bo
 
     int pwdlLen = 1;
     char pwdl[pwdlLen];
-    sprintf(pwdl, "%d", PASSWORD_LENGTH);
+    sprintf(pwdl, "%d", pwd_length);
 
     int tLen = 1;
     int tlSave = t;
@@ -230,29 +230,11 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, bo
 
     // Iterate through every point
     for (int i = 0; i < number; i++) {
-        fwrite((*passwords)[i].bytes, sizeof(uint8_t) * PASSWORD_LENGTH, 1, file);
+        fwrite((*passwords)[i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
         fwrite("\n", sizeof(char), 1, file);
     }
 
     fclose(file);
-
-
-    /*
-    std::ofstream file = openFile(path);
-    file << number << std::endl;
-    file << PASSWORD_LENGTH << std::endl;
-    file << t << std::endl;
-
-    // Iterate through every point
-    for (int i = 0; i < number; i++) {
-        for(unsigned char byte : (*passwords)[i].bytes) {
-            file << byte;
-        }
-        file << std::endl;
-
-    }
-    file.close();
-    */
 
     program_end = clock();
     program_time_used =
@@ -282,7 +264,7 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
     file.close();
 }
 
-__host__ int computeT(int goRam, int mt) {
+__host__ int computeT(int goRam, int mt, int pwd_length) {
     double mtMax;
 
     // Recommended value
@@ -291,7 +273,7 @@ __host__ int computeT(int goRam, int mt) {
     // Need to compute mtMax first
     mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
-    double domain = pow(62, PASSWORD_LENGTH);
+    double domain = pow(62, pwd_length);
 
     // Compute t knowing mtMax
     int result = (int)((2*domain) / (int)mtMax) - 2;
@@ -299,7 +281,7 @@ __host__ int computeT(int goRam, int mt) {
     else return result;
 }
 
-__host__ int getM0(int goRam, int mt) {
+__host__ int getM0(int goRam, int mt, int pwd_length) {
     double mZero;
     double mtMax;
     double tmpMZero;
@@ -308,25 +290,25 @@ __host__ int getM0(int goRam, int mt) {
     double r = 19.83;
 
     // Choosing m0 based on host memory
-    mZero = getNumberPassword(goRam);
+    mZero = getNumberPassword(goRam, pwd_length);
 
     // Need to compute mtMax first
     mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
     tmpMZero = r * mtMax;
 
-    if (tmpMZero > mZero && pow(62, PASSWORD_LENGTH) > tmpMZero) {
+    if (tmpMZero > mZero && pow(62, pwd_length) > tmpMZero) {
         printf("Chosen mt require a bigger m0 than memory available!\n");
         exit(1);
     }else {
-        printf("m0: %d\n", (int)mZero);
+        // printf("m0: %d\n", (int)mZero);
         return (int)mZero;
     }
 }
 
-__host__ int getNumberPassword(int goRam) {
+__host__ int getNumberPassword(int goRam, int pwd_length) {
 
-    double domain = pow(62, PASSWORD_LENGTH);
+    double domain = pow(62, pwd_length);
 
     size_t memLine = sizeof(Password) + sizeof(Digest);
 

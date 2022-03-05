@@ -22,24 +22,24 @@ void generate_digests_random(Digest **digests, int n) {
     }
 }
 
-__host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text) {
-    for(int i=0; i<PASSWORD_LENGTH; i++){
+__host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text, int pwd_length) {
+    for(int i=0; i<pwd_length; i++){
         (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % CHARSET_LENGTH];
     }
 }
 
-__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column) {
+__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column, int pwd_length) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    reduceDigest(column, &digests[idx], &plain_texts[idx]);
+    reduceDigest(column, &digests[idx], &plain_texts[idx], pwd_length);
 }
 
-int count_duplicates(Password **passwords, bool debug, int passwordNumber) {
+int count_duplicates(Password **passwords, bool debug, int passwordNumber, int pwd_length) {
     int count = 0;
     for (int i = 0; i < passwordNumber; i++) {
         if (debug) printf("Searching for duplicate of password number %d...\n", i);
         for (int j = i + 1; j < passwordNumber; j++) {
             // Increment count by 1 if duplicate found
-            if (memcmp((*passwords)[i].bytes, (*passwords)[j].bytes, PASSWORD_LENGTH) != 0) {
+            if (memcmp((*passwords)[i].bytes, (*passwords)[j].bytes, pwd_length) != 0) {
                 printf("Found a duplicate : ");
                 printPassword(&(*passwords)[i]);
                 count++;
@@ -59,7 +59,7 @@ void display_reductions(Digest *digests, Password *passwords, int n) {
 }
 
 __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds,
-                          Password **h_passwords, Digest **h_results, int threadPerBlock) {
+                          Password **h_passwords, Digest **h_results, int threadPerBlock, int pwd_length) {
     Password * d_passwords;
     Digest * d_results;
 
@@ -70,7 +70,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
     int reductionRemaining = passwordNumber;
     int currentIndex = 0;
 
-    unsigned long domain = pow(CHARSET_LENGTH, PASSWORD_LENGTH);
+    unsigned long domain = pow(CHARSET_LENGTH, pwd_length);
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
@@ -99,7 +99,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
         cudaEventRecord(start);
         // Reduce all those digests into passwords
         reduceDigests<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results,
-                                                                          d_passwords, 1);
+                                                                          d_passwords, 1, pwd_length);
 
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -134,7 +134,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
 }
 
 __host__ void
-reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int threadsPerBlock) {
+reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int threadsPerBlock, int pwd_length) {
     double program_time_used;
     clock_t program_start, program_end;
     program_start = clock();
@@ -148,7 +148,7 @@ reduce(Password *h_passwords, Digest *h_results, int passwordNumber, int numberO
 
     int batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
-    reduceKernel(passwordNumber, numberOfPass, batchSize, &milliseconds, &h_passwords, &h_results, threadsPerBlock);
+    reduceKernel(passwordNumber, numberOfPass, batchSize, &milliseconds, &h_passwords, &h_results, threadsPerBlock, pwd_length);
 
     //display_reductions(h_results, h_passwords, passwordNumber);
 

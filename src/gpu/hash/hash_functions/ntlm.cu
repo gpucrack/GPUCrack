@@ -1040,7 +1040,7 @@ __device__ void md4_update_vector_64(md4_ctx_vector_t *ctx, uint32_t *w0,
 }
 
 __device__ void md4_update_vector_utf16le(md4_ctx_vector_t *ctx,
-                                          const uint32_t *w) {
+                                          const uint32_t *w, int pwd_length) {
     uint32_t w0[4];
     uint32_t w1[4];
     uint32_t w2[4];
@@ -1049,7 +1049,7 @@ __device__ void md4_update_vector_utf16le(md4_ctx_vector_t *ctx,
     int pos1;
     int pos4;
 
-    for (pos1 = 0, pos4 = 0; pos1 < PASSWORD_LENGTH - 32;
+    for (pos1 = 0, pos4 = 0; pos1 < pwd_length - 32;
          pos1 += 32, pos4 += 8) {
         w0[0] = w[pos4 + 0];
         w0[1] = w[pos4 + 1];
@@ -1078,7 +1078,7 @@ __device__ void md4_update_vector_utf16le(md4_ctx_vector_t *ctx,
     make_utf16le(w1, w2, w3);
     make_utf16le(w0, w0, w1);
 
-    md4_update_vector_64(ctx, w0, w1, w2, w3, (PASSWORD_LENGTH - pos1) * 2);
+    md4_update_vector_64(ctx, w0, w1, w2, w3, (pwd_length - pos1) * 2);
 }
 
 __device__ void append_helper_1x4(uint32_t *r, const uint32_t v,
@@ -1145,16 +1145,16 @@ __device__ void md4_final_vector(md4_ctx_vector_t *ctx) {
     md4_transform_vector(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
-__device__ void ntlm(Password *password, Digest *digest) {
+__device__ void ntlm(Password *password, Digest *digest, int pwd_length) {
     uint32_t w[16] = {0};
 
-    for (uint32_t i = 0, idx = 0; i < PASSWORD_LENGTH; i += 4, idx += 1) {
+    for (uint32_t i = 0, idx = 0; i < pwd_length; i += 4, idx += 1) {
         w[idx] = password->i[idx];
     }
 
     md4_ctx_vector_t ctx;
     md4_init_vector(&ctx);
-    md4_update_vector_utf16le(&ctx, w);
+    md4_update_vector_utf16le(&ctx, w, pwd_length);
     md4_final_vector(&ctx);
 
     digest->i[0] = ctx.h[0];
@@ -1163,8 +1163,8 @@ __device__ void ntlm(Password *password, Digest *digest) {
     digest->i[3] = ctx.h[3];
 }
 
-__global__ void ntlm_kernel(Password *passwords, Digest *digests) {
+__global__ void ntlm_kernel(Password *passwords, Digest *digests, int pwd_length) {
     const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    ntlm(&passwords[index], &digests[index]);
+    ntlm(&passwords[index], &digests[index], pwd_length);
 }
