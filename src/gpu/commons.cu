@@ -166,8 +166,8 @@ __host__ void initPasswordArray(Password **passwords, long passwordNumber) {
 
 __device__ __host__ void printDigest(Digest *dig) {
     // Iterate through every byte of the digest
-    for (unsigned char byte : dig->bytes) {
-        printf("%02X", byte); // %02X formats as uppercase hex with leading zeroes
+    for (int i=0; i<HASH_LENGTH; i++) {
+        printf("%02X", (*dig).bytes[i]); // %02X formats as uppercase hex with leading zeroes
     }
 
     //printf("\n");
@@ -175,8 +175,8 @@ __device__ __host__ void printDigest(Digest *dig) {
 
 __device__ __host__ void printPassword(Password *pwd) {
     // Iterate through every byte of the password
-    for (unsigned char byte : pwd->bytes) {
-        printf("%c", byte);
+    for (int i=0; i<sizeof(Password); i++) {
+        printf("%c", (*pwd).bytes[i]);
     }
     //printf("\n");
 }

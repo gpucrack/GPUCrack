@@ -53,7 +53,7 @@ generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int
  * @param debug : Show debug print
  */
 __host__ void
-chainKernel(long passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            int threadPerBlock, int chainLength, bool save, bool debug, Digest **h_results);
+chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *milliseconds, Password **h_passwords,
+            int threadPerBlock, int chainLength, bool debug, Digest **h_results);
 
 #endif //GPU_CRACK_CHAINS_CUH

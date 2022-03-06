@@ -13,10 +13,6 @@ int main() {
 
     hash(passwords, result, passwordNumber, numberOfPass, false);
 
-    //generateNewPasswords(&passwords, passwordNumber);
-
-    //hash(passwords, result, passwordNumber, numberOfPass, false);
-
     printPassword(&passwords[0]);
     printf(" --> ");
     printDigest(&result[0]);

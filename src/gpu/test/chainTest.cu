@@ -11,15 +11,14 @@ int main(){
 
     auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
-    hash(passwords, result, passwordNumber, numberOfPass, false);
+    // Adjust t depending on the chain length you want to test
+    generateChains(passwords, passwordNumber, numberOfPass, 3964,
+                   false, THREAD_PER_BLOCK, true, true, result);
 
+    printf("Should be first password inside endpoints:\n");
     printPassword(&passwords[0]);
     printf("\n");
-    printDigest(&result[0]);
-    printf("\n");
 
-    generateChains(passwords, passwordNumber, numberOfPass, 1,
-                   false, THREAD_PER_BLOCK, true, true, result);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

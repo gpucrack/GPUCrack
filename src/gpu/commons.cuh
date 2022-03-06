@@ -19,6 +19,8 @@
 #include "./hash/hash.cuh"
 #include "./reduction/reduction.cuh"
 
+__host__ void handleCudaError(cudaError_t status);
+
 // Generates passwordNumber random passwords, using a 62 character alphanumeric charset.
 // The charset contains [a-zA-Z0-9].
 __host__ void generateNewPasswords(Password **result, int passwordNumber);

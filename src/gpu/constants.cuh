@@ -22,9 +22,8 @@
 // This is the maximum number of thread that we can used on a GPU
 #define MAX_THREAD_NUMBER 1024
 
-// A password put into a union. This is easier to use with malloc and crypto
-// functions.
-typedef union {
+// A password put into a struct.
+typedef struct {
     uint8_t bytes[PASSWORD_LENGTH];
 } Password;
 
