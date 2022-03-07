@@ -195,7 +195,7 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, in
     clock_t program_start, program_end;
     program_start = clock();
 
-    FILE * file = fopen(path, "w");
+    FILE * file = fopen(path, "wb");
 
     if (file == nullptr) exit(1);
 
@@ -212,7 +212,7 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, in
     char pwdl[pwdlLen];
     sprintf(pwdl, "%d", pwd_length);
 
-    int tLen = 1;
+    int tLen = 0;
     int tlSave = t;
     while(tlSave != 0){
         tlSave /=10;
@@ -231,7 +231,6 @@ __host__ void writePoint(char *path, Password **passwords, int number, int t, in
     // Iterate through every point
     for (int i = 0; i < number; i++) {
         fwrite((*passwords)[i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
-        fwrite("\n", sizeof(char), 1, file);
     }
 
     fclose(file);
