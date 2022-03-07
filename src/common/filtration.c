@@ -115,29 +115,33 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     fgets(buff, 255, (FILE *) end_file);
     fgets(buff, 255, (FILE *) end_file);
 
+
     long limit = mt * (long) pwd_length;
 
-    // Retrieves the points.
+    // Retrieve the points
     char *startpoints = (char *) malloc(sizeof(char) * limit);
     char *endpoints = (char *) malloc(sizeof(char) * limit);
 
-    for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
-        fgets(buff, 255, (FILE *) start_file);
-        for (long j = i; j < i + pwd_length; j++) {
-            startpoints[j] = buff[j - i];
+    char buff_point[pwd_length];
+
+    for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+
+        fread(buff_point, pwd_length, 1, (FILE *) start_file);
+        for (unsigned long j = i; j < i + pwd_length; j++) {
+            startpoints[j] = buff_point[j - i];
         }
 
-        fgets(buff, 255, (FILE *) end_file);
-        for (long j = i; j < i + pwd_length; j++) {
-            endpoints[j] = buff[j - i];
+        fread(buff_point, pwd_length, 1, (FILE *) end_file);
+        for (unsigned long j = i; j < i + pwd_length; j++) {
+            endpoints[j] = buff_point[j - i];
         }
+
     }
 
     // Close the files
     fclose(start_file);
     fclose(end_file);
 
-    printf("\nFiltration in progress...\n");
     q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, mt - 1, (int (*)(void *, void *, int)) (cmpstr));
 
     long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, mt,
@@ -162,17 +166,16 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     char *point = (char *) malloc(sizeof(char) * pwd_length);
     for (long i = 0; i < new_len; i++) {
         memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
-        fprintf(sp_out_file, "%s\n", point);
+        fwrite(point, pwd_length, 1, (FILE *) sp_out_file);
         sp_success++;
 
         memcpy(point, endpoints + (i * pwd_length), sizeof(char) * pwd_length);
-        fprintf(ep_out_file, "%s\n", point);
+        fwrite(point, pwd_length, 1, (FILE *) ep_out_file);
         ep_success++;
     }
 
     fclose(sp_out_file);
     fclose(ep_out_file);
-    printf("Removed %lu duplicate endpoints!\n", mt - new_len);
 
     long *success = (long *) malloc(sizeof(long) * 4);
     success[0] = mt;
