@@ -29,10 +29,10 @@ int main(int argc, char *argv[]) {
     int t = computeT(getTotalSystemMemory(), atoi(argv[2]), pwd_length);
 
     printf("Password length: %d\n", pwd_length);
-    printf("Number of columns (t): %d\n\n", t/2);
+    printf("Number of columns (t): %d\n\n", t / 2);
 
     // User typed 'generateTable c mt'
-    if(argc == 3) {
+    if (argc == 3) {
         start_path = (char *) "testStart.bin";
         end_path = (char *) "testEnd.bin";
     }
@@ -49,17 +49,20 @@ int main(int argc, char *argv[]) {
         end_path = argv[4];
     }
 
-    generateChains(passwords, result, passwordNumber, numberOfPass, t, true,
-                   THREAD_PER_BLOCK, false, false, pwd_length, start_path, end_path);
+    generateChains(passwords, result, passwordNumber, numberOfPass, t, true, THREAD_PER_BLOCK, false, false, pwd_length,
+                   start_path, end_path);
 
     printf("Chains generated!\n\n");
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);
 
+    printf("Engaging filtration...\n");
+
     // Clean the table by deleting duplicate endpoints
     long *res = filter(start_path, end_path, start_path, end_path);
     if (res[2] == res[3]) {
+        printf("Filtration done!\n\n");
         printf("The files have been generated with success.\n");
     }
 
