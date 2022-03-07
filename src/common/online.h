@@ -17,7 +17,7 @@
 // The password length in the rainbow tables.
 #define PASSWORD_LENGTH 5
 
-#define TEST_COVERAGE 1000
+#define TEST_COVERAGE 10000
 
 // The length of the charset.
 #define CHARSET_LENGTH 62
@@ -51,12 +51,6 @@ typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[CEILING(HASH_LENGTH, 4)];
 } Digest;
-
-/**
- * Prints a hash properly in the console.
- * @param digest the hash to print.
- */
-void print_hash(const unsigned char *digest);
 
 /**
  * Searches for a specific char array in a list of endpoints.
