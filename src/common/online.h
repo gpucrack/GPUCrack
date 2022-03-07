@@ -124,7 +124,7 @@ void ntlm(char *key, char *hash, int pwd_length);
  */
 void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password, int pwd_length);
 
-int online_from_files_coverage(char *start_path, char *end_path, int pwd_length);
+int online_from_files_coverage(char *start_path, char *end_path, int pwd_length, int nb_cover);
 
 
 #endif

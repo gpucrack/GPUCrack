@@ -389,7 +389,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
     strcpy(password, ""); // password was not found
 }
 
-int online_from_files_coverage(char *start_path, char *end_path, int pwd_length) {
+int online_from_files_coverage(char *start_path, char *end_path, int pwd_length, int nb_cover) {
     FILE *fp;
     fp = fopen(start_path, "rb");
 
@@ -457,7 +457,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
 
     unsigned long long nb_hashes = 0;
 
-    for (int p = 0; p < TEST_COVERAGE; p++) {
+    for (int p = 0; p < nb_cover; p++) {
 
         char password[pwd_length];
         unsigned char digest[HASH_LENGTH * 2];
@@ -520,7 +520,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length)
     }
 
     printf("\n%llu cryptographic operations were done.\n", nb_hashes);
-    printf("In theory, it should have been %llu.\n\n", TEST_COVERAGE * compute_atk_time(mt, 1, t, compute_N(pwd_length)));
+    printf("In theory, it should have been %llu.\n\n", nb_cover * compute_atk_time(mt, 1, t, compute_N(pwd_length)));
     return numberFound;
 }
 
@@ -617,9 +617,10 @@ int main(int argc, char *argv[]) {
         }
         exit(0);
     } else if (strcmp(argv[3], "-c") == 0) {
+        int nb_cover = atoi(argv[4]);
         printf("Starting attack...\n");
-        int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length);
-        printf("Number of passwords found: %d\n", foundNumber);
-        printf("Coverage: %f %%\n\n", ((double) foundNumber / TEST_COVERAGE) * 100);
+        int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length, nb_cover);
+        printf("Number of passwords found: %d / %d\n", foundNumber, nb_cover);
+        printf("Coverage: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
     }
 }
