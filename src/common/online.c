@@ -466,12 +466,11 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             password[n] = charset[rand() % CHARSET_LENGTH];
         }
 
-        printf("Trying with: %.*s", pwd_length, password);
+        printf("%d / %d (%d found) - Trying with: %.*s", p+1, nb_cover, numberFound, pwd_length, password);
 
         ntlm(password, digest, pwd_length);
 
         printf(" (%s)...", digest);
-        printf("t= %d\n",t);
 
         for (long i = t - 1; i >= 0; i--) {
 
