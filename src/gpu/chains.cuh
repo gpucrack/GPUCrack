@@ -40,6 +40,8 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
  * @param end_path the path to the end point file that will be created.
  */
 __host__ void
+generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
+               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results);
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
                bool save, int theadsPerBlock, bool debug, bool debugKernel, int pwd_length, char* start_path, char* end_path);
 
@@ -60,6 +62,8 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
  * @param end_path the path to the end point file that will be created.
  */
 __host__ void
+chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *milliseconds, Password **h_passwords,
+            int threadPerBlock, int chainLength, bool debug, Digest **h_results);
 chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug, int pwd_length,
             char* start_path, char* end_path);

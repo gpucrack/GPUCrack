@@ -1145,12 +1145,33 @@ __device__ void md4_final_vector(md4_ctx_vector_t *ctx) {
     md4_transform_vector(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
+__device__ uint32_t read_unaligned(void* ptr)
+{
+    uint32_t result;
+    asm("{\n\t"
+        "   .reg .b64    aligned_ptr;\n\t"
+        "   .reg .b32    low, high, alignment;\n\t"
+        "   and.b64      aligned_ptr, %1, 0xfffffffffffffffc;\n\t"
+        "   ld.u32       low, [aligned_ptr];\n\t"
+        "   ld.u32       high, [aligned_ptr+4];\n\t"
+        "   cvt.u32.u64  alignment, %1;\n\t"
+        "   prmt.b32.f4e %0, low, high, alignment;\n\t"
+        "}"
+    : "=r"(result) : "l"(ptr));
+    return result;
+}
+
 __device__ void ntlm(Password *password, Digest *digest, int pwd_length) {
     uint32_t w[16] = {0};
 
-    for (uint32_t i = 0, idx = 0; i < pwd_length; i += 4, idx += 1) {
-        w[idx] = password->i[idx];
+    uint8_t array[PASSWORD_LENGTH];
+
+    memcpy(array, password->bytes, sizeof(uint8_t) * PASSWORD_LENGTH);
+
+    for (uint32_t k = 0, idx = 0; k < pwd_length; k += 4, idx += 1) {
+        w[idx] = read_unaligned((uint32_t*)&array[k]);
     }
+
 
     md4_ctx_vector_t ctx;
     md4_init_vector(&ctx);

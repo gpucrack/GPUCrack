@@ -8,12 +8,12 @@ int main() {
 
     initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
     int numberOfColumn = 1000;
 
-    generateChains(passwords, result, passwordNumber,
-                   numberOfPass, numberOfColumn, false, THREAD_PER_BLOCK, true, false);
+    generateChains(passwords, passwordNumber,
+                   numberOfPass, numberOfColumn, false, THREAD_PER_BLOCK, true, false, NULL);
 
     cudaFreeHost(passwords);
     cudaFreeHost(result);

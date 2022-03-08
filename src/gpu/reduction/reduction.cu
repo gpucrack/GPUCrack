@@ -98,7 +98,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
 
         cudaEventRecord(start);
         // Reduce all those digests into passwords
-        reduceDigests<<<((batchSize) / threadPerBlock), threadPerBlock>>>(d_results,
+        reduceDigests<<<((batchSize) / threadPerBlock) + 1, threadPerBlock>>>(d_results,
                                                                           d_passwords, 1, pwd_length);
 
         cudaEventRecord(end);

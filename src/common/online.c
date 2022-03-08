@@ -471,6 +471,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
         ntlm(password, digest, pwd_length);
 
         printf(" (%s)...", digest);
+        printf("t= %d\n",t);
 
         for (long i = t - 1; i >= 0; i--) {
 

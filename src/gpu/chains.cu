@@ -14,16 +14,20 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
                                                                  'u', 'v', 'w', 'x', 'y', 'z'};
 
 __host__ void
+generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
+               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results) {
 generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
                bool save, int theadsPerBlock, bool debug, bool debugKernel, int pwd_length, char* start_path, char* end_path) {
 
     float milliseconds = 0;
 
-    int batchSize = computeBatchSize(numberOfPass, passwordNumber);
+    long batchSize = computeBatchSize(numberOfPass, passwordNumber);
 
     // We send numberOfColumn/2 since one loop of kernel is hashing/reducing at the same time so we need 2x
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
+                &h_passwords, theadsPerBlock,
+                numberOfColumn, debugKernel, &h_results);
                 &h_passwords, &h_results, theadsPerBlock,
                 numberOfColumn / 2, save, debugKernel, pwd_length, start_path, end_path);
 
@@ -37,7 +41,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
 }
 
 __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, int pwd_length) {
-    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index], pwd_length);
         reduceDigest(i, &digests[index], &passwords[index], pwd_length);
@@ -45,34 +49,39 @@ __global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainL
 }
 
 __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int pwd_length) {
-    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Trick to for a working print
+    Password * password = (Password*) malloc(sizeof(Password));
+    Digest * digest = (Digest*) malloc(sizeof(Digest));
     for (int i = 0; i < chainLength; i++) {
-        if(index == 0){
+        if(index == (0)){
             printPassword(&passwords[index]);
             printf(" --> ");
         }
         ntlm(&passwords[index], &digests[index], pwd_length);
-        if (index == 0){
+        if (index == (0)){
             printDigest(&digests[index]);
             printf(" --> ");
         }
         reduceDigest(i, &digests[index], &passwords[index], pwd_length);
-        if(index == 0){
+        if(index == (0)){
             printPassword(&passwords[index]);
             printf("\n");
         }
     }
+    free(password);
+    free(digest);
 }
 
 __host__ void
+chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *milliseconds, Password **h_passwords,
+            int threadPerBlock, int chainLength, bool debug, Digest **h_results) {
 chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
             Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug, int pwd_length,
             char* start_path, char* end_path) {
 
-    if (save) {
-        createFile(start_path, true);
-        writePoint(start_path, h_passwords, passwordNumber, chainLength, pwd_length, true);
-    }
+
 
     double program_time_used;
     clock_t program_start, program_end;
@@ -91,8 +100,8 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
 
     cudaStreamCreate(&stream1);
 
-    int chainsRemaining = passwordNumber;
-    int currentIndex = 0;
+    long chainsRemaining = passwordNumber;
+    long currentIndex = 0;
 
     printf("Generating chains...\n\n");
 
@@ -111,21 +120,21 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
         if (chainsRemaining <= batchSize) batchSize = chainsRemaining;
 
         // GPU Malloc for the password array, size is batchSize
-        cudaMalloc(&d_passwords, sizeof(Password) * batchSize);
-        cudaMalloc(&d_results, sizeof(Digest) * batchSize);
+        handleCudaError(cudaMalloc(&d_passwords, sizeof(Password) * batchSize));
+        handleCudaError(cudaMalloc(&d_results, sizeof(Digest) * batchSize));
 
         Password *source = *h_passwords;
 
         // Device copies
-        cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
-                        cudaMemcpyHostToDevice, stream1);
+        handleCudaError(cudaMemcpyAsync(d_passwords, &(source[currentIndex]), sizeof(Password) * batchSize,
+                        cudaMemcpyHostToDevice, stream1));
 
         cudaEventRecord(start);
         if (debug)
-            ntlmChainKernelDebug<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+            ntlmChainKernelDebug<<<((batchSize) / threadPerBlock) + 1, threadPerBlock, 0, stream1>>>(
                     d_passwords, d_results, chainLength, pwd_length);
         else
-            ntlmChainKernel<<<((batchSize) / threadPerBlock), threadPerBlock, 0, stream1>>>(
+            ntlmChainKernel<<<((batchSize) / threadPerBlock) + 1, threadPerBlock, 0, stream1>>>(
                     d_passwords, d_results, chainLength, pwd_length);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
@@ -145,17 +154,18 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
             exit(1);
         }
 
-        Digest *destination = *h_results;
-        // Device to host copy
+        if (debug){
+            Digest *destination = *h_results;
+            // Device to host copy
 
-        cudaMemcpyAsync(&(destination[currentIndex]), d_results,
-                        sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1);
+            handleCudaError(cudaMemcpyAsync(&(destination[currentIndex]), d_results,
+                            sizeof(Digest) * batchSize, cudaMemcpyDeviceToHost, stream1));
+        }
 
         Password *destination2 = *h_passwords;
         // Device to host copy
-
-        cudaMemcpyAsync(&(destination2[currentIndex]), d_passwords,
-                        sizeof(Password) * batchSize, cudaMemcpyDeviceToHost, stream1);
+        handleCudaError(cudaMemcpyAsync(&(destination2[currentIndex]), d_passwords,
+                        sizeof(Password) * batchSize, cudaMemcpyDeviceToHost, stream1));
 
         currentIndex += batchSize;
         chainsRemaining -= batchSize;
@@ -171,10 +181,4 @@ chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *millisec
             ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
     printf("Total execution time : %f seconds = %f minutes = %f hours\n", program_time_used,
            program_time_used/60, (program_time_used/60)/60);
-
-    if (save) {
-        createFile(end_path, true);
-        writePoint(end_path, h_passwords, passwordNumber, chainLength,
-                   pwd_length, true);
-    }
 }

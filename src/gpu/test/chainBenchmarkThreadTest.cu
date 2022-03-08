@@ -12,7 +12,7 @@ int main(){
 
     initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysis(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
 
     int numberOfColumn = 1000;
 
@@ -31,8 +31,8 @@ int main(){
             cudaEventCreate(&end);
 
             cudaEventRecord(start);
-            generateChains(passwords, result, passwordNumber,
-                           numberOfPass, numberOfColumn, false, k, false, false);
+            generateChains(passwords, passwordNumber,
+                           numberOfPass, numberOfColumn, false, k, false, false, NULL);
             cudaEventRecord(end);
             cudaEventSynchronize(end);
 
