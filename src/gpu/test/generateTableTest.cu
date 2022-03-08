@@ -15,8 +15,6 @@ int main(int argc, char *argv[]) {
 
     long domain = pow(CHARSET_LENGTH, sizeof(Password));
 
-    long mtMax = getNumberPassword(atoi(argv[1]));
-
     long idealM0 = (long)(0.01*(double)domain);
 
     printf("Ideal m0: %ld\n", idealM0);
@@ -26,7 +24,7 @@ int main(int argc, char *argv[]) {
     char *end_path;
     int pwd_length = atoi(argv[1]);
 
-    int passwordNumber = getM0(getTotalSystemMemory(), atoi(argv[2]), pwd_length);
+    long mtMax = getNumberPassword(atoi(argv[1]), pwd_length);
 
     printf("Ideal mtMax: %ld\n", idealMtMax);
 
@@ -34,15 +32,14 @@ int main(int argc, char *argv[]) {
 
     printf("mtMax: %ld\n", mtMax);
 
-    long passwordNumber = getM0(mtMax);
+    long passwordNumber = getM0(mtMax, pwd_length);
 
     if (passwordNumber > idealM0) printf("m0 is too big\n");
 
-    int t = computeT(mtMax);
-    int t = computeT(getTotalSystemMemory(), atoi(argv[2]), pwd_length);
+    int t = computeT(mtMax, pwd_length);
 
     printf("Password length: %d\n", pwd_length);
-    printf("Number of columns (t): %d\n\n", t / 2);
+    printf("Number of columns (t): %d\n\n", t);
 
     // User typed 'generateTable c mt'
     if (argc == 3) {
@@ -52,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     Password * passwords;
 
-    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9));
+    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
 
     printf("Number of CPU passes: %d\n", numberOfCPUPass);
 
@@ -69,9 +66,6 @@ int main(int argc, char *argv[]) {
         end_path = argv[4];
     }
 
-    generateChains(passwords, result, passwordNumber, numberOfPass, t, true, THREAD_PER_BLOCK, false, false, pwd_length,
-                   start_path, end_path);
-
     printf("CPU batch size: %ld\n", batchSize);
 
     long nbOp = t * passwordNumber;
@@ -84,30 +78,23 @@ int main(int argc, char *argv[]) {
 
     for(int i=0; i<numberOfCPUPass; i++) {
 
-        printf("current position: %ld\n",currentPos);
+        printf("current position: %ld\n", currentPos);
 
         if (currentPos == 0) createFile((char *) "testStart.bin", true);
-        writePoint((char *) "testStart.bin", &passwords, batchSize, t, true, currentPos);
+        writePoint((char *) "testStart.bin", &passwords, batchSize, t, pwd_length, true, currentPos);
 
         auto numberOfPass = memoryAnalysisGPU(batchSize);
 
         generateChains(passwords, batchSize, numberOfPass, t,
-                       true, THREAD_PER_BLOCK, false, false, NULL);
+                       true, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path);
 
         printf("Chains generated!\n");
 
         if (currentPos == 0) createFile((char *) "testEnd.bin", true);
-        writePoint((char *) "testEnd.bin", &passwords, batchSize, t, true, currentPos);
-
-        /*
-        // Clean the table by deleting duplicate endpoints
-        long *res = filter("testStart.bin", "testEnd.bin", "testStart.bin", "testEnd.bin");
-        if (res[2] == res[3]) {
-            printf("The files have been generated with success.\n");
-        }
-         */
+        writePoint((char *) "testEnd.bin", &passwords, batchSize, t, pwd_length, true, currentPos);
 
         currentPos += batchSize;
+    }
     printf("Engaging filtration...\n");
 
     // Clean the table by deleting duplicate endpoints

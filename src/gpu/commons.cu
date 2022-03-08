@@ -282,14 +282,8 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
     file.close();
 }
 
-__host__ int computeT(long mtMax) {
-__host__ int computeT(int goRam, int mt, int pwd_length) {
-    double mtMax;
-
-    // Recommended value
-    double r = 19.83;
-
-    double domain = pow(62, sizeof(Password));
+__host__ int computeT(long mtMax, int pwd_length) {
+double domain = pow(62, pwd_length);
 
     // Compute t knowing mtMax
     int result = (int)((double)((double)(2*domain) / (double)mtMax) - 2);
@@ -297,10 +291,9 @@ __host__ int computeT(int goRam, int mt, int pwd_length) {
     return result;
 }
 
-__host__ long getM0(long mtMax) {
-__host__ int getM0(int goRam, int mt, int pwd_length) {
+__host__ long getM0(long mtMax, int pwd_length) {
     double mZero;
-    long domain = (long)pow(CHARSET_LENGTH, sizeof(Password));
+    long domain = (long)pow(CHARSET_LENGTH, pwd_length);
     printf("domain: %ld\n", domain);
 
     // Recommended value
@@ -312,21 +305,11 @@ __host__ int getM0(int goRam, int mt, int pwd_length) {
 
     printf("m0: %ld\n", (long)mZero);
     return (long)mZero;
-
-    if (tmpMZero > mZero && pow(62, pwd_length) > tmpMZero) {
-        printf("Chosen mt require a bigger m0 than memory available!\n");
-        exit(1);
-    }else {
-        printf("m0: %d\n", (int)mZero);
-        return (int)mZero;
-    }
 }
 
 // Returns the number of line we can store inside goRam
-__host__ long getNumberPassword(int goRam) {
-__host__ int getNumberPassword(int goRam, int pwd_length) {
-
-    size_t memLine = sizeof(Password);
+__host__ long getNumberPassword(int goRam, int pwd_length) {
+    size_t memLine = pwd_length;
 
     printf("size of a password: %ld\n", memLine);
 

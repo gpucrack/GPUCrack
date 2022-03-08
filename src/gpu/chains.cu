@@ -15,9 +15,7 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 
 __host__ void
 generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
-               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results) {
-generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock, bool debug, bool debugKernel, int pwd_length, char* start_path, char* end_path) {
+               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results, int pwd_length, char* start_path, char* end_path) {
 
     float milliseconds = 0;
 
@@ -27,9 +25,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, theadsPerBlock,
-                numberOfColumn, debugKernel, &h_results);
-                &h_passwords, &h_results, theadsPerBlock,
-                numberOfColumn / 2, save, debugKernel, pwd_length, start_path, end_path);
+                numberOfColumn, debugKernel, &h_results, pwd_length, start_path, end_path);
 
     if (debug) {
         printf("Total GPU time : %f milliseconds\n", milliseconds);
@@ -55,17 +51,17 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
     Password * password = (Password*) malloc(sizeof(Password));
     Digest * digest = (Digest*) malloc(sizeof(Digest));
     for (int i = 0; i < chainLength; i++) {
-        if(index == (0)){
+        if(index == (1)){
             printPassword(&passwords[index]);
             printf(" --> ");
         }
         ntlm(&passwords[index], &digests[index], pwd_length);
-        if (index == (0)){
+        if (index == (1)){
             printDigest(&digests[index]);
             printf(" --> ");
         }
         reduceDigest(i, &digests[index], &passwords[index], pwd_length);
-        if(index == (0)){
+        if(index == (1)){
             printPassword(&passwords[index]);
             printf("\n");
         }
@@ -76,11 +72,8 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
 
 __host__ void
 chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *milliseconds, Password **h_passwords,
-            int threadPerBlock, int chainLength, bool debug, Digest **h_results) {
-chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug, int pwd_length,
+            int threadPerBlock, int chainLength, bool debug, Digest **h_results, int pwd_length,
             char* start_path, char* end_path) {
-
 
 
     double program_time_used;

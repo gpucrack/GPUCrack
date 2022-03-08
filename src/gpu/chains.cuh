@@ -41,9 +41,7 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
  */
 __host__ void
 generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
-               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results);
-generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int numberOfPass, int numberOfColumn,
-               bool save, int theadsPerBlock, bool debug, bool debugKernel, int pwd_length, char* start_path, char* end_path);
+               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results, int pwd_length, char* start_path, char* end_path);
 
 /**
  * Function used to call chain Kernel inside generateChains
@@ -63,9 +61,7 @@ generateChains(Password *h_passwords, Digest *h_results, int passwordNumber, int
  */
 __host__ void
 chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *milliseconds, Password **h_passwords,
-            int threadPerBlock, int chainLength, bool debug, Digest **h_results);
-chainKernel(int passwordNumber, int numberOfPass, int batchSize, float *milliseconds, Password **h_passwords,
-            Digest **h_results, int threadPerBlock, int chainLength, bool save, bool debug, int pwd_length,
+            int threadPerBlock, int chainLength, bool debug, Digest **h_results, int pwd_length,
             char* start_path, char* end_path);
 
 #endif //GPU_CRACK_CHAINS_CUH

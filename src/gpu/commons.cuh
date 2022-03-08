@@ -100,15 +100,10 @@ writeEndingReduction(char *path, Password **passwords, Digest **results, int end
  * Function used to compute t
  * @param goRam : How many Go of RAM we will use to compute t
  * @param mtMax : Number of chains we want in the end points (mt < m0)
- * @return t : number of column in a chain
- * Function used to compute t.
- * @param goRam how many Go of RAM we will use to compute t.
- * @param mt the number of chains we want in the end points (mt < m0).
  * @param pwd_length the length of a password (in characters).
  * @return the number of columns in a chain
  */
-__host__ int computeT(long mtMax);
-__host__ int computeT(int goRam, int mt, int pwd_length);
+__host__ int computeT(long mtMax, int pwd_length);
 
 /**
  * Function used to get the maximum number of password to input based on RAM.
@@ -116,21 +111,16 @@ __host__ int computeT(int goRam, int mt, int pwd_length);
  * @param pwd_length the length of a password (in characters).
  * @return maximum m0 based on the RAM (goRAM) available
  */
-__host__ long getNumberPassword(int goRam);
-__host__ int getNumberPassword(int goRam, int pwd_length);
+__host__ long getNumberPassword(int goRam, int pwd_length);
 
 /**
  * Function used to get m0 value based on mt and RAM
  * @param goRam : How many Go of RAM we will use to compute t
  * @param mtMax : Number of chains we want in the end points (mt < m0)
- * Function used to get m0 value based on mt and RAM.
- * @param goRam how many Go of RAM we will use to compute t.
- * @param mt the number of chains we want in the end points (mt < m0).
  * @param pwd_length the length of a password (in characters).
  * @return m0 based on both memory available (to check if mt is correct) and mt
  */
-__host__ long getM0(long mtMax);
-__host__ int getM0(int goRam, int mt, int pwd_length);
+__host__ long getM0(long mtMax, int pwd_length);
 
 /**
  * Automatically detect system RAM
