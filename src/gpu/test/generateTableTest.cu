@@ -13,16 +13,17 @@ int main(int argc, char *argv[]) {
 
     printSignature();
 
-    long domain = pow(CHARSET_LENGTH, sizeof(Password));
-
-    long idealM0 = (long)(0.01*(double)domain);
-
-    printf("Ideal m0: %ld\n", idealM0);
-
-    long idealMtMax = (long)((double)idealM0/19.83);
     char *start_path;
     char *end_path;
     int pwd_length = atoi(argv[1]);
+
+    long domain = pow(CHARSET_LENGTH, pwd_length);
+
+    long idealM0 = (long)(0.01*(double)domain);
+
+    long idealMtMax = (long)((double)idealM0/19.83);
+
+    printf("Ideal m0: %ld\n", idealM0);
 
     long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
 
