@@ -24,11 +24,11 @@ int main(int argc, char *argv[]) {
     char *end_path;
     int pwd_length = atoi(argv[1]);
 
-    long mtMax = getNumberPassword(atoi(argv[1]), pwd_length);
+    long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
 
     printf("Ideal mtMax: %ld\n", idealMtMax);
 
-    if (mtMax > idealMtMax) mtMax = idealMtMax;
+    //if (mtMax > idealMtMax) mtMax = idealMtMax;
 
     printf("mtMax: %ld\n", mtMax);
 
