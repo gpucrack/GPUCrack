@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
     printf("Ideal mtMax: %ld\n", idealMtMax);
 
-    //if (mtMax > idealMtMax) mtMax = idealMtMax;
+    if (mtMax > idealMtMax) mtMax = idealMtMax;
 
     printf("mtMax: %ld\n", mtMax);
 
