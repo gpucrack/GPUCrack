@@ -80,8 +80,8 @@ int main(int argc, char *argv[]) {
 
         printf("current position: %ld\n", currentPos);
 
-        if (currentPos == 0) createFile((char *) "testStart.bin", true);
-        writePoint((char *) "testStart.bin", &passwords, batchSize, t, pwd_length, true, currentPos);
+        if (currentPos == 0) createFile(start_path, true);
+        writePoint(start_path, &passwords, batchSize, t, pwd_length, true, currentPos);
 
         auto numberOfPass = memoryAnalysisGPU(batchSize);
 
@@ -90,8 +90,8 @@ int main(int argc, char *argv[]) {
 
         printf("Chains generated!\n");
 
-        if (currentPos == 0) createFile((char *) "testEnd.bin", true);
-        writePoint((char *) "testEnd.bin", &passwords, batchSize, t, pwd_length, true, currentPos);
+        if (currentPos == 0) createFile(end_path, true);
+        writePoint(end_path, &passwords, batchSize, t, pwd_length, true, currentPos);
 
         currentPos += batchSize;
     }
