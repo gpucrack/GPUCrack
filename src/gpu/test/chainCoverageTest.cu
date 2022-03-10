@@ -50,9 +50,9 @@ int main(){
     char charsetLength = 61;
 
     int nbFound = 0;
+    Password * result = (Password *)malloc(pwd_length);
 
     for(int i=0; i<domain; i++){
-        Password * result = (Password *)malloc(pwd_length);
         // Generate one password
         long counter = i;
         for (unsigned char & byte : (*result).bytes) {
@@ -67,8 +67,9 @@ int main(){
             }
         }
         if ((i % 1000) == 0) printf("%d: \n", i);
-        free(result);
     }
+
+    free(result);
 
     printf("Number of passwords found: %d\n", nbFound);
     printf("Coverage: %ld\n", (nbFound / domain) * 100);
