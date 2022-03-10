@@ -41,9 +41,8 @@
 
 // A password put into a union. This is easier to use with malloc and crypto
 // functions.
-typedef union {
+typedef struct {
     uint8_t bytes[PASSWORD_LENGTH];
-    uint32_t i[CEILING(PASSWORD_LENGTH, 4)];
 } Password;
 
 // A digest put into a union.

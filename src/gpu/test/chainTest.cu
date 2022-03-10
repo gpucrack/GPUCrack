@@ -1,7 +1,7 @@
 #include "chainTest.cuh"
 
 int main(){
-    int passwordNumber = getNumberPassword(1, 5);
+    int passwordNumber = getNumberPassword(1, PASSWORD_LENGTH);
 
     Password * passwords;
     Digest * result;
@@ -16,7 +16,7 @@ int main(){
 
     // Adjust t depending on the chain length you want to test
     generateChains(passwords, passwordNumber, numberOfPass, 3964,
-                   false, THREAD_PER_BLOCK, true, true, result, 5, start_path, end_path);
+                   false, THREAD_PER_BLOCK, true, true, result, PASSWORD_LENGTH, start_path, end_path);
 
     printf("Should be first password inside endpoints:\n");
     printPassword(&passwords[0]);

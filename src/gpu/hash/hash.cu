@@ -107,7 +107,7 @@ __host__ void hashKernel(const int numberOfPass, int batchSize,
 
         cudaEventRecord(start);
         ntlm_kernel<<<((batchSize) / threadPerBlock) +1, threadPerBlock, 0, stream1>>>(
-                d_passwords, d_results, 5);
+                d_passwords, d_results, PASSWORD_LENGTH);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
