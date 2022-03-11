@@ -2,7 +2,7 @@
 
 int main(){
 
-    int pwd_length = 2;
+    int pwd_length = 3;
 
     getNumberPassword(1, pwd_length);
 
@@ -66,13 +66,12 @@ int main(){
                 break;
             }
         }
-        if ((i % 1000) == 0) printf("%d: \n", i);
+        if ((i % 1000) == 0) printf("%d \n", i);
     }
-
-    free(result);
-
+    printPassword(&passwords[0]);
+    printf("\n");
     printf("Number of passwords found: %d\n", nbFound);
-    printf("Coverage: %ld\n", (nbFound / domain) * 100);
+    printf("Coverage: %f\n", ((double)(double)nbFound / (double)domain) * 100);
 
     cudaFreeHost(passwords);
 

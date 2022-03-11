@@ -51,17 +51,17 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
     Password * password = (Password*) malloc(sizeof(Password));
     Digest * digest = (Digest*) malloc(sizeof(Digest));
     for (int i = 0; i < chainLength; i++) {
-        if(index == (1)){
+        if(index == (0)){
             printPassword(&passwords[index]);
             printf(" --> ");
         }
         ntlm(&passwords[index], &digests[index], pwd_length);
-        if (index == (1)){
+        if (index == (0)){
             printDigest(&digests[index]);
             printf(" --> ");
         }
         reduceDigest(i, &digests[index], &passwords[index], pwd_length);
-        if(index == (1)){
+        if(index == (0)){
             printPassword(&passwords[index]);
             printf("\n");
         }

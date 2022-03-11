@@ -14,6 +14,12 @@ int main(){
     char * start_path = (char *) "testStart.bin";
     char * end_path = (char *) "testEnd.bin";
 
+    /* DEBUG
+    passwords[0].bytes[0] = 'W';
+    passwords[0].bytes[1] = 'r';
+    passwords[0].bytes[2] = 'a';
+     */
+
     // Adjust t depending on the chain length you want to test
     generateChains(passwords, passwordNumber, numberOfPass, 3964,
                    false, THREAD_PER_BLOCK, true, true, result, PASSWORD_LENGTH, start_path, end_path);
