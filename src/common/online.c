@@ -124,6 +124,9 @@ void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int 
     }
 
     password_to_char(plain_text, char_plain, pwd_length);
+
+    free(digest);
+    free(plain_text);
 }
 
 void ntlm(char *key, char *hash, int pwd_length) {
