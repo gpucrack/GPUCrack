@@ -83,7 +83,7 @@ void password_to_char(Password *password, char text[], int pwd_length);
  * @param text the char array.
  * @param digest the resulting digest.
  */
-void char_to_digest(char text[], Digest *digest);
+void char_to_digest(char text[], Digest *digest, int len);
 
 /**
  * Prints a digest in the console.

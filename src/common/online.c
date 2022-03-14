@@ -96,8 +96,8 @@ void password_to_char(Password *password, char text[], int pwd_length) {
     }
 }
 
-void char_to_digest(char text[], Digest *digest) {
-    for (int i = 0; i < HASH_LENGTH; i++) {
+void char_to_digest(char text[], Digest *digest, int len) {
+    for (int i = 0; i < len; i++) {
         char hex[2];
         hex[0] = text[i * 2];
         hex[1] = text[(i * 2) + 1];
@@ -114,7 +114,7 @@ void display_digest(Digest *digest) {
 
 void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int pwd_length) {
     Digest *digest = (Digest *) malloc(sizeof(Digest));
-    char_to_digest(char_digest, digest);
+    char_to_digest(char_digest, digest, pwd_length);
 
     Password *plain_text = (Password *) malloc(sizeof(Password));
     char_to_password("abcdefg", plain_text, pwd_length);
