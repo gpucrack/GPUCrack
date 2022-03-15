@@ -57,7 +57,6 @@ long dedup(Password *v, int size, long mt) {
         if (cmpstr(prev, actual, size) != 0) {
             Password *indexed = (Password *) (v + (index));
             memcpy(indexed, actual, size);
-
             index++;
         }
     }
@@ -74,7 +73,7 @@ int main(){
 
     printf("Domain: %ld\n", domain);
 
-    long passwordNumber = (long)(0.01*(double)domain);
+    long passwordNumber = (long)(0.1*(double)domain);
 
     printf("m0: %ld\n", passwordNumber);
 
@@ -113,17 +112,17 @@ int main(){
 
     long newlen = dedup(passwords, sizeof(char)*pwd_length, (passwordNumber*t));
 
-    printf("Dedup done\n");
+    printf("Dedup done: %d\n", newlen);
 
     for(int n=0; n<newlen; n++){
         printPassword(&passwords[n]);
         printf("\n");
     }
 
-    char charset[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-                        't', 'u', 'v', 'w', 'x',
-                        'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
-                        'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+    unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+                                             'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+                                             'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+                                             'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     char charsetLength = 61;
 
     int nbFound = 0;
@@ -133,20 +132,33 @@ int main(){
     for(int i=0; i<domain; i++){
         // Generate one password
         long counter = i;
-        for (unsigned char & byte : (*result).bytes) {
-            byte = charset[ counter % charsetLength];
-            counter /= charsetLength;
+        for (int b = 0; b<pwd_length; b++) {
+            (*result).bytes[b] = charset[counter % CHARSET_LENGTH];
+            counter /= CHARSET_LENGTH;
         }
 
-        for(int k=0; k< newlen; k++){
+        for(int k=0; k < newlen; k++){
             if(memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0){
                 nbFound++;
+                printf("Trouvé! ");
+                for(int q=0; q<pwd_length; q++){
+                    printf("%c", (*result).bytes[q]);
+                }
+                printf("\n");
                 break;
+            }else if (k == newlen-1){
+                printf("Pas trouvé!! ");
+                for(int q=0; q<pwd_length; q++){
+                    printf("%c", (*result).bytes[q]);
+                }
+                printf("\n");
             }
         }
         if ((i % 1000) == 0) printf("%d \n", i);
     }
     printPassword(&passwords[0]);
+    printf("\n");
+    printPassword(&passwords[newlen-1]);
     printf("\n");
     printf("Number of passwords found: %d\n", nbFound);
     printf("Coverage: %f\n", ((double)(double)nbFound / (double)domain) * 100);

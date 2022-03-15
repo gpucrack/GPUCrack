@@ -23,14 +23,13 @@ __host__ void generateNewPasswords2(Password **result, long passwordNumber) {
                         't', 'u', 'v', 'w', 'x',
                         'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
                         'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-    char charsetLength = 61;
 
     for (long j = 0; j < passwordNumber; j++) {
         // Generate one password
         long counter = j;
         for (unsigned char & byte : (*result)[j].bytes) {
-            byte = charset[ counter % charsetLength];
-            counter /= charsetLength;
+            byte = charset[counter % CHARSET_LENGTH];
+            counter /= CHARSET_LENGTH;
         }
     }
 }
