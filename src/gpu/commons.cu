@@ -282,7 +282,7 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
 }
 
 __host__ int computeT(long mtMax, int pwd_length) {
-double domain = pow(62, pwd_length);
+double domain = pow(CHARSET_LENGTH, pwd_length);
 
     // Compute t knowing mtMax
     int result = (int)((double)((double)(2*domain) / (double)mtMax) - 2);
