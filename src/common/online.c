@@ -63,8 +63,12 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long 
 
     while (lower <= upper) {
         unsigned long mid = 1 + (lower + (upper - lower) / 2);
+        if (upper == 0) {
+            mid = 0;
+        } else if (lower == mt-1) {
+            mid = mt - 1;
+        }
         int compare = memcmp(&(*endpoints)[mid*step], plain_text, pwd_length);
-
         // Match found
         if (compare == 0) {
             return mid;
@@ -72,7 +76,8 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long 
             if (mid == 0)
                 break;
             lower = mid + 1;
-        } else if (lower == upper) {
+        }
+        else if (lower == upper) {
             return -1; // not found
         } else {
             if (mid == 0)
@@ -346,6 +351,10 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         char column_plain_text[pwd_length];
         unsigned char column_digest[HASH_LENGTH * 2];
         strcpy(column_digest, digest);
+
+        if(i == 0){
+            printf("okay okay");
+        }
 
         // Get the reduction corresponding to the current column
         for (unsigned long k = i; k < t - 1; k++) {
