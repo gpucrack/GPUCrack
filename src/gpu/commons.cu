@@ -20,14 +20,14 @@ __host__ void generatePasswords(Password **result, long passwordNumber) {
 
 __host__ void generateNewPasswords2(Password **result, long passwordNumber) {
     char charset[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-                        't', 'u', 'v', 'w', 'x',
-                        'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
-                        'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+                        't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B',
+                        'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
+                        'V', 'W', 'X', 'Y', 'Z'};
 
     for (long j = 0; j < passwordNumber; j++) {
         // Generate one password
         long counter = j;
-        for (unsigned char & byte : (*result)[j].bytes) {
+        for (unsigned char &byte: (*result)[j].bytes) {
             byte = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
         }
@@ -37,9 +37,9 @@ __host__ void generateNewPasswords2(Password **result, long passwordNumber) {
 __host__ void generateNewPasswords(Password **result, int passwordNumber) {
 
     char charSet[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-                        't', 'u', 'v', 'w', 'x',
-                        'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
-                        'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+                        't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B',
+                        'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
+                        'V', 'W', 'X', 'Y', 'Z'};
 
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
@@ -49,7 +49,7 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
     // Generate all passwords
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
-        for (unsigned char & byte : (*result)[j].bytes) {
+        for (unsigned char &byte: (*result)[j].bytes) {
             byte = charSet[distr(gen)];
         }
     }
@@ -71,18 +71,16 @@ __host__ int memoryAnalysisGPU(long passwordNumber) {
         cudaGetDeviceProperties(&prop, i);
         printf("Device Number: %d\n", i);
         printf("  Device name: %s\n", prop.name);
-        printf("  Memory Clock Rate (MHz): %d\n",
-               prop.memoryClockRate/1024);
-        printf("  Memory Bus Width (bits): %d\n",
-               prop.memoryBusWidth);
+        printf("  Memory Clock Rate (MHz): %d\n", prop.memoryClockRate / 1024);
+        printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
         printf("  Peak Memory Bandwidth (GB/s): %.1f\n",
-               2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
-        printf("  Total global memory (Gbytes) %.1f\n",(float)(prop.totalGlobalMem)/1024.0/1024.0/1024.0);
-        printf("  Shared memory per block (Kbytes) %.1f\n",(float)(prop.sharedMemPerBlock)/1024.0);
+               2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
+        printf("  Total global memory (Gbytes) %.1f\n", (float) (prop.totalGlobalMem) / 1024.0 / 1024.0 / 1024.0);
+        printf("  Shared memory per block (Kbytes) %.1f\n", (float) (prop.sharedMemPerBlock) / 1024.0);
         printf("  minor-major: %d-%d\n", prop.minor, prop.major);
         printf("  Warp-size: %d\n", prop.warpSize);
         printf("  Concurrent kernels: %s\n", prop.concurrentKernels ? "yes" : "no");
-        printf("  Concurrent computation/communication: %s\n\n",prop.deviceOverlap ? "yes" : "no");
+        printf("  Concurrent computation/communication: %s\n\n", prop.deviceOverlap ? "yes" : "no");
     }
 
     // Checking if THREAD_PER_BLOCK is a power of 2 because we will have memory problems otherwise
@@ -107,13 +105,10 @@ __host__ int memoryAnalysisGPU(long passwordNumber) {
     size_t memPasswords = sizeof(Password) * passwordNumber;
     size_t memUsed = memPasswords + memResult;
 
-    printf("Memory used by digest array : %ld Megabytes\n",
-           (memResult / 1000000));
-    printf("Memory used by password array : %ld Megabytes\n",
-           (memPasswords / 1000000));
+    printf("Memory used by digest array : %ld Megabytes\n", (memResult / 1000000));
+    printf("Memory used by password array : %ld Megabytes\n", (memPasswords / 1000000));
 
-    printf("This much memory will be used : %ld Megabytes\n\n",
-           (memUsed / 1000000));
+    printf("This much memory will be used : %ld Megabytes\n\n", (memUsed / 1000000));
 
     // We need to determine how many batch we'll do to hash all passwords
     // We need to compute the batch size as well
@@ -136,16 +131,16 @@ __host__ int memoryAnalysisGPU(long passwordNumber) {
 __host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory) {
 
     if (passwordNumber > passwordMemory) {
-        long numberOfPass = (long)((long)passwordNumber / (long)passwordMemory);
-        return (int)numberOfPass+1;
-    }else{
+        long numberOfPass = (long) ((long) passwordNumber / (long) passwordMemory);
+        return (int) numberOfPass + 1;
+    } else {
         return 1;
     }
 }
 
 __host__ long computeBatchSize(int numberOfPass, long passwordNumber) {
     // If we have less than 1 round then the batch size is the number of passwords
-    if (numberOfPass > 1) return (passwordNumber / (long)numberOfPass) + 1;
+    if (numberOfPass > 1) return (passwordNumber / (long) numberOfPass) + 1;
     else return passwordNumber;
 }
 
@@ -165,7 +160,7 @@ __host__ void initPasswordArray(Password **passwords, long passwordNumber) {
 
 __device__ __host__ void printDigest(Digest *dig) {
     // Iterate through every byte of the digest
-    for (int i=0; i<HASH_LENGTH; i++) {
+    for (int i = 0; i < HASH_LENGTH; i++) {
         printf("%02X", (*dig).bytes[i]); // %02X formats as uppercase hex with leading zeroes
     }
 
@@ -174,7 +169,7 @@ __device__ __host__ void printDigest(Digest *dig) {
 
 __device__ __host__ void printPassword(Password *pwd) {
     // Iterate through every byte of the password
-    for (int i=0; i<sizeof(Password); i++) {
+    for (int i = 0; i < sizeof(Password); i++) {
         printf("%c", (*pwd).bytes[i]);
     }
     //printf("\n");
@@ -203,9 +198,9 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
     clock_t program_start, program_end;
     program_start = clock();
 
-    FILE * file = fopen(path, "wb");
+    FILE *file = fopen(path, "wb");
 
-    if (file == nullptr)  {
+    if (file == nullptr) {
         printf("Can't open file %s\n", path);
         exit(1);
     }
@@ -215,8 +210,8 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
         int numLen = 0;
         long numSave = number;
 
-        while(numSave != 0){
-            numSave /=10;
+        while (numSave != 0) {
+            numSave /= 10;
             numLen++;
         }
 
@@ -229,21 +224,21 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
 
         int tLen = 0;
         int tlSave = t;
-        while(tlSave != 0){
-            tlSave /=10;
+        while (tlSave != 0) {
+            tlSave /= 10;
             tLen++;
         }
         char tc[tLen];
         sprintf(tc, "%d", t);
 
-        fwrite(&num, sizeof(char)*numLen, 1, file);
+        fwrite(&num, sizeof(char) * numLen, 1, file);
         fwrite("\n", sizeof(char), 1, file);
-        fwrite(&pwdl, sizeof(char)*pwdlLen, 1, file);
+        fwrite(&pwdl, sizeof(char) * pwdlLen, 1, file);
         fwrite("\n", sizeof(char), 1, file);
-        fwrite(&tc, sizeof(char)*tLen, 1, file);
+        fwrite(&tc, sizeof(char) * tLen, 1, file);
         fwrite("\n", sizeof(char), 1, file);
-    }else{
-        fseek(file, start*(sizeof(char) * PASSWORD_LENGTH), 0);
+    } else {
+        fseek(file, start * (sizeof(char) * PASSWORD_LENGTH), 0);
     }
 
     // Iterate through every point
@@ -254,8 +249,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
     fclose(file);
 
     program_end = clock();
-    program_time_used =
-            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
+    program_time_used = ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
 
     if (debug) printf("File %s was written in %f seconds.\n\n", path, program_time_used);
 
@@ -282,17 +276,17 @@ __host__ void writeEndingReduction(char *path, Password **passwords, Digest **re
 }
 
 __host__ int computeT(long mtMax, int pwd_length) {
-double domain = pow(CHARSET_LENGTH, pwd_length);
+    double domain = pow(CHARSET_LENGTH, pwd_length);
 
     // Compute t knowing mtMax
-    int result = (int)((double)((double)(2*domain) / (double)mtMax) - 2);
+    int result = (int) ((double) ((double) (2 * domain) / (double) mtMax) - 2);
 
     return result;
 }
 
 __host__ long getM0(long mtMax, int pwd_length) {
     double mZero;
-    long domain = (long)pow(CHARSET_LENGTH, pwd_length);
+    long domain = (long) pow(CHARSET_LENGTH, pwd_length);
     printf("domain: %ld\n", domain);
 
     // Recommended value
@@ -300,10 +294,10 @@ __host__ long getM0(long mtMax, int pwd_length) {
 
     // mtMax = (double)mt / (double)(1/(double)(1+(double)(1/r)));
 
-    mZero = (double)((double)r * (double)mtMax);
+    mZero = (double) ((double) r * (double) mtMax);
 
-    printf("m0: %ld\n", (long)mZero);
-    return (long)mZero;
+    printf("m0: %ld\n", (long) mZero);
+    return (long) mZero;
 }
 
 // Returns the number of line we can store inside goRam
@@ -315,18 +309,18 @@ __host__ long getNumberPassword(int goRam, int pwd_length) {
     // memUsed = memLine * nbLine -> nbLine = memUsed / memLine
     // totalMem * 1000000000 pour passer de Giga octets à  octets
 
-    long memUsed = (long)((long)goRam * (long)1000000000);
+    long memUsed = (long) ((long) goRam * (long) 1000000000);
 
-    long result = (long)((long)memUsed / (long)memLine);
+    long result = (long) ((long) memUsed / (long) memLine);
 
-    printf("Number of password for %dGo of RAM: %ld\n",goRam , result);
+    printf("Number of password for %dGo of RAM: %ld\n", goRam, result);
     return result;
 }
 
 __host__ int getTotalSystemMemory() {
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
-    double value = ((double)(pages * page_size) / 1000000000) - 2;
+    double value = ((double) (pages * page_size) / 1000000000) - 2;
     if (value > 31.0) return 32;
     else if (value > 15.0) return 16;
     else if (value > 7.0) return 8;
