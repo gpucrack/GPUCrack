@@ -58,27 +58,28 @@ unsigned long long compute_atk_time(unsigned long m, unsigned char l, unsigned i
 
 unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long mt, int pwd_length) {
     unsigned long lower = 0;
-    unsigned long upper = (mt - 1) * sizeof(char) * (unsigned long) pwd_length;
+    unsigned long upper = mt - 1;
+    unsigned long step = sizeof(char) * pwd_length;
 
     while (lower <= upper) {
-        unsigned long mid = (lower + (upper - lower) / 2);
-        unsigned char modulo = mid % (sizeof(char) * pwd_length);  // ensure we start at the beginning of a point
-        mid -= modulo;
-
-        int compare = memcmp(&(*endpoints)[mid], plain_text, pwd_length);
+        unsigned long mid = 1 + (lower + (upper - lower) / 2);
+        int compare = memcmp(&(*endpoints)[mid*step], plain_text, pwd_length);
 
         // Match found
         if (compare == 0) {
-            return mid / pwd_length;
+            return mid;
         } else if (compare < 0) {
             if (mid == 0)
                 break;
-            lower = mid + sizeof(char) * pwd_length;
+            lower = mid + 1;
+        } else if (lower == upper) {
+            return -1; // not found
         } else {
             if (mid == 0)
                 break;
-            upper = mid - sizeof(char) * pwd_length;
+            upper = mid - 1;
         }
+
     }
 
     return -1; // not found
@@ -354,7 +355,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
 
         //printf("Trying to find %s in endpoints...\n", column_plain_text);
-        unsigned long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
+        long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
 
         if (found == -1) {
             continue;
@@ -367,7 +368,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         unsigned char chain_digest[HASH_LENGTH];
 
         // Copy the corresponding start point into chain_plain_text
-        for (unsigned long l = found; l < found + pwd_length; l++) {
+        for (long l = found; l < found + pwd_length; l++) {
             chain_plain_text[l - found] = startpoints[found * pwd_length + l - found];
         }
 
@@ -492,7 +493,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             }
             reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
 
-            unsigned long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
+            long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
 
             if (found == -1) {
                 continue;
@@ -503,7 +504,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             unsigned char chain_digest[HASH_LENGTH * 2];
 
             // Copy the startpoint into chain_plain_text
-            for (unsigned long l = found; l < found + pwd_length; l++) {
+            for (long l = found; l < found + pwd_length; l++) {
                 chain_plain_text[l - found] = startpoints[found * pwd_length + l - found];
             }
 
