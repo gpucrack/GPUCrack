@@ -63,25 +63,38 @@ long dedup(Password *v, int size, long mt) {
     return index;
 }
 
-int main(){
+int main(int argc, char *argv[]){
 
-    int pwd_length = PASSWORD_LENGTH;
+    unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+                                             'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+                                             'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+                                             'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-    getNumberPassword(1, pwd_length);
+    int pwd_length = atoi(argv[1]);
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    printf("Domain: %ld\n", domain);
+    long idealM0 = (long)(0.1*(double)domain);
 
-    long passwordNumber = (long)(0.1*(double)domain);
+    long idealMtMax = (long)((double)idealM0/19.83);
 
-    printf("m0: %ld\n", passwordNumber);
+    printf("Ideal m0: %ld\n", idealM0);
 
-    long mtMax = (long)((double)passwordNumber/19.83);
+    long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
 
-    Password * passwords;
+    printf("Ideal mtMax: %ld\n", idealMtMax);
+
+    if (mtMax > idealMtMax) mtMax = idealMtMax;
+
+    printf("mtMax: %ld\n", mtMax);
+
+    long passwordNumber = getM0(mtMax, pwd_length);
+
+    if (passwordNumber > idealM0) printf("m0 is too big\n");
 
     int t = computeT(mtMax, pwd_length);
+
+    Password * passwords;
 
     printf("Password to be stored in ram: %ld\n", passwordNumber*t);
 
@@ -97,6 +110,18 @@ int main(){
     // Adjust t depending on the chain length you want to test
 
     for(int i=0; i<t;i++) {
+            for (long j = 0; j < passwordNumber; j++) {
+                // Generate one password
+                long counter = j;
+                for (int q=0; q<pwd_length; q++) {
+                    passwords[(i*passwordNumber)+j].bytes[q] = charset[counter % CHARSET_LENGTH];
+                    counter /= CHARSET_LENGTH;
+                }
+            }
+
+        printf("Before starting: ");
+        printPassword(&(passwords[i*passwordNumber]));
+        printf("\n");
         printf("%d: ", i);
         generateChains(&(passwords[i*passwordNumber]), passwordNumber, 1, i,
                        false, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path);
@@ -116,13 +141,14 @@ int main(){
 
     for(int n=0; n<newlen; n++){
         printPassword(&passwords[n]);
+        if (memcmp(&passwords[n], "100", pwd_length) == 0) {
+            printf("\nLigne=%d\n", n/t);
+            printPassword(&passwords[n]);
+            printf("\n");
+        }
         printf("\n");
     }
 
-    unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
-                                             'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
-                                             'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-                                             'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     char charsetLength = 61;
 
     int nbFound = 0;
@@ -151,12 +177,13 @@ int main(){
                 break;
             }else if (k == newlen-1){
                 nbNotFound++;
+                /*
                 printf("Pas trouvé!! ");
                 for(int q=0; q<pwd_length; q++){
                     printf("%c", (*result).bytes[q]);
                 }
                 printf("\n");
-
+                */
             }
         }
         if ((i % 1000) == 0) printf("%d \n", i);

@@ -1,7 +1,32 @@
 #include "chainTest.cuh"
 
-int main(){
-    int passwordNumber = getNumberPassword(1, PASSWORD_LENGTH);
+int main(int argc, char *argv[]){
+    int pwd_length = atoi(argv[1]);
+
+    long domain = pow(CHARSET_LENGTH, pwd_length);
+
+    long idealM0 = (long)(0.1*(double)domain);
+
+    long idealMtMax = (long)((double)idealM0/19.83);
+
+    printf("Ideal m0: %ld\n", idealM0);
+
+    long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
+
+    printf("Ideal mtMax: %ld\n", idealMtMax);
+
+    if (mtMax > idealMtMax) mtMax = idealMtMax;
+
+    printf("mtMax: %ld\n", mtMax);
+
+    long passwordNumber = getM0(mtMax, pwd_length);
+
+    if (passwordNumber > idealM0) printf("m0 is too big\n");
+
+    int t = computeT(mtMax, pwd_length);
+
+    printf("Password length: %d\n", pwd_length);
+    printf("Number of columns (t): %d\n\n", t);
 
     Password * passwords;
     Digest * result;
@@ -21,7 +46,7 @@ int main(){
      */
 
     // Adjust t depending on the chain length you want to test
-    generateChains(passwords, passwordNumber, numberOfPass, 3964,
+    generateChains(passwords, passwordNumber, numberOfPass, t,
                    false, THREAD_PER_BLOCK, true, true, result, PASSWORD_LENGTH, start_path, end_path);
 
     printf("Should be first password inside endpoints:\n");
