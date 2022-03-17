@@ -71,6 +71,10 @@ add_executable(generateTableTest
 add_executable(online
         src/common/online.c)
 
+add_executable(tableCoverageTest
+        src/common/test/tableCoverageTest.c
+)
+
 set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
@@ -102,4 +106,7 @@ set_target_properties(generateTableTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(online PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
