@@ -39,11 +39,9 @@ int main(int argc, char *argv[]){
     char * start_path = (char *) "testStart.bin";
     char * end_path = (char *) "testEnd.bin";
 
-    /* DEBUG
-    passwords[0].bytes[0] = 'W';
-    passwords[0].bytes[1] = 'r';
-    passwords[0].bytes[2] = 'a';
-     */
+    passwords[0].bytes[0] = 'Z';
+    passwords[0].bytes[1] = 'm';
+    passwords[0].bytes[2] = 'd';
 
     // Adjust t depending on the chain length you want to test
     generateChains(passwords, passwordNumber, numberOfPass, t,
