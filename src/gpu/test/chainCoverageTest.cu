@@ -1,68 +1,5 @@
 #include "chainCoverageTest.cuh"
 
-int cmpstr(Password *v1, Password *v2, int len) {
-    return memcmp(v1, v2, len);
-}
-
-void swap(Password *v1, Password *v2, long size) {
-    Password * buffer = (Password*) malloc(size);
-
-    memcpy(buffer, v1, size);
-    memcpy(v1, v2, size);
-    memcpy(v2, buffer, size);
-
-    free(buffer);
-}
-
-void q_sort(Password *v, long size, long left, long right) {
-    Password *vt, *v3;
-    long i, last, mid = (left + right) / 2;
-    if (left >= right) {
-        return;
-    }
-
-    // v left value
-    Password *vl = (Password *) (v + (left));
-    // v right value
-    Password *vr = (Password *) (v + (mid));
-
-    swap(vl, vr, size);
-
-    last = left;
-    for (i = left + 1; i <= right; i++) {
-
-        // vl and vt will have the starting address
-        // of the elements which will be passed to
-        // comp function.
-        vt = (Password *) (v + i);
-        if (cmpstr(vl, vt, size) > 0) {
-            ++last;
-            v3 = (Password *) (v + (last));
-            swap(vt, v3, size);
-        }
-    }
-    v3 = (Password *) (v + (last));
-    swap(vl, v3, size);
-    q_sort(v, size, left, last - 1);
-    q_sort(v, size, last + 1, right);
-}
-
-
-long dedup(Password *v, int size, long mt) {
-    long index = 1;
-    for (long i = 1; i < mt; i++) {
-        Password *prev = (Password *) (v + ((i - 1)));
-        Password *actual = (Password *) (v + (i));
-
-        if (cmpstr(prev, actual, size) != 0) {
-            Password *indexed = (Password *) (v + (index));
-            memcpy(indexed, actual, size);
-            index++;
-        }
-    }
-    return index;
-}
-
 int main(int argc, char *argv[]){
 
     unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -70,91 +7,88 @@ int main(int argc, char *argv[]){
                                              'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                                              'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-    int pwd_length = atoi(argv[1]);
-
-    long domain = pow(CHARSET_LENGTH, pwd_length);
-
-    long idealM0 = (long)(0.1*(double)domain);
-
-    long idealMtMax = (long)((double)idealM0/19.83);
-
-    printf("Ideal m0: %ld\n", idealM0);
-
-    long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
-
-    printf("Ideal mtMax: %ld\n", idealMtMax);
-
-    if (mtMax > idealMtMax) mtMax = idealMtMax;
-
-    printf("mtMax: %ld\n", mtMax);
-
-    long passwordNumber = getM0(mtMax, pwd_length);
-
-    if (passwordNumber > idealM0) printf("m0 is too big\n");
-
-    int t = computeT(mtMax, pwd_length);
-
-    Password * passwords;
-
-    printf("Password to be stored in ram: %ld\n", passwordNumber*t);
-
-    printf("Number of columns (t): %d\n\n", t);
-
-    printf("mtMax: %ld\n", mtMax);
-
-    initPasswordArray(&passwords, passwordNumber*t);
+    int pwd_length = PASSWORD_LENGTH;
 
     char * start_path = (char *) "testStart.bin";
     char * end_path = (char *) "testEnd.bin";
 
-    // Adjust t depending on the chain length you want to test
+    FILE *fp;
+    fp = fopen(start_path, "rb");
+
+    if (fp == NULL)(exit(1));
+
+    char buff[255];
+
+    // Retrieve the start points file info
+    fscanf(fp, "%s", buff);
+    unsigned long mt;
+    sscanf(buff, "%ld", &mt);
+    printf("Number of points (mt): %lu\n", mt);
+    fgets(buff, 255, (FILE *) fp);
+    fgets(buff, 255, (FILE *) fp); // skip the pwd_length line
+
+    int passwordNumber = (int)mt;
+
+    // Retrieve the chain length (t)
+    int t;
+    fgets(buff, 255, (FILE *) fp);
+    sscanf(buff, "%d", &t);
+    printf("Chain length (t): %d\n\n", t);
+
+    Password * passwords;
+
+    long size= passwordNumber*t;
+
+    initPasswordArray(&passwords, size);
+
+    printf("Password to be stored in ram: %ld\n", size);
+
+    printf("Number of columns (t): %d\n\n", t);
+
+    printf("mt: %ld\n", mt);
+
+    // Reading all startpoints
+    for (long i = 0; i < passwordNumber; i += 1) {
+        fread(passwords[i].bytes, pwd_length, 1, (FILE *) fp);
+    }
+
+    printf("Copy: ");
+    printf("Should be first: ");
+    printPassword(&passwords[0]);
+    printf(" Should be last: ");
+    printPassword(&passwords[passwordNumber-1]);
+    printf("\n");
+
+    // Close the start file
+    fclose(fp);
+
+    printf("Generated chain for the first startpoint: \n");
 
     for(int i=0; i<t;i++) {
-            for (long j = 0; j < passwordNumber; j++) {
-                // Generate one password
-                long counter = j;
-                for (int q=0; q<pwd_length; q++) {
-                    passwords[(i*passwordNumber)+j].bytes[q] = charset[counter % CHARSET_LENGTH];
-                    counter /= CHARSET_LENGTH;
-                }
-            }
-
-        printf("Before starting: ");
+        // Copy startpoints before launching kernel on it
+        for (long j = 0; j < passwordNumber; j++) {
+            memcpy(&passwords[i*passwordNumber+j], &passwords[j], sizeof(Password));
+        }
+        printf("\n-----\n");
+        printf("Before: ");
         printPassword(&(passwords[i*passwordNumber]));
         printf("\n");
         printf("%d: ", i);
         generateChains(&(passwords[i*passwordNumber]), passwordNumber, 1, i,
                        false, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path);
+        printf("After: ");
         printPassword(&(passwords[i*passwordNumber]));
-        printf("\n");
+        printf("\n-----\n");
     }
 
     printf("Generation done\n");
-
-    q_sort(passwords, sizeof(char)*pwd_length, 0, (passwordNumber*t) - 1);
-
-    printf("Sorting done\n");
-
-    long newlen = dedup(passwords, sizeof(char)*pwd_length, (passwordNumber*t));
-
-    printf("Dedup done: %d\n", newlen);
-
-    for(int n=0; n<newlen; n++){
-        printPassword(&passwords[n]);
-        if (memcmp(&passwords[n], "100", pwd_length) == 0) {
-            printf("\nLigne=%d\n", n/t);
-            printPassword(&passwords[n]);
-            printf("\n");
-        }
-        printf("\n");
-    }
-
-    char charsetLength = 61;
 
     int nbFound = 0;
     int nbNotFound = 0;
 
     Password * result = (Password *)malloc(pwd_length);
+
+    long domain = pow(CHARSET_LENGTH, pwd_length);
 
     for(int i=0; i<domain; i++){
         // Generate one password
@@ -164,7 +98,7 @@ int main(int argc, char *argv[]){
             counter /= CHARSET_LENGTH;
         }
 
-        for(int k=0; k < newlen; k++){
+        for(int k=0; k < size; k++){
             if(memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0){
                 nbFound++;
                 /*
@@ -173,9 +107,9 @@ int main(int argc, char *argv[]){
                     printf("%c", (*result).bytes[q]);
                 }
                 printf("\n");
-                 */
+                */
                 break;
-            }else if (k == newlen-1){
+            }else if (k == size-1){
                 nbNotFound++;
                 /*
                 printf("Pas trouvé!! ");
@@ -188,10 +122,6 @@ int main(int argc, char *argv[]){
         }
         if ((i % 1000) == 0) printf("%d \n", i);
     }
-    printPassword(&passwords[0]);
-    printf("\n");
-    printPassword(&passwords[newlen-1]);
-    printf("\n");
     printf("Number of passwords found: %d\n", nbFound);
     printf("Number of passwords not found: %d\n", nbNotFound);
     printf("Coverage: %f\n", ((double)(double)nbFound / (double)domain) * 100);

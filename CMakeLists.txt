@@ -38,6 +38,14 @@ add_executable(chainTest
         src/gpu/reduction/reduction.cu
         src/gpu/hash/hash.cu)
 
+add_executable(chainTotalCoverageTest
+        src/gpu/chains.cu
+        src/gpu/commons.cu
+        src/gpu/test/chainTotalCoverageTest.cu
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/gpu/reduction/reduction.cu
+        src/gpu/hash/hash.cu)
+
 add_executable(chainCoverageTest
         src/gpu/chains.cu
         src/gpu/commons.cu
@@ -91,6 +99,9 @@ set_target_properties(reduction PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(chainTest PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(chainTotalCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(chainCoverageTest PROPERTIES
