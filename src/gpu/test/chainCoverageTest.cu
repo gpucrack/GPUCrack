@@ -37,14 +37,17 @@ int main(int argc, char *argv[]){
 
     Password * passwords;
 
-    printf("Password to be stored in ram: %ld\n", mt*t);
+    long size= passwordNumber*t;
+
+    initPasswordArray(&passwords, size);
+
+    printf("Password to be stored in ram: %ld\n", size);
 
     printf("Number of columns (t): %d\n\n", t);
 
     printf("mt: %ld\n", mt);
 
-    initPasswordArray(&passwords, mt*t);
-
+    // Reading all startpoints
     for (long i = 0; i < passwordNumber; i += 1) {
         fread(passwords[i].bytes, pwd_length, 1, (FILE *) fp);
     }
@@ -62,6 +65,7 @@ int main(int argc, char *argv[]){
     printf("Generated chain for the first startpoint: \n");
 
     for(int i=0; i<t;i++) {
+        // Copy startpoints before launching kernel on it
         for (long j = 0; j < passwordNumber; j++) {
             memcpy(&passwords[i*passwordNumber+j], &passwords[j], sizeof(Password));
         }
@@ -94,7 +98,7 @@ int main(int argc, char *argv[]){
             counter /= CHARSET_LENGTH;
         }
 
-        for(int k=0; k < passwordNumber*t; k++){
+        for(int k=0; k < size; k++){
             if(memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0){
                 nbFound++;
                 /*
@@ -105,7 +109,7 @@ int main(int argc, char *argv[]){
                 printf("\n");
                 */
                 break;
-            }else if (k == (passwordNumber*t)-1){
+            }else if (k == size-1){
                 nbNotFound++;
                 /*
                 printf("Pas trouvé!! ");

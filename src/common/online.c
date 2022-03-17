@@ -467,6 +467,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
     unsigned long long nb_hashes = 0;
 
     for (int p = 0; p < nb_cover; p++) {
+        if((p%1000) == 0) printf("%d\n", p);
 
         char password[pwd_length];
         unsigned char digest[HASH_LENGTH * 2];
@@ -478,11 +479,11 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             counter /= CHARSET_LENGTH;
         }
 
-        printf("%d / %d (%d found) - Trying with: %.*s", p+1, nb_cover, numberFound, pwd_length, password);
+        //printf("%d / %d (%d found) - Trying with: %.*s", p+1, nb_cover, numberFound, pwd_length, password);
 
         ntlm(password, digest, pwd_length);
 
-        printf(" (%s)...", digest);
+        //printf(" (%s)...", digest);
 
         for (long i = t - 1; i >= 0; i--) {
 
@@ -509,8 +510,8 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             unsigned char chain_digest[HASH_LENGTH * 2];
 
             // Copy the startpoint into chain_plain_text
-            for (long l = found; l < found + pwd_length; l++) {
-                chain_plain_text[l - found] = startpoints[found * pwd_length + l - found];
+            for (long l = 0; l < pwd_length; l++) {
+                chain_plain_text[l] = startpoints[(found * pwd_length) + l];
             }
 
             for (unsigned long k = 0; k < i; k++) {
@@ -524,11 +525,11 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
                 strcpy(password, chain_plain_text);
                 numberFound++;
-                printf(" Found!");
+                //printf(" Found!");
                 break;
             }
         }
-        printf("\n");
+        //printf("\n");
     }
 
     printf("\n%llu cryptographic operations were done.\n", nb_hashes);
