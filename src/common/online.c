@@ -353,7 +353,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         strcpy(column_digest, digest);
 
         if(i == 0){
-            printf("okay okay");
+            printf("okay okay ");
         }
 
         // Get the reduction corresponding to the current column
@@ -377,8 +377,8 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         unsigned char chain_digest[HASH_LENGTH];
 
         // Copy the corresponding start point into chain_plain_text
-        for (long l = found; l < found + pwd_length; l++) {
-            chain_plain_text[l - found] = startpoints[found * pwd_length + l - found];
+        for (long l = 0; l < pwd_length; l++) {
+            chain_plain_text[l] = startpoints[(found * pwd_length) + l];
         }
 
         // Reconstruct the chain from the beginning

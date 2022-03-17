@@ -7,7 +7,7 @@
 #define HASH_LENGTH 16
 
 // The length of a password.
-#define PASSWORD_LENGTH 5
+#define PASSWORD_LENGTH 3
 
 // How many thread per block to launch the hashKernel
 // MUST BE A POWER OF 2

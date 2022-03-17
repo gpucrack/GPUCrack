@@ -15,7 +15,7 @@
 #include <time.h>
 
 // The password length in the rainbow tables.
-#define PASSWORD_LENGTH 5
+#define PASSWORD_LENGTH 3
 
 #define TEST_COVERAGE 10000
 

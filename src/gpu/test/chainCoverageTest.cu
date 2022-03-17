@@ -65,7 +65,7 @@ long dedup(Password *v, int size, long mt) {
 
 int main(){
 
-    int pwd_length = 2;
+    int pwd_length = PASSWORD_LENGTH;
 
     getNumberPassword(1, pwd_length);
 
@@ -126,6 +126,7 @@ int main(){
     char charsetLength = 61;
 
     int nbFound = 0;
+    int nbNotFound = 0;
 
     Password * result = (Password *)malloc(pwd_length);
 
@@ -140,18 +141,22 @@ int main(){
         for(int k=0; k < newlen; k++){
             if(memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0){
                 nbFound++;
+                /*
                 printf("Trouvé! ");
                 for(int q=0; q<pwd_length; q++){
                     printf("%c", (*result).bytes[q]);
                 }
                 printf("\n");
+                 */
                 break;
             }else if (k == newlen-1){
+                nbNotFound++;
                 printf("Pas trouvé!! ");
                 for(int q=0; q<pwd_length; q++){
                     printf("%c", (*result).bytes[q]);
                 }
                 printf("\n");
+
             }
         }
         if ((i % 1000) == 0) printf("%d \n", i);
@@ -161,6 +166,7 @@ int main(){
     printPassword(&passwords[newlen-1]);
     printf("\n");
     printf("Number of passwords found: %d\n", nbFound);
+    printf("Number of passwords not found: %d\n", nbNotFound);
     printf("Coverage: %f\n", ((double)(double)nbFound / (double)domain) * 100);
 
     cudaFreeHost(passwords);
