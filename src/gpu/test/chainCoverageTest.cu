@@ -62,7 +62,8 @@ int main(int argc, char *argv[]){
     // Close the start file
     fclose(fp);
 
-    printf("Generated chain for the first startpoint: \n");
+    int offset = passwordNumber-1;
+    printf("Generated chain for the startpoint number %d: \n", offset);
 
     for(int i=0; i<t;i++) {
         // Copy startpoints before launching kernel on it
@@ -71,13 +72,13 @@ int main(int argc, char *argv[]){
         }
         printf("\n-----\n");
         printf("Before: ");
-        printPassword(&(passwords[i*passwordNumber]));
+        printPassword(&(passwords[(i*passwordNumber)+offset]));
         printf("\n");
         printf("%d: ", i);
         generateChains(&(passwords[i*passwordNumber]), passwordNumber, 1, i,
                        false, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path);
         printf("After: ");
-        printPassword(&(passwords[i*passwordNumber]));
+        printPassword(&(passwords[(i*passwordNumber)+offset]));
         printf("\n-----\n");
     }
 

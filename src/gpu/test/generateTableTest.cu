@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
     long idealM0 = (long)(0.2*(double)domain);
 
-    long idealMtMax = (long)((double)idealM0/19.83);
+    long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
     printf("Ideal m0: %ld\n", idealM0);
 
