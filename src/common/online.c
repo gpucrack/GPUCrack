@@ -352,10 +352,6 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         unsigned char column_digest[HASH_LENGTH * 2];
         strcpy(column_digest, digest);
 
-        if(i == 0){
-            printf("okay okay ");
-        }
-
         // Get the reduction corresponding to the current column
         for (unsigned long k = i; k < t - 1; k++) {
             reduce_digest(column_digest, k, column_plain_text, pwd_length);
