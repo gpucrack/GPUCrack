@@ -350,6 +350,18 @@ int remove_duplicates(char *passwords, int pwd_length, int n) {
     return j;
 }
 
+int count_duplicates(char *passwords, int pwd_length, int n) {
+    int res = 0;
+    for (int i = 0; i < n-1; i++) {
+        char *buf1 = passwords + i * pwd_length;
+        char *buf2 = passwords + (i + 1) * pwd_length;
+        if (memcmp(buf1, buf2, pwd_length) == 0) {
+            res++;
+        }
+    }
+    return res;
+}
+
 long remove_duplicates_notworking(char *passwords, int pwd_length, long pwd_nb) {
     long index = 1;
     for (long i = 1; i < pwd_nb + 1; i++) {
@@ -450,14 +462,15 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    q_sort(passwords, pwd_length, 0, mt-1);
+    q_sort(passwords, pwd_length, 0, (t * mt)-1);
 
-    long nb_unique_pwd = remove_duplicates(passwords, (int) pwd_length, (long) (mt * t));
+    long nb_duplicates = count_duplicates(passwords, (int) pwd_length, (long) (mt * t));
+    unsigned long nb_unique_pwd = mt * t - nb_duplicates;
     printf("This table contains %lu unique passwords.\n", nb_unique_pwd);
     long N = power(CHARSET_LENGTH, pwd_length);
     printf("The domain of %d characters passwords covers %lu passwords in total.\n", pwd_length, N);
     double ratio = (double) nb_unique_pwd / (double) N;
-    printf("========> Coverage: %.4f (%.4f %%)<========\n", ratio, ratio * 100);
+    printf("========> Coverage: %.4f (%.4f %%) <========\n", ratio, ratio * 100);
 
     // Close the start points file
     fclose(fp);
