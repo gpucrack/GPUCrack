@@ -19,25 +19,25 @@ int main(int argc, char *argv[]) {
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(0.2*(double)domain);
+    long idealM0 = (long)(0.1*(double)domain);
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
-    printf("Ideal m0: %ld\n", idealM0);
-
     long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
 
-    printf("Ideal mtMax: %ld\n", idealMtMax);
+    mtMax = idealMtMax;
 
-    if (mtMax > idealMtMax) mtMax = idealMtMax;
+    long passwordNumber = idealM0;
+    //long passwordNumber = 18980;
+
+    int t = computeT(mtMax, pwd_length);
+    //int t = 500;
+
+    //mtMax = 949;
 
     printf("mtMax: %ld\n", mtMax);
 
-    long passwordNumber = getM0(mtMax, pwd_length);
-
-    if (passwordNumber > idealM0) printf("m0 is too big\n");
-
-    int t = computeT(mtMax, pwd_length);
+    printf("m0: %ld\n", passwordNumber);
 
     printf("Password length: %d\n", pwd_length);
     printf("Number of columns (t): %d\n\n", t);

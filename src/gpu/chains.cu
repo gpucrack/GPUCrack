@@ -52,6 +52,7 @@ __global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int c
     Digest * digest = (Digest*) malloc(sizeof(Digest));
     for (int i = 0; i < chainLength; i++) {
         if(index == (0)){
+            printf("%d: ", i);
             printPassword(&passwords[index]);
             printf(" --> ");
         }

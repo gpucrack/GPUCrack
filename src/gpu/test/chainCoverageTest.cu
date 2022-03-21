@@ -65,6 +65,7 @@ int main(int argc, char *argv[]){
     int offset = passwordNumber-1;
     printf("Generated chain for the startpoint number %d: \n", offset);
 
+    //i<t car on ne regarde pas les endpoints
     for(int i=0; i<t;i++) {
         // Copy startpoints before launching kernel on it
         for (long j = 0; j < passwordNumber; j++) {

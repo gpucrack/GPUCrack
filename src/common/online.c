@@ -467,16 +467,24 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
     unsigned long long nb_hashes = 0;
 
     for (int p = 0; p < nb_cover; p++) {
-        if((p%1000) == 0) printf("%d\n", p);
 
         char password[pwd_length];
         unsigned char digest[HASH_LENGTH * 2];
 
-        // Generate one password
         long counter = p;
+        // Generate one password
         for (int n = 0; n < pwd_length; n++) {
+            //password[n] = charset[rand() % CHARSET_LENGTH];
             password[n]  = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
+        }
+
+        if((p%100) == 0) {
+            printf("%d: ", p);
+            for(int q=0; q<pwd_length; q++){
+                printf("%c", password[q]);
+            }
+            printf("\n");
         }
 
         //printf("%d / %d (%d found) - Trying with: %.*s", p+1, nb_cover, numberFound, pwd_length, password);
