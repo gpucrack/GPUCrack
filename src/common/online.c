@@ -78,6 +78,8 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long 
             lower = mid + 1;
         }
         else if (lower == upper) {
+            int compare2 = memcmp(&(*endpoints)[(mid-1)*step], plain_text, pwd_length);
+            if (compare2 == 0) return lower;
             return -1; // not found
         } else {
             if (mid == 0)
@@ -498,6 +500,7 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
                 nb_hashes++;
             }
             reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
+
 
             long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
 
