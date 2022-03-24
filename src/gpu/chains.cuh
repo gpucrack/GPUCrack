@@ -10,9 +10,6 @@
 #include <c++/9/fstream>
 
 #include "commons.cuh"
-#include "rainbow.cuh"
-
-#define CHARSET_LENGTH 64
 
 /**
  * Main kernel used by GPU to hash and reduce

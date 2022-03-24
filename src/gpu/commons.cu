@@ -19,11 +19,6 @@ __host__ void generatePasswords(Password **result, long passwordNumber) {
 }
 
 __host__ void generateNewPasswords2(Password **result, long passwordNumber) {
-    char charset[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-                        't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B',
-                        'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
-                        'V', 'W', 'X', 'Y', 'Z'};
-
     for (long j = 0; j < passwordNumber; j++) {
         // Generate one password
         long counter = j;
@@ -36,11 +31,6 @@ __host__ void generateNewPasswords2(Password **result, long passwordNumber) {
 
 __host__ void generateNewPasswords(Password **result, int passwordNumber) {
 
-    char charSet[62] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-                        't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B',
-                        'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
-                        'V', 'W', 'X', 'Y', 'Z'};
-
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<> distr(0, 61); // define the range
@@ -50,7 +40,7 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
     for (int j = 0; j < passwordNumber; j++) {
         // Generate one password
         for (unsigned char &byte: (*result)[j].bytes) {
-            byte = charSet[distr(gen)];
+            byte = charset[distr(gen)];
         }
     }
     printf("Done, %d passwords generated\n", passwordNumber);

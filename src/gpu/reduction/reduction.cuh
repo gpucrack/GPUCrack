@@ -5,9 +5,6 @@
 
 #include "../commons.cuh"
 
-// The length of the password charset
-#define CHARSET_LENGTH 64
-
 // The length of the digest charset
 #define DIGEST_CHARSET_LENGTH 16
 

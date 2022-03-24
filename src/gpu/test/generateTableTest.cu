@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(0.1*(double)domain);
+    long idealM0 = (long)(1*(double)domain);
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
@@ -28,12 +28,8 @@ int main(int argc, char *argv[]) {
     mtMax = idealMtMax;
 
     long passwordNumber = idealM0;
-    //long passwordNumber = 18980;
 
     int t = computeT(mtMax, pwd_length);
-    //int t = 500;
-
-    //mtMax = 949;
 
     printf("mtMax: %ld\n", mtMax);
 
