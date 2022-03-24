@@ -127,8 +127,13 @@ void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int 
     Password *plain_text = (Password *) malloc(sizeof(Password));
     char_to_password("abcdefg", plain_text, pwd_length);
 
-    for(int i=0; i<pwd_length; i++){
-        (*plain_text).bytes[i] = charset[((*digest).bytes[i] + index) % CHARSET_LENGTH];
+    uint64_t temp = 0;
+    temp = (uint64_t)((*digest).value + index) % (uint64_t)(power(CHARSET_LENGTH, pwd_length));
+
+    for(int i=pwd_length-1; i>=0; i--){
+        long reste = charset[temp % CHARSET_LENGTH];
+        temp /= CHARSET_LENGTH;
+        (*plain_text).bytes[i] = reste;
     }
 
     password_to_char(plain_text, char_plain, pwd_length);
