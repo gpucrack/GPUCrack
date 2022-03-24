@@ -20,7 +20,7 @@
 #define TEST_COVERAGE 10000
 
 // The length of the charset.
-#define CHARSET_LENGTH 62
+#define CHARSET_LENGTH 64
 
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16

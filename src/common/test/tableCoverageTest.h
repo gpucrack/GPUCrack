@@ -7,7 +7,7 @@
 #define PASSWORD_LENGTH 3
 
 // The length of the charset.
-#define CHARSET_LENGTH 62
+#define CHARSET_LENGTH 64
 
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16

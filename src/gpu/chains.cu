@@ -11,7 +11,7 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
                                                                  'o', 'p',
                                                                  'q', 'r',
                                                                  's', 't',
-                                                                 'u', 'v', 'w', 'x', 'y', 'z'};
+                                                                 'u', 'v', 'w', 'x', 'y', 'z', '-', '_'};
 
 __host__ void
 generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int numberOfColumn, bool save,

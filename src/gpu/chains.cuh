@@ -12,7 +12,7 @@
 #include "commons.cuh"
 #include "rainbow.cuh"
 
-#define CHARSET_LENGTH 62
+#define CHARSET_LENGTH 64
 
 /**
  * Main kernel used by GPU to hash and reduce
