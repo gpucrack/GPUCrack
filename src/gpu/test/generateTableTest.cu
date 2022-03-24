@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(0.6*(double)domain);
+    long idealM0 = (long)(0.1*(double)domain);
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 

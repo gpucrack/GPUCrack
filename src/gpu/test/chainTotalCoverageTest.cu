@@ -70,42 +70,40 @@ int main(int argc, char *argv[]){
                                              'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                                              'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
+    char *start_path;
+    char *end_path;
     int pwd_length = atoi(argv[1]);
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(0.1*(double)domain);
+    long idealM0 = (long)(0.6*(double)domain);
 
-    long idealMtMax = (long)((double)idealM0/19.83);
-
-    printf("Ideal m0: %ld\n", idealM0);
+    long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
     long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
 
-    printf("Ideal mtMax: %ld\n", idealMtMax);
+    mtMax = idealMtMax;
 
-    if (mtMax > idealMtMax) mtMax = idealMtMax;
+    long passwordNumber = idealM0;
+    //long passwordNumber = 18980;
+
+    int t = computeT(mtMax, pwd_length);
+    //int t = 500;
+
+    //mtMax = 949;
 
     printf("mtMax: %ld\n", mtMax);
 
-    long passwordNumber = getM0(mtMax, pwd_length);
+    printf("m0: %ld\n", passwordNumber);
 
-    if (passwordNumber > idealM0) printf("m0 is too big\n");
-
-    int t = computeT(mtMax, pwd_length);
+    printf("Password length: %d\n", pwd_length);
+    printf("Number of columns (t): %d\n\n", t);
 
     Password * passwords;
 
     printf("Password to be stored in ram: %ld\n", passwordNumber*t);
 
-    printf("Number of columns (t): %d\n\n", t);
-
-    printf("mtMax: %ld\n", mtMax);
-
     initPasswordArray(&passwords, passwordNumber*t);
-
-    char * start_path = (char *) "testStart.bin";
-    char * end_path = (char *) "testEnd.bin";
 
     // Adjust t depending on the chain length you want to test
 
@@ -131,42 +129,24 @@ int main(int argc, char *argv[]){
 
     printf("Generation done\n");
 
-    q_sort(passwords, sizeof(char)*pwd_length, 0, (passwordNumber*t) - 1);
-
-    printf("Sorting done\n");
-
-    long newlen = dedup(passwords, sizeof(char)*pwd_length, (passwordNumber*t));
-
-    printf("Dedup done: %d\n", newlen);
-
-    for(int n=0; n<newlen; n++){
-        printPassword(&passwords[n]);
-        if (memcmp(&passwords[n], "100", pwd_length) == 0) {
-            printf("\nLigne=%d\n", n/t);
-            printPassword(&passwords[n]);
-            printf("\n");
-        }
-        printf("\n");
-    }
-
-    char charsetLength = 61;
-
     int nbFound = 0;
     int nbNotFound = 0;
+    int nbDuplicates = 0;
 
     Password * result = (Password *)malloc(pwd_length);
 
-    for(int i=0; i<domain; i++){
+    for(int i=0; i<5000; i++){
         // Generate one password
         long counter = i;
         for (int b = 0; b<pwd_length; b++) {
             (*result).bytes[b] = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
         }
-
-        for(int k=0; k < newlen; k++){
-            if(memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0){
+        bool found = false;
+        for(int k=0; k < passwordNumber*t; k++){
+            if((memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0) && !found){
                 nbFound++;
+                found = true;
                 /*
                 printf("Trouvé! ");
                 for(int q=0; q<pwd_length; q++){
@@ -174,8 +154,9 @@ int main(int argc, char *argv[]){
                 }
                 printf("\n");
                  */
-                break;
-            }else if (k == newlen-1){
+            }else if (memcmp(&(*result).bytes, &(passwords[k].bytes), pwd_length) == 0 && found){
+                nbDuplicates++;
+            }else if ((k == (passwordNumber*t)-1) && !found){
                 nbNotFound++;
                 /*
                 printf("Pas trouvé!! ");
@@ -190,11 +171,13 @@ int main(int argc, char *argv[]){
     }
     printPassword(&passwords[0]);
     printf("\n");
-    printPassword(&passwords[newlen-1]);
+    printPassword(&passwords[(passwordNumber*t)-1]);
     printf("\n");
     printf("Number of passwords found: %d\n", nbFound);
     printf("Number of passwords not found: %d\n", nbNotFound);
     printf("Coverage: %f\n", ((double)(double)nbFound / (double)domain) * 100);
+    printf("Number of duplicates: %d\n", nbDuplicates);
+    printf("Percentage of duplicates: %f\n", ((double)(double)nbDuplicates / (double)(passwordNumber*t)) * 100);
 
     cudaFreeHost(passwords);
 
