@@ -14,12 +14,12 @@ void generate_digests_random(Digest **digests, int n) {
 }
 
 __host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text, int pwd_length) {
-    uint64_t temp = 0;
-    temp = (uint64_t)((*digest).value + index) % (uint64_t)(pow(CHARSET_LENGTH, pwd_length));
+    unsigned long long temp = 0;
+    temp = (unsigned long long)((*digest).i[0] + (*digest).i[1] + (*digest).i[2] + (*digest).i[3] + index) % (unsigned long long)(pow(CHARSET_LENGTH, pwd_length));
 
     for(int i=pwd_length-1; i>=0; i--){
-        long reste = charset[temp % CHARSET_LENGTH];
-        temp /= CHARSET_LENGTH;
+        unsigned char reste = charset[(unsigned long long)((unsigned long long)temp % (unsigned long long)CHARSET_LENGTH)];
+        temp = (unsigned long long)((unsigned long long)temp / (unsigned long long)CHARSET_LENGTH);
         (*plain_text).bytes[i] = reste;
     }
 }

@@ -20,12 +20,6 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 // MUST BE A POWER OF 2
 #define THREAD_PER_BLOCK 32
 
-// Default number of passwords (m0) to use
-#define DEFAULT_PASSWORD_NUMBER 268435456
-
-// A macro to have a ceil-like function.
-#define CEILING(x, y) (((x) + (y)-1) / (y))
-
 // This is the maximum number of thread that we can used on a GPU
 #define MAX_THREAD_NUMBER 1024
 
@@ -37,7 +31,6 @@ typedef struct {
 // A digest put into an union.
 typedef union {
     uint8_t bytes[HASH_LENGTH];
-    uint32_t i[CEILING(HASH_LENGTH, 4)];
-    uint64_t value;
+    uint32_t i[HASH_LENGTH/4];
 } Digest;
 #endif  // CONSTANTS_CUH

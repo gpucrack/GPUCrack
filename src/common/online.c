@@ -117,17 +117,17 @@ void display_digest(Digest *digest) {
 
 void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int pwd_length) {
     Digest *digest = (Digest *) malloc(sizeof(Digest));
-    char_to_digest(char_digest, digest, pwd_length);
+    char_to_digest(char_digest, digest, HASH_LENGTH);
 
     Password *plain_text = (Password *) malloc(sizeof(Password));
     char_to_password("abcdefg", plain_text, pwd_length);
 
-    uint64_t temp = 0;
-    temp = (uint64_t)((*digest).value + index) % (uint64_t)(power(CHARSET_LENGTH, pwd_length));
+    unsigned long long temp = 0;
+    temp = (unsigned long long)((*digest).i[0] + (*digest).i[1] + (*digest).i[2] + (*digest).i[3] + index) % (unsigned long long)(power(CHARSET_LENGTH, pwd_length));
 
     for(int i=pwd_length-1; i>=0; i--){
-        long reste = charset[temp % CHARSET_LENGTH];
-        temp /= CHARSET_LENGTH;
+        unsigned char reste = charset[(unsigned long long)((unsigned long long)temp % (unsigned long long)CHARSET_LENGTH)];
+        temp = (unsigned long long)((unsigned long long)temp / (unsigned long long)CHARSET_LENGTH);
         (*plain_text).bytes[i] = reste;
     }
 
@@ -501,10 +501,48 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
             unsigned char column_digest[HASH_LENGTH * 2];
             strncpy(column_digest, digest, sizeof(unsigned char) * HASH_LENGTH * 2);
 
+            /* DEBUG
+            if(p == 100) {
+                for(int q=0; q<HASH_LENGTH*2; q++){
+                    printf("%c", column_digest[q]);
+                }
+                printf(" === ");
+
+                for(int q=0; q<HASH_LENGTH*2; q++){
+                    printf("%c", digest[q]);
+                }
+                printf("\n");
+            }
+             */
+
             // get the reduction corresponding to the current column
             for (unsigned long k = i; k < t - 1; k++) {
+                /* DEBUG
+                if(p == 100) {
+                    for(int q=0; q<HASH_LENGTH*2; q++){
+                        printf("%c", column_digest[q]);
+                    }
+                    printf(" --> ");
+                }
+                 */
                 reduce_digest(column_digest, k, column_plain_text, pwd_length);
+                /* DEBUG
+                if(p == 100) {
+                    for(int q=0; q<pwd_length; q++){
+                        printf("%c", column_plain_text[q]);
+                    }
+                    printf(" --> ");
+                }
+                 */
                 ntlm(column_plain_text, column_digest, pwd_length);
+                /* DEBUG
+                if(p == 100) {
+                    for(int q=0; q<HASH_LENGTH*2; q++){
+                        printf("%c", column_digest[q]);
+                    }
+                    printf("\n");
+                }
+                 */
                 nb_hashes++;
             }
             reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);

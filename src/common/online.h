@@ -17,8 +17,6 @@
 // The password length in the rainbow tables.
 #define PASSWORD_LENGTH 3
 
-#define TEST_COVERAGE 10000
-
 // The length of the charset.
 #define CHARSET_LENGTH 62
 
@@ -29,9 +27,6 @@ unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7',
 
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16
-
-// A macro to have a ceil-like function.
-#define CEILING(x, y) (((x) + (y)-1) / (y))
 
 // Handy macro for debug prints.
 #if !defined NDEBUG || defined DEBUG_TEST
@@ -53,8 +48,7 @@ typedef struct {
 // A digest put into a union.
 typedef union {
     uint8_t bytes[HASH_LENGTH];
-    uint32_t i[CEILING(HASH_LENGTH, 4)];
-    uint64_t value;
+    uint32_t i[HASH_LENGTH/4];
 } Digest;
 
 /**
