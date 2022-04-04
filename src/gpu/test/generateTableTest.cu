@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(1*(double)domain);
+    long idealM0 = (long)(0.1*(double)domain);
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
@@ -46,7 +46,8 @@ int main(int argc, char *argv[]) {
 
     Password * passwords;
 
-    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
+    //auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
+    int numberOfCPUPass = 3;
 
     printf("Number of CPU passes: %d\n", numberOfCPUPass);
 
@@ -69,29 +70,55 @@ int main(int argc, char *argv[]) {
 
     printf("Number of crypto op: %ld\n", nbOp);
 
-    initPasswordArray(&passwords, batchSize);
-
     long currentPos = 0;
+
+    FILE * start_file;
+    FILE * end_file;
 
     for(int i=0; i<numberOfCPUPass; i++) {
 
+        initPasswordArray(&passwords, batchSize, currentPos);
+
         printf("current position: %ld\n", currentPos);
 
-        if (currentPos == 0) createFile(start_path, true);
-        writePoint(start_path, &passwords, batchSize, t, pwd_length, true, currentPos);
+        if (currentPos == 0){
+            createFile(start_path, true);
+
+            start_file = fopen(start_path, "wb");
+            if (start_file == nullptr) {
+                printf("Can't open file %s\n", start_path);
+                exit(1);
+            }
+        }
+
+        writePoint(start_path, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, start_file);
 
         auto numberOfPass = memoryAnalysisGPU(batchSize);
 
-        generateChains(passwords, batchSize, numberOfPass, t,
-                       true, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path);
+        generateChains(passwords+currentPos, batchSize, numberOfPass, t,
+                       true, THREAD_PER_BLOCK, false, false, nullptr, pwd_length, start_path, end_path);
 
         printf("Chains generated!\n");
 
-        if (currentPos == 0) createFile(end_path, true);
-        writePoint(end_path, &passwords, batchSize, t, pwd_length, true, currentPos);
+        if (currentPos == 0){
+            createFile(end_path, true);
+
+            end_file = fopen(end_path, "wb");
+            if (end_file == nullptr) {
+                printf("Can't open file %s\n", end_path);
+                exit(1);
+            }
+        }
+
+        writePoint(end_path, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, end_file);
 
         currentPos += batchSize;
     }
+
+    fclose(start_file);
+    fclose(end_file);
+
+
     printf("Engaging filtration...\n");
 
     // Clean the table by deleting duplicate endpoints
@@ -100,6 +127,7 @@ int main(int argc, char *argv[]) {
         printf("Filtration done!\n\n");
         printf("The files have been generated with success.\n");
     }
+
 
     cudaFreeHost(passwords);
 

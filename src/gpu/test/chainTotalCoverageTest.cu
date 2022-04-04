@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 
     printf("Password to be stored in ram: %ld\n", passwordNumber*t);
 
-    initPasswordArray(&passwords, passwordNumber*t);
+    initPasswordArray(&passwords, passwordNumber * t, 0);
 
     // Adjust t depending on the chain length you want to test
 

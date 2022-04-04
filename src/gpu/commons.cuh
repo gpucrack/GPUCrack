@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <ctime>
 #include <cstdio>
 #include <cstdlib>
 #include <random>
@@ -25,9 +24,9 @@ __host__ void handleCudaError(cudaError_t status);
 // The charset contains [a-zA-Z0-9].
 __host__ void generateNewPasswords(Password **result, int passwordNumber);
 
-__host__ void generatePasswords(Password **result, long passwordNumber);
+__host__ void generatePasswords(Password **result, long passwordNumber, unsigned long long offset);
 
-__host__ void generateNewPasswords2(Password **result, long passwordNumber);
+__host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset);
 
 // Returns the number of batches that we need to do
 __host__ int memoryAnalysisGPU(long passwordNumber);
@@ -41,7 +40,7 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, long passw
 
 __host__ void initArrays(Password **passwords, Digest **results, long passwordNumber);
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber);
+__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset);
 
 /**
  * Prints the name and the version of the product in the console.
@@ -83,7 +82,8 @@ __host__ std::ofstream openFile(const char *path);
  * @param pwd_length the length of a password (in characters).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writePoint(char *path, Password **passwords, long number, int t, int pwd_length, bool debug, long start);
+__host__ void writePoint(char *path, Password **passwords, long number, int t, int pwd_length, bool debug, long start,
+                         unsigned long long totalLength, FILE *file);
 
 /**
  * Writes the last reductions of a table (password --> end point) into a text file.
