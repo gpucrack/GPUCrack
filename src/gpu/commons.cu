@@ -13,15 +13,15 @@ __host__ void handleCudaError(cudaError_t status) {
     }
 }
 
-__host__ void generatePasswords(Password **result, long passwordNumber, long offset) {
+__host__ void generatePasswords(Password **result, long passwordNumber, unsigned long long offset) {
     handleCudaError(cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault));
     generateNewPasswords2(result, passwordNumber, offset);
 }
 
-__host__ void generateNewPasswords2(Password **result, long passwordNumber, long offset) {
-    for (long j = 0; j < passwordNumber; j++) {
+__host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset) {
+    for (long j = offset; j < passwordNumber+offset; j++) {
         // Generate one password
-        long counter = j + offset;
+        long counter = j;
         for (unsigned char &byte: (*result)[j].bytes) {
             byte = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
@@ -130,8 +130,8 @@ __host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory) {
 
 __host__ long computeBatchSize(int numberOfPass, long passwordNumber) {
     // If we have less than 1 round then the batch size is the number of passwords
-    if (numberOfPass > 1) return (passwordNumber / (long) numberOfPass) + 1;
-    else return passwordNumber;
+    if (numberOfPass > 1) return (long)(((long)passwordNumber / (long) numberOfPass)) + 1;
+    else return passwordNumber + 1;
 }
 
 __host__ void initEmptyArrays(Password **passwords, Digest **results, long passwordNumber) {
@@ -139,12 +139,12 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, long passw
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber, long offset) {
-    generatePasswords(passwords, passwordNumber, offset);
+__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber) {
+    generatePasswords(passwords, passwordNumber, 0);
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber, long offset) {
+__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset) {
     generatePasswords(passwords, passwordNumber, offset);
 }
 
@@ -182,23 +182,17 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writePoint(char *path, Password **passwords, long number, int t, int pwd_length, bool debug, long start) {
+__host__ void writePoint(char *path, Password **passwords, long number, int t, int pwd_length, bool debug, long start,
+                         unsigned long long totalLength, FILE *file) {
 
     double program_time_used;
     clock_t program_start, program_end;
     program_start = clock();
 
-    FILE *file = fopen(path, "wb");
-
-    if (file == nullptr) {
-        printf("Can't open file %s\n", path);
-        exit(1);
-    }
-
     if (start == 0) {
 
         int numLen = 0;
-        long numSave = number;
+        long numSave = totalLength;
 
         while (numSave != 0) {
             numSave /= 10;
@@ -206,7 +200,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
         }
 
         char num[numLen];
-        sprintf(num, "%ld", number);
+        sprintf(num, "%ld", totalLength);
 
         int pwdlLen = 1;
         char pwdl[pwdlLen];
@@ -227,16 +221,12 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
         fwrite("\n", sizeof(char), 1, file);
         fwrite(&tc, sizeof(char) * tLen, 1, file);
         fwrite("\n", sizeof(char), 1, file);
-    } else {
-        fseek(file, start * (sizeof(char) * PASSWORD_LENGTH), 0);
     }
 
     // Iterate through every point
     for (long i = 0; i < number; i++) {
-        fwrite((*passwords)[i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
+        fwrite((*passwords)[start+i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
     }
-
-    fclose(file);
 
     program_end = clock();
     program_time_used = ((double) (program_end - program_start)) / CLOCKS_PER_SEC;

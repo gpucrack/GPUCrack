@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
 
     long size= passwordNumber*t;
 
-    initPasswordArray(&passwords, size);
+    initPasswordArray(&passwords, size, 0);
 
     printf("Password to be stored in ram: %ld\n", size);
 
