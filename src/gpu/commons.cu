@@ -225,7 +225,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
 
     // Iterate through every point
     for (long i = 0; i < number; i++) {
-        fwrite((*passwords)[start+i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
+        fwrite((*passwords)[i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
     }
 
     program_end = clock();

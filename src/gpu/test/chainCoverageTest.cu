@@ -9,8 +9,8 @@ int main(int argc, char *argv[]){
 
     int pwd_length = PASSWORD_LENGTH;
 
-    char * start_path = (char *) "testStart.bin";
-    char * end_path = (char *) "testEnd.bin";
+    char * start_path = (char *) "test_start_0.bin";
+    char * end_path = (char *) "test_end_0.bin";
 
     FILE *fp;
     fp = fopen(start_path, "rb");
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
 
     long size= passwordNumber*t;
 
-    initPasswordArray(&passwords, size, 0);
+    initPasswordArray(&passwords, size, 0, 0);
 
     printf("Password to be stored in ram: %ld\n", size);
 

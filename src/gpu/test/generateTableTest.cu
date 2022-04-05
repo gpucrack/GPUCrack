@@ -45,8 +45,8 @@ int main(int argc, char *argv[]) {
 
     Password * passwords;
 
-    //auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
-    int numberOfCPUPass = 3;
+    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
+    //int numberOfCPUPass = 3;
 
     printf("Number of CPU passes: %d\n", numberOfCPUPass);
 
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 
             auto numberOfPass = memoryAnalysisGPU(batchSize);
 
-            generateChains(passwords+currentPos, batchSize, numberOfPass, t,
+            generateChains(passwords, batchSize, numberOfPass, t,
                            true, THREAD_PER_BLOCK, false, false, nullptr, pwd_length, startName, endName);
 
             printf("Chains generated!\n");
@@ -129,10 +129,9 @@ int main(int argc, char *argv[]) {
         fclose(start_file);
         fclose(end_file);
 
-
+        /*
         printf("Engaging filtration...\n");
 
-        /*
         // Clean the table by deleting duplicate endpoints
         long *res = filter(startName, endName, startName, endName, 0, batchSize/2);
         if (res[2] == res[3]) {
@@ -140,7 +139,6 @@ int main(int argc, char *argv[]) {
             printf("The files have been generated with success.\n");
         }
          */
-
 
         cudaFreeHost(passwords);
     }
