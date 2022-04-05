@@ -13,15 +13,15 @@ __host__ void handleCudaError(cudaError_t status) {
     }
 }
 
-__host__ void generatePasswords(Password **result, long passwordNumber) {
+__host__ void generatePasswords(Password **result, long passwordNumber, long offset) {
     handleCudaError(cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault));
-    generateNewPasswords2(result, passwordNumber);
+    generateNewPasswords2(result, passwordNumber, offset);
 }
 
-__host__ void generateNewPasswords2(Password **result, long passwordNumber) {
+__host__ void generateNewPasswords2(Password **result, long passwordNumber, long offset) {
     for (long j = 0; j < passwordNumber; j++) {
         // Generate one password
-        long counter = j;
+        long counter = j + offset;
         for (unsigned char &byte: (*result)[j].bytes) {
             byte = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
@@ -139,13 +139,13 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, long passw
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber) {
-    generatePasswords(passwords, passwordNumber);
+__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber, long offset) {
+    generatePasswords(passwords, passwordNumber, offset);
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber) {
-    generatePasswords(passwords, passwordNumber);
+__host__ void initPasswordArray(Password **passwords, long passwordNumber, long offset) {
+    generatePasswords(passwords, passwordNumber, offset);
 }
 
 __device__ __host__ void printDigest(Digest *dig) {

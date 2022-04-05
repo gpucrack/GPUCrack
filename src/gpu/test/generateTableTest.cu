@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(1*(double)domain);
+    long idealM0 = (long)(0.01*(double)domain);
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
@@ -62,6 +62,8 @@ int main(int argc, char *argv[]) {
 
     for(int table=0; table < tableNumber; table++) {
 
+        long offset = table * passwordNumber;
+
         // Generate file name according to table number
         char startName[100];
         char endName[100];
@@ -78,7 +80,7 @@ int main(int argc, char *argv[]) {
 
         // Initialize the passwords array
         Password * passwords;
-        initPasswordArray(&passwords, batchSize);
+        initPasswordArray(&passwords, batchSize, offset);
 
         long currentPos = 0;
 
