@@ -75,7 +75,8 @@ long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int)
     return index;
 }
 
-long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path) {
+long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path,
+             const int numberOfPasses, const unsigned long long batchSize) {
     char buff[255];
 
     FILE *start_file;
@@ -115,48 +116,175 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     fgets(buff, 255, (FILE *) end_file);
     fgets(buff, 255, (FILE *) end_file);
 
+    unsigned long long totalNewLen = 0;
+    unsigned long long currentPos = 0;
 
-    long limit = mt * (long) pwd_length;
+    // Write new files
+    long sp_success = 0;
+    long ep_success = 0;
 
-    // Retrieve the points
-    char *startpoints = (char *) malloc(sizeof(char) * limit);
-    char *endpoints = (char *) malloc(sizeof(char) * limit);
+    for(int q=0; q<numberOfPasses; q++) {
 
-    char buff_point[pwd_length];
+        // Generate file name according to table number
+        char tempStartPath[100];
+        char tempEndPath[100];
+        strcat(tempStartPath, "start_");
+        strcat(tempEndPath, "end_");
+        char tableChar[10];
+        sprintf(tableChar, "%d", q);
+        strcat(tempStartPath, tableChar);
+        strcat(tempStartPath, ".bin");
+        strcat(tempEndPath, tableChar);
+        strcat(tempEndPath, ".bin");
 
-    for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+        long limit = batchSize * (long) pwd_length;
 
-        fread(buff_point, pwd_length, 1, (FILE *) start_file);
-        for (unsigned long j = i; j < i + pwd_length; j++) {
-            startpoints[j] = buff_point[j - i];
+        // Retrieve the points
+        char *startpoints = (char *) malloc(sizeof(char) * limit);
+        char *endpoints = (char *) malloc(sizeof(char) * limit);
+
+        char buff_point[pwd_length];
+
+        for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+
+            fread(buff_point, pwd_length, 1, (FILE *) start_file);
+            for (unsigned long j = i; j < i + pwd_length; j++) {
+                startpoints[j] = buff_point[j - i];
+            }
+
+            fread(buff_point, pwd_length, 1, (FILE *) end_file);
+            for (unsigned long j = i; j < i + pwd_length; j++) {
+                endpoints[j] = buff_point[j - i];
+            }
+
         }
 
-        fread(buff_point, pwd_length, 1, (FILE *) end_file);
-        for (unsigned long j = i; j < i + pwd_length; j++) {
-            endpoints[j] = buff_point[j - i];
+        q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
+
+        long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, mt,
+                             (int (*)(void *, void *, int)) (cmpstr));
+
+        totalNewLen += new_len;
+
+        FILE *sp_out_file = fopen(tempStartPath, "wb");
+        FILE *ep_out_file = fopen(tempEndPath, "wb");
+
+        // Write the header
+        fprintf(sp_out_file, "%ld\n", new_len);
+        fprintf(ep_out_file, "%ld\n", new_len);
+        fprintf(sp_out_file, "%d\n", pwd_length);
+        fprintf(ep_out_file, "%d\n", pwd_length);
+        fprintf(sp_out_file, "%d\n", t);
+        fprintf(ep_out_file, "%d\n", t);
+
+        char *point = (char *) malloc(sizeof(char) * pwd_length);
+        for (long i = 0; i < new_len; i++) {
+            memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
+            fwrite(point, pwd_length, 1, (FILE *) sp_out_file);
+            sp_success++;
+
+            memcpy(point, endpoints + (i * pwd_length), sizeof(char) * pwd_length);
+            fwrite(point, pwd_length, 1, (FILE *) ep_out_file);
+            ep_success++;
         }
 
+        fclose(sp_out_file);
+        fclose(ep_out_file);
+
+        currentPos += batchSize;
+
+        free(startpoints);
+        free(endpoints);
     }
 
     // Close the files
     fclose(start_file);
     fclose(end_file);
 
-    q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, mt - 1, (int (*)(void *, void *, int)) (cmpstr));
+    long limit = totalNewLen * (long) pwd_length;
 
-    long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, mt,
-                         (int (*)(void *, void *, int)) (cmpstr));
+    char *startpoints = (char *) malloc(sizeof(char) * limit);
+    char *endpoints = (char *) malloc(sizeof(char) * limit);
 
-    // Write new files
-    long sp_success = 0;
-    long ep_success = 0;
+    // Final filtration
+    for(int q=0; q<numberOfPasses; q++) {
 
+        // Generate file name according to table number
+        char tempStartPath[100];
+        char tempEndPath[100];
+        strcat(tempStartPath, "start_");
+        strcat(tempEndPath, "end_");
+        char tableChar[10];
+        sprintf(tableChar, "%d", q);
+        strcat(tempStartPath, tableChar);
+        strcat(tempStartPath, ".bin");
+        strcat(tempEndPath, tableChar);
+        strcat(tempEndPath, ".bin");
+
+        char buff[255];
+
+        FILE * tempStartFile2;
+        FILE * tempEndFile2;
+
+        tempStartFile2 = fopen(tempStartPath, "rb");
+        tempEndFile2 = fopen(tempEndPath, "rb");
+
+        if (tempStartFile2 == NULL) {
+            perror("Can't open temp start file");
+            printf("%d, %s", q, tempStartPath);
+            exit(1);
+        }
+
+        if (tempEndFile2 == NULL) {
+            perror("Can't open temp end file.");
+            printf("%d, %s", q, tempEndPath);
+            exit(1);
+        }
+
+        // Skip header
+        fgets(buff, 255, (FILE *) tempStartFile2);
+        fgets(buff, 255, (FILE *) tempStartFile2);
+        fgets(buff, 255, (FILE *) tempStartFile2);
+
+        // just to skip the first 3 rows of end_file (same as start_file)
+        fgets(buff, 255, (FILE *) tempEndFile2);
+        fgets(buff, 255, (FILE *) tempEndFile2);
+        fgets(buff, 255, (FILE *) tempEndFile2);
+
+        char buff_point[pwd_length];
+
+        long tempLimit = batchSize * (long) pwd_length;
+
+        for (unsigned long i = 0; i < tempLimit; i = i + sizeof(char) * pwd_length) {
+
+            fread(buff_point, pwd_length, 1, (FILE *) tempStartFile2);
+            for (unsigned long j = batchSize + i; j < batchSize + i + pwd_length; j++) {
+                startpoints[j] = buff_point[(j - batchSize) - i];
+            }
+
+            fread(buff_point, pwd_length, 1, (FILE *) tempEndFile2);
+            for (unsigned long j = batchSize + i; j < batchSize + i + pwd_length; j++) {
+                endpoints[j] = buff_point[(j - batchSize) - i];
+            }
+
+        }
+
+        q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
+
+        totalNewLen = dedup(endpoints, startpoints, sizeof(char) * pwd_length, mt,
+                             (int (*)(void *, void *, int)) (cmpstr));
+
+        fclose(tempStartFile2);
+        fclose(tempEndFile2);
+    }
+
+    // Writing it all in a final file
     FILE *sp_out_file = fopen(start_out_path, "wb");
     FILE *ep_out_file = fopen(end_out_path, "wb");
 
     // Write the header
-    fprintf(sp_out_file, "%ld\n", new_len);
-    fprintf(ep_out_file, "%ld\n", new_len);
+    fprintf(sp_out_file, "%ld\n", totalNewLen);
+    fprintf(ep_out_file, "%ld\n", totalNewLen);
     fprintf(sp_out_file, "%d\n", pwd_length);
     fprintf(ep_out_file, "%d\n", pwd_length);
     fprintf(sp_out_file, "%d\n", t);
@@ -164,7 +292,7 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
 
     char *point = (char *) malloc(sizeof(char) * pwd_length);
-    for (long i = 0; i < new_len; i++) {
+    for (long i = 0; i < totalNewLen; i++) {
         memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
         fwrite(point, pwd_length, 1, (FILE *) sp_out_file);
         sp_success++;
@@ -174,12 +302,9 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
         ep_success++;
     }
 
-    fclose(sp_out_file);
-    fclose(ep_out_file);
-
     long *success = (long *) malloc(sizeof(long) * 4);
     success[0] = mt;
-    success[1] = new_len;
+    success[1] = totalNewLen;
     success[2] = sp_success;
     success[3] = ep_success;
 

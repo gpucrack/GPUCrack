@@ -121,12 +121,14 @@ int main(int argc, char *argv[]) {
 
     printf("Engaging filtration...\n");
 
+    /*
     // Clean the table by deleting duplicate endpoints
-    long *res = filter(start_path, end_path, start_path, end_path);
+    long *res = filter(start_path, end_path, start_path, end_path, 0, batchSize/2);
     if (res[2] == res[3]) {
         printf("Filtration done!\n\n");
         printf("The files have been generated with success.\n");
     }
+     */
 
 
     cudaFreeHost(passwords);

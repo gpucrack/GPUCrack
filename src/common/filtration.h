@@ -53,4 +53,5 @@ long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int)
  *          - the number of startpoints written after deduplication;
  *          - the number of endpoints written after deduplication.
  */
-long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path);
+long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path,
+             const int numberOfPasses, const unsigned long long batchSize);
