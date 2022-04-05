@@ -24,9 +24,9 @@ __host__ void handleCudaError(cudaError_t status);
 // The charset contains [a-zA-Z0-9].
 __host__ void generateNewPasswords(Password **result, int passwordNumber);
 
-__host__ void generatePasswords(Password **result, long passwordNumber, unsigned long long offset);
+__host__ void generatePasswords(Password **result, long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
 
-__host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset);
+__host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
 
 // Returns the number of batches that we need to do
 __host__ int memoryAnalysisGPU(long passwordNumber);
@@ -40,7 +40,7 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, long passw
 
 __host__ void initArrays(Password **passwords, Digest **results, long passwordNumber);
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset);
+__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
 
 /**
  * Prints the name and the version of the product in the console.

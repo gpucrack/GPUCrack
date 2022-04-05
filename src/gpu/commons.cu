@@ -13,15 +13,15 @@ __host__ void handleCudaError(cudaError_t status) {
     }
 }
 
-__host__ void generatePasswords(Password **result, long passwordNumber, unsigned long long offset) {
+__host__ void generatePasswords(Password **result, long passwordNumber, unsigned long long offset, unsigned long long tableOffset) {
     handleCudaError(cudaMallocHost(result, passwordNumber * sizeof(Password), cudaHostAllocDefault));
-    generateNewPasswords2(result, passwordNumber, offset);
+    generateNewPasswords2(result, passwordNumber, offset, tableOffset);
 }
 
-__host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset) {
+__host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset, unsigned long long tableOffset) {
     for (long j = offset; j < passwordNumber+offset; j++) {
         // Generate one password
-        long counter = j;
+        long counter = j + tableOffset;
         for (unsigned char &byte: (*result)[j-offset].bytes) {
             byte = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
@@ -140,12 +140,12 @@ __host__ void initEmptyArrays(Password **passwords, Digest **results, long passw
 }
 
 __host__ void initArrays(Password **passwords, Digest **results, long passwordNumber) {
-    generatePasswords(passwords, passwordNumber, 0);
+    generatePasswords(passwords, passwordNumber, 0, 0);
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset) {
-    generatePasswords(passwords, passwordNumber, offset);
+__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset, unsigned long long tableOffset) {
+    generatePasswords(passwords, passwordNumber, offset, tableOffset);
 }
 
 __device__ __host__ void printDigest(Digest *dig) {
@@ -225,7 +225,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
 
     // Iterate through every point
     for (long i = 0; i < number; i++) {
-        fwrite((*passwords)[i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
+        fwrite((*passwords)[start+i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
     }
 
     program_end = clock();
