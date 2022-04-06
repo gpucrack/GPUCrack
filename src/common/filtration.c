@@ -254,6 +254,10 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, totalNewLen,
                          (int (*)(void *, void *, int)) (cmpstr));
 
+    // We can delete temporary files now
+    remove(tempStartName);
+    remove(tempEndName);
+
     sp_out_file = fopen(start_path, "wb");
     ep_out_file = fopen(end_path, "wb");
 

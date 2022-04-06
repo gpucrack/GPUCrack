@@ -124,6 +124,8 @@ int main(int argc, char *argv[]) {
             writePoint(endName, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, end_file);
 
             currentPos += batchSize;
+
+            cudaFreeHost(passwords);
         }
 
         fclose(start_file);
@@ -138,7 +140,6 @@ int main(int argc, char *argv[]) {
             printf("The files have been generated with success.\n");
         }
 
-        cudaFreeHost(passwords);
     }
 
     return 0;
