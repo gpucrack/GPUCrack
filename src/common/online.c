@@ -586,53 +586,123 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
     return numberFound;
 }
 
-/*
-    Example showing how we create a rainbow table given its start and end point files.
-*/
+int checkArgs(int argc) {
+    // Normal number of arguments
+    if (argc == 4) {
+        return 0;
+    }
+
+    // Abnormal number of arguments
+    if (argc < 4) {
+        printf("Error: not enough arguments were given.\n");
+    } else if (argc > 4) {
+        printf("Error: too many arguments were given.\n");
+    }
+    printf("Usage: 'online path -p password', where:"
+           "\n   - path is the path to the table (without '_start_N.bin')."
+           "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
+           "\nOther usage: 'online path -h hash', where hash is the NTLM hash you're looking to crack."
+           "\nOther usage: 'online path -c N', where N is the number of exhaustively generated passwords you're looking to crack."
+           "\n\n");
+    exit(1);
+}
+
+int checkTables(char *path, int *nbTable, int *pwdLength) {
+    int resNbTables = 0;
+    int resPwdLength = 0;
+
+    char tableStart0Path[200];
+    strcpy(tableStart0Path, path);
+    strcat(tableStart0Path, "_start_0.bin");
+
+    char tableEnd0Path[255];
+    strcpy(tableEnd0Path, path);
+    strcat(tableEnd0Path, "_end_0.bin");
+
+    FILE *fpStart0;
+    fpStart0 = fopen(tableStart0Path, "rb");
+
+    FILE *fpEnd0;
+    fpEnd0 = fopen(tableEnd0Path, "rb");
+
+    if (fpStart0 == NULL) {
+        printf("Error: no start points file found when trying to read '%s'.\n", tableStart0Path);
+        exit(1);
+    } else if (fpEnd0 == NULL) {
+        printf("Error: no end points file found when trying to read '%s'.\n", tableEnd0Path);
+        exit(1);
+    }
+
+    // Retrieve the passwords' length in the header of the table
+    char buff[255];
+    fscanf(fpStart0, "%s", buff);
+    fgets(buff, 255, (FILE *) fpStart0);
+    fgets(buff, 255, (FILE *) fpStart0);
+    sscanf(buff, "%d", &resPwdLength);
+    fclose(fpStart0);
+    fclose(fpEnd0);
+
+    int startOk = 0;
+    int endOk = 0;
+
+    // Count the number of tables
+    do {
+        resNbTables++;
+
+        char nbTablesChar[3];
+        sprintf(nbTablesChar, "%d", resNbTables);
+
+        char tableStartNPath[255];
+        strcpy(tableStartNPath, path);
+        strcat(tableStartNPath, "_start_");
+        strcat(tableStartNPath, nbTablesChar);
+        strcat(tableStartNPath, ".bin");
+
+        char tableEndNPath[255];
+        strcpy(tableEndNPath, path);
+        strcat(tableEndNPath, "_end_");
+        strcat(tableEndNPath, nbTablesChar);
+        strcat(tableEndNPath, ".bin");
+
+        FILE *fpStartN;
+        fpStartN = fopen(tableStartNPath, "rb");
+        FILE *fpEndN;
+        fpEndN = fopen(tableEndNPath, "rb");
+
+        startOk = fpStartN != NULL;
+        endOk = fpEndN != NULL;
+
+        fclose(fpStartN);
+        fclose(fpEndN);
+
+        if (startOk && !endOk) {
+            printf("Error: start points file found but no corresponding end points file found when trying to read '%s'.\n",
+                   tableEndNPath);
+            exit(1);
+        } else if (!startOk && endOk) {
+            printf("Error: end points file found but no corresponding start points file found when trying to read '%s'.\n",
+                   tableStartNPath);
+            exit(1);
+        }
+    } while (startOk && endOk);
+
+    *nbTable = resNbTables;
+    *pwdLength = resPwdLength;
+
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
-    if (argc < 5) {
-        printf("Error: too many arguments given.\nUsage: 'online startpath endpath -p password', where:"
-               "\n   - startpath is the path to the start points file."
-               "\n   - endpath is the path to the end points file."
-               "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
-               "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack."
-               "\nOther usage: 'online startpath endpath -c none', where none is any string."
-               "\n\n");
-        exit(1);
-    }
-
-    if (argc > 5) {
-        printf("Error: too many arguments given.\nUsage: 'online startpath endpath -p password', where:"
-               "\n   - startpath is the path to the start points file."
-               "\n   - endpath is the path to the end points file."
-               "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
-               "\nOther usage: 'online startpath endpath -h hash', where hash is the NTLM hash you're looking to crack."
-               "\nOther usage: 'online startpath endpath -c none', where none is any string."
-               "\n\n");
-        exit(1);
-    }
-
-    printf("GPUCrack v0.1.3\n"
+    printf("GPUCrack v0.1.4\n"
            "<https://github.com/gpucrack/GPUCrack/>\n\n");
 
-    const char *start_path = argv[1];
-    const char *end_path = argv[2];
+    int tableNb = 0;
+    int pwdLength = 0;
+    checkArgs(argc);
+    checkTables(argv[1], &tableNb, &pwdLength);
 
-    FILE *fp;
-    fp = fopen(start_path, "rb");
-
-    if (fp == NULL)(exit(1));
-
-    char buff[255];
-    fscanf(fp, "%s", buff);
-    fgets(buff, 255, (FILE *) fp);
-    fgets(buff, 255, (FILE *) fp);
-    int pwd_length;
-    sscanf(buff, "%d", &pwd_length);
-    fclose(fp);
-
-    if (strcmp(argv[3], "-p") == 0) {
-        // A plain text password was given.
+    // User typed 'online table -p password'
+    if (strcmp(argv[2], "-p") == 0) {
         // the password we will be looking to crack, after it's hashed
         const char *password = argv[4];
         // `digest` now contains the hashed password
