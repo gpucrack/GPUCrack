@@ -1,8 +1,3 @@
-#ifndef RAINBOW_H
-#define RAINBOW_H
-
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
@@ -13,9 +8,6 @@
 #include <ctype.h>
 #include <math.h>
 #include <time.h>
-
-// The password length in the rainbow tables.
-#define PASSWORD_LENGTH 3
 
 // The length of the charset.
 #define CHARSET_LENGTH 62
@@ -28,19 +20,7 @@ unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7',
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16
 
-// Handy macro for debug prints.
-#if !defined NDEBUG || defined DEBUG_TEST
-#define DEBUG_TEST 1
-#else
-#define DEBUG_TEST 0
-#endif
-#define DEBUG_PRINT(fmt, ...)                              \
-    do {                                                   \
-        if (DEBUG_TEST) fprintf(stderr, fmt, __VA_ARGS__); \
-    } while (0)
-
-// A password put into a union. This is easier to use with malloc and crypto
-// functions.
+// A password put into a union.
 typedef struct {
     uint8_t bytes[PASSWORD_LENGTH];
 } Password;
@@ -48,7 +28,7 @@ typedef struct {
 // A digest put into a union.
 typedef union {
     uint8_t bytes[HASH_LENGTH];
-    uint32_t i[HASH_LENGTH/4];
+    uint32_t i[HASH_LENGTH / 4];
 } Digest;
 
 /**
@@ -123,6 +103,14 @@ void ntlm(char *key, char *hash, int pwd_length);
  */
 void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password, int pwd_length);
 
+/**
+ * Generates passwords in an exhaustive fashion and tries to crack them.
+ * @param start_path the path to the startpoint file.
+ * @param end_path the path to the endpoint file.
+ * @param pwd_length  the length of every password the table contains.
+ * @param nb_cover the number of passwords to be cracked.
+ * @return the number of passwords that were successfully cracked.
+ */
 int online_from_files_coverage(char *start_path, char *end_path, int pwd_length, int nb_cover);
 
 /**
@@ -141,6 +129,3 @@ int checkArgs(int argc);
  * @return 0 if no error was encountered
  */
 int checkTables(char *path, int *nbTable, int *pwdLength);
-
-
-#endif

@@ -3,7 +3,7 @@
 unsigned long long power(unsigned long long x, unsigned long long y) {
     if (y == 0) return 0;
     unsigned long long res = 1;
-    for(unsigned long long i = 0; i < y; i++) {
+    for (unsigned long long i = 0; i < y; i++) {
         res *= x;
     }
     return res;
@@ -16,11 +16,11 @@ unsigned long long compute_N(unsigned char pwd_length) {
 
 // Compute qi using the approximate formula (alpha must be > 0.9)
 unsigned long long compute_qi(unsigned long m, unsigned int t, unsigned long long N, unsigned long i) {
-    return 1 - (m / N) - (i * (i - 1))/(t * (t + 1));
+    return 1 - (m / N) - (i * (i - 1)) / (t * (t + 1));
 }
 
 unsigned long long compute_pk(unsigned long m, unsigned long long N, unsigned long k) {
-    return (m / N) * power((1 - (m / N)), k-1);
+    return (m / N) * power((1 - (m / N)), k - 1);
 }
 
 // l: number of tables
@@ -28,21 +28,21 @@ unsigned long long compute_atk_time(unsigned long m, unsigned char l, unsigned i
 
     unsigned long long left_part = 0;
 
-    for(unsigned long k = 1; k < (l * t) + 1; k++) {
+    for (unsigned long k = 1; k < (l * t) + 1; k++) {
         unsigned int c = t - ((k - 1) / l);
 
         // Compute the sum on the left parenthesis with qi
         unsigned long long left_qsum = 0;
-        for(unsigned int i = c; i < t + 1; i++) {
+        for (unsigned int i = c; i < t + 1; i++) {
             left_qsum += compute_qi(m, t, N, i) * i;
         }
 
-        left_part += compute_pk(m, N, k) * ((((t - c) * (t - c + 1))/2) + left_qsum) * l;
+        left_part += compute_pk(m, N, k) * ((((t - c) * (t - c + 1)) / 2) + left_qsum) * l;
     }
 
     // Compute the sum on the right parenthesis with qi
     unsigned long long right_qsum = 0;
-    for(unsigned int i = 1; i < t + 1; i++) {
+    for (unsigned int i = 1; i < t + 1; i++) {
         right_qsum += compute_qi(m, t, N, i) * i;
     }
 
@@ -60,10 +60,10 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long 
         unsigned long mid = 1 + (lower + (upper - lower) / 2);
         if (upper == 0) {
             mid = 0;
-        } else if (lower == mt-1) {
+        } else if (lower == mt - 1) {
             mid = mt - 1;
         }
-        int compare = memcmp(&(*endpoints)[mid*step], plain_text, pwd_length);
+        int compare = memcmp(&(*endpoints)[mid * step], plain_text, pwd_length);
         // Match found
         if (compare == 0) {
             return mid;
@@ -71,9 +71,8 @@ unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long 
             if (mid == 0)
                 break;
             lower = mid + 1;
-        }
-        else if (lower == upper) {
-            int compare2 = memcmp(&(*endpoints)[(mid-1)*step], plain_text, pwd_length);
+        } else if (lower == upper) {
+            int compare2 = memcmp(&(*endpoints)[(mid - 1) * step], plain_text, pwd_length);
             if (compare2 == 0) return lower;
             return -1; // not found
         } else {
@@ -123,11 +122,13 @@ void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int 
     char_to_password("abcdefg", plain_text, pwd_length);
 
     unsigned long long temp = 0;
-    temp = (unsigned long long)((*digest).i[0] + (*digest).i[1] + (*digest).i[2] + (*digest).i[3] + index) % (unsigned long long)(power(CHARSET_LENGTH, pwd_length));
+    temp = (unsigned long long) ((*digest).i[0] + (*digest).i[1] + (*digest).i[2] + (*digest).i[3] + index) %
+           (unsigned long long) (power(CHARSET_LENGTH, pwd_length));
 
-    for(int i=pwd_length-1; i>=0; i--){
-        unsigned char reste = charset[(unsigned long long)((unsigned long long)temp % (unsigned long long)CHARSET_LENGTH)];
-        temp = (unsigned long long)((unsigned long long)temp / (unsigned long long)CHARSET_LENGTH);
+    for (int i = pwd_length - 1; i >= 0; i--) {
+        unsigned char reste = charset[(unsigned long long) ((unsigned long long) temp %
+                                                            (unsigned long long) CHARSET_LENGTH)];
+        temp = (unsigned long long) ((unsigned long long) temp / (unsigned long long) CHARSET_LENGTH);
         (*plain_text).bytes[i] = reste;
     }
 
@@ -477,13 +478,13 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
         // Generate one password
         for (int n = 0; n < pwd_length; n++) {
             //password[n] = charset[rand() % CHARSET_LENGTH];
-            password[n]  = charset[counter % CHARSET_LENGTH];
+            password[n] = charset[counter % CHARSET_LENGTH];
             counter /= CHARSET_LENGTH;
         }
 
-        if((p%100) == 0) {
+        if ((p % 100) == 0) {
             printf("%d: ", p);
-            for(int q=0; q<pwd_length; q++){
+            for (int q = 0; q < pwd_length; q++) {
                 printf("%c", password[q]);
             }
             printf("\n");
@@ -722,7 +723,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    // User typed 'online table -h hash'
+        // User typed 'online table -h hash'
     else if (strcmp(argv[2], "-h") == 0) {
         char *digest = argv[3]; // the hashed password
         char found[pwd_length];
@@ -745,7 +746,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    // User typed 'online -c N'
+        // User typed 'online -c N'
     else if (strcmp(argv[2], "-c") == 0) {
         int nb_cover = atoi(argv[3]);
 
