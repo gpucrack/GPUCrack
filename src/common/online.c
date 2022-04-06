@@ -703,56 +703,58 @@ int main(int argc, char *argv[]) {
 
     // User typed 'online table -p password'
     if (strcmp(argv[2], "-p") == 0) {
-        // the password we will be looking to crack, after it's hashed
-        const char *password = argv[4];
-        // `digest` now contains the hashed password
-        unsigned char digest[HASH_LENGTH * 2];
+        const char *password = argv[3]; // the password we will be looking to crack, after it's hashed
+        unsigned char digest[HASH_LENGTH * 2]; // the hashed password
+        char found[pwd_length];
+
         ntlm(password, digest, pwd_length);
 
-        printf("Looking for password '%.*s', hashed as %s", pwd_length, password, digest);
-        printf(".\nStarting attack...\n");
+        printf("Looking for password '%.*s', hashed as %s.\n", pwd_length, password, digest);
+        printf("Starting attack...\n");
 
-        // try to crack the password
-        char found[pwd_length];
         online_from_files(start_path, end_path, digest, found, pwd_length);
 
-        // if `found` is not empty, then we successfully cracked the password
         if (!strcmp(found, "")) {
             printf("No password found for the given hash.\n");
         } else {
             printf("Password '%.*s' found for the given hash!\n", pwd_length, found);
         }
         exit(0);
+    }
 
+    // User typed 'online table -h hash'
+    else if (strcmp(argv[2], "-h") == 0) {
+        char *digest = argv[3]; // the hashed password
+        char found[pwd_length];
 
-    } else if (strcmp(argv[3], "-h") == 0) {
-        // the password we will be looking to crack, after it's hashed
-
-        // `digest` now contains the hashed password
-        char *digest = argv[4];
+        // Convert hash to lowercase
         for (int i = 0; digest[i]; i++) {
             digest[i] = tolower(digest[i]);
         }
 
-        printf("Looking to crack the ntlm hash '%s'", digest);
-        printf(".\nStarting attack...\n");
+        printf("Looking to crack the ntlm hash '%s'.\n", digest);
+        printf("Starting attack...\n");
 
-        // try to crack the password
-        char found[pwd_length];
         online_from_files(start_path, end_path, digest, found, pwd_length);
 
-        // if `found` is not empty, then we successfully cracked the password
         if (!strcmp(found, "")) {
             printf("No password found for the given hash.\n");
         } else {
             printf("Password '%.*s' found for the given hash!\n", pwd_length, found);
         }
         exit(0);
-    } else if (strcmp(argv[3], "-c") == 0) {
-        int nb_cover = atoi(argv[4]);
-        printf("Starting attack...\n");
+    }
+
+    // User typed 'online -c N'
+    else if (strcmp(argv[2], "-c") == 0) {
+        int nb_cover = atoi(argv[3]);
+
+        printf("Looking to crack %d passwords.\n", nb_cover);
+        printf("Starting the attacks...\n");
+
         int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length, nb_cover);
-        printf("Number of passwords found: %d / %d\n", foundNumber, nb_cover);
-        printf("Coverage: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
+
+        printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
+        printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
     }
 }
