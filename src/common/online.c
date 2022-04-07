@@ -294,62 +294,119 @@ void ntlm(char *key, char *hash, int pwd_length) {
     strcpy(hash, hex_format);
 }
 
-void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password, int pwd_length) {
-    FILE *fp;
-    fp = fopen(start_path, "rb");
-
-    if (fp == NULL)(exit(1));
-
+void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable) {
+    int t;
+    unsigned long mt[nbTable];
+    unsigned long mtTotal = 0;
     char buff[255];
 
-    // Retrieve the start points file info
-    fscanf(fp, "%s", buff);
-    unsigned long mt;
-    sscanf(buff, "%ld", &mt);
-    printf("Number of points (mt): %lu\n", mt);
-    fgets(buff, 255, (FILE *) fp);
-    fgets(buff, 255, (FILE *) fp); // skip the pwd_length line
+    // Read the tables' headers
+    for (int table = 0; table < nbTable; table++) {
+        char tableChar[3];
+        sprintf(tableChar, "%d", table);
 
-    // Retrieve the chain length (t)
-    int t;
-    fgets(buff, 255, (FILE *) fp);
-    sscanf(buff, "%d", &t);
+        char tableStartNPath[255];
+        strcpy(tableStartNPath, path);
+        strcat(tableStartNPath, "_start_");
+        strcat(tableStartNPath, tableChar);
+        strcat(tableStartNPath, ".bin");
+
+        FILE *fpStartN;
+        fpStartN = fopen(tableStartNPath, "rb");
+
+        // Retrieve the table's number of end points (mt)
+        unsigned long mtTable;
+        fscanf(fpStartN, "%s", buff);
+        sscanf(buff, "%ld", &mtTable);
+        //printf("Table %d - mt = %lu\n", mt);
+        fgets(buff, 255, (FILE *) fpStartN);
+        fgets(buff, 255, (FILE *) fpStartN);
+
+        // Retrieve the table's chain length (t)
+        int tTable;
+        fgets(buff, 255, (FILE *) fpStartN);
+        sscanf(buff, "%d", &tTable);
+
+        fclose(fpStartN);
+
+        // t changed between the tables
+        if (table > 0 && t != tTable) {
+            printf("Error: the chain length is not the same in table number %d and %d.\n", table-1, table);
+            exit(1);
+        }
+
+        mt[table] = mtTable;
+        mtTotal += mtTable;
+        t = tTable;
+    }
+
+    printf("Total number of end points (mtTotal): %lu\n", mtTotal);
     printf("Chain length (t): %d\n\n", t);
 
-    char *startpoints = malloc(sizeof(char) * pwd_length * mt);
-    long limit = (long) mt * (long) pwd_length;
-    char buff_sp[pwd_length];
+    char *startpoints = malloc(sizeof(char) * pwd_length * mtTotal);
+    char *endpoints = malloc(sizeof(char) * pwd_length * mtTotal);
+    char buffStart[255];
+    char buffEnd[255];
 
-    for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
-        fread(buff_sp, pwd_length, 1, (FILE *) fp);
-        for (long j = i; j < i + pwd_length; j++) {
-            startpoints[j] = buff_sp[j - i];
+    // Fill the start points and end points arrays
+    for (int table = 0; table < nbTable; table++) {
+
+        char tableChar[3];
+        sprintf(tableChar, "%d", table);
+
+        char tableStartNPath[255];
+        strcpy(tableStartNPath, path);
+        strcat(tableStartNPath, "_start_");
+        strcat(tableStartNPath, tableChar);
+        strcat(tableStartNPath, ".bin");
+
+        char tableEndNPath[255];
+        strcpy(tableEndNPath, path);
+        strcat(tableEndNPath, "_end_");
+        strcat(tableEndNPath, tableChar);
+        strcat(tableEndNPath, ".bin");
+
+        FILE *fpStartN;
+        fpStartN = fopen(tableStartNPath, "rb");
+        fscanf(fpStartN, "%s", buffStart);
+        fgets(buffStart, 255, (FILE *) fpStartN); // skip
+        fgets(buffStart, 255, (FILE *) fpStartN); // the
+        fgets(buffStart, 255, (FILE *) fpStartN); // header
+
+        FILE *fpEndN;
+        fpEndN = fopen(tableStartNPath, "rb");
+        fscanf(fpEndN, "%s", buffEnd);
+        fgets(buffEnd, 255, (FILE *) fpEndN); // skip
+        fgets(buffEnd, 255, (FILE *) fpEndN); // the
+        fgets(buffEnd, 255, (FILE *) fpEndN); // header
+
+        long i = 0;
+        long limit = mt[table];
+        if (table > 0) {
+            i = mt[table-1];
+            limit = i + mt[table];
         }
+
+        for (long iStart = i; iStart < limit; iStart = iStart + sizeof(char) * pwd_length) {
+            fread(buffStart, pwd_length, 1, (FILE *) fpStartN);
+            for (long j = iStart; j < iStart + pwd_length; j++) {
+                startpoints[j] = buffStart[j - iStart];
+            }
+        }
+
+        fclose(fpStartN);
+
+        for (long iEnd = i; iEnd < limit; iEnd = iEnd + sizeof(char) * pwd_length) {
+            fread(buffEnd, pwd_length, 1, (FILE *) fpEndN);
+            for (long j = iEnd; j < iEnd + pwd_length; j++) {
+                endpoints[j] = buffEnd[j - iEnd];
+            }
+        }
+
+        fclose(fpEndN);
     }
 
-    // Close the start file
-    fclose(fp);
-
-    FILE *fp2;
-    char buff2[255];
-    fp2 = fopen(end_path, "rb");
-    fgets(buff2, 255, (FILE *) fp2);
-    fgets(buff2, 255, (FILE *) fp2);
-    fgets(buff2, 255, (FILE *) fp2);
-
-    char *endpoints = malloc(sizeof(char) * pwd_length * mt);
-
-    char buff_ep[pwd_length];
-    for (long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
-        fread(buff_ep, pwd_length, 1, (FILE *) fp);
-        for (long j = i; j < i + pwd_length; j++) {
-            endpoints[j] = buff_ep[j - i];
-        }
-    }
-
-    // Close the end file
-    fclose(fp2);
-
+    // Perform the attack
     for (long i = t - 1; i >= 0; i--) {
         char column_plain_text[pwd_length];
         unsigned char column_digest[HASH_LENGTH * 2];
@@ -363,7 +420,7 @@ void online_from_files(char *start_path, char *end_path, unsigned char *digest, 
         reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
 
         //printf("Trying to find %s in endpoints...\n", column_plain_text);
-        long found = search_endpoint(&endpoints, column_plain_text, mt, pwd_length);
+        long found = search_endpoint(&endpoints, column_plain_text, mtTotal, pwd_length);
 
         if (found == -1) {
             continue;
