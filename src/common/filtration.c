@@ -77,6 +77,7 @@ long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int)
 
 long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path,
              const int numberOfPasses, const unsigned long long batchSize) {
+
     char buff[255];
 
     FILE *start_file;
@@ -119,23 +120,38 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     unsigned long long totalNewLen = 0;
     unsigned long long currentPos = 0;
 
-    // Write new files
     long sp_success = 0;
     long ep_success = 0;
 
-    for(int q=0; q<numberOfPasses; q++) {
+    char tempStartName[100] = "t";
+    char tempEndName[100] = "t";
+    strcat(tempStartName, "emp_");
+    strcat(tempStartName, start_path);
+    strcat(tempEndName, "emp_");
+    strcat(tempEndName, end_path);
 
-        // Generate file name according to table number
-        char tempStartPath[100];
-        char tempEndPath[100];
-        strcat(tempStartPath, "start_");
-        strcat(tempEndPath, "end_");
-        char tableChar[10];
-        sprintf(tableChar, "%d", q);
-        strcat(tempStartPath, tableChar);
-        strcat(tempStartPath, ".bin");
-        strcat(tempEndPath, tableChar);
-        strcat(tempEndPath, ".bin");
+    FILE *sp_out_file = fopen(tempStartName, "wb");
+    FILE *ep_out_file = fopen(tempEndName, "wb");
+
+    if (sp_out_file == NULL) {
+        perror("Can't open start file.");
+        exit(1);
+    }
+
+    if (ep_out_file == NULL) {
+        perror("Can't open end file.");
+        exit(1);
+    }
+
+    // Write the header
+    fprintf(sp_out_file, "%ld\n", batchSize);
+    fprintf(ep_out_file, "%ld\n", batchSize);
+    fprintf(sp_out_file, "%d\n", pwd_length);
+    fprintf(ep_out_file, "%d\n", pwd_length);
+    fprintf(sp_out_file, "%d\n", t);
+    fprintf(ep_out_file, "%d\n", t);
+
+    for(int q=0; q<numberOfPasses; q++) {
 
         long limit = batchSize * (long) pwd_length;
 
@@ -161,22 +177,12 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
         q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
 
-        long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, mt,
+        long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, batchSize,
                              (int (*)(void *, void *, int)) (cmpstr));
 
         totalNewLen += new_len;
 
-        FILE *sp_out_file = fopen(tempStartPath, "wb");
-        FILE *ep_out_file = fopen(tempEndPath, "wb");
-
-        // Write the header
-        fprintf(sp_out_file, "%ld\n", new_len);
-        fprintf(ep_out_file, "%ld\n", new_len);
-        fprintf(sp_out_file, "%d\n", pwd_length);
-        fprintf(ep_out_file, "%d\n", pwd_length);
-        fprintf(sp_out_file, "%d\n", t);
-        fprintf(ep_out_file, "%d\n", t);
-
+        // Write points
         char *point = (char *) malloc(sizeof(char) * pwd_length);
         for (long i = 0; i < new_len; i++) {
             memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
@@ -188,111 +194,94 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
             ep_success++;
         }
 
-        fclose(sp_out_file);
-        fclose(ep_out_file);
-
         currentPos += batchSize;
-
-        free(startpoints);
-        free(endpoints);
     }
 
     // Close the files
     fclose(start_file);
     fclose(end_file);
 
+    // Close final file and then reopen for final sort and update the position to the start
+    fclose(sp_out_file);
+    fclose(ep_out_file);
+
+    sp_out_file = fopen(tempStartName, "rb");
+    ep_out_file = fopen(tempEndName, "rb");
+
+    if (sp_out_file == NULL) {
+        perror("Can't open start file.");
+        exit(1);
+    }
+
+    if (ep_out_file == NULL) {
+        perror("Can't open end file.");
+        exit(1);
+    }
+
+    // Skipping headers, we already know the values
+    fgets(buff, 255, (FILE *) sp_out_file);
+    fgets(buff, 255, (FILE *) sp_out_file);
+    fgets(buff, 255, (FILE *) sp_out_file);
+
+    fgets(buff, 255, (FILE *) ep_out_file);
+    fgets(buff, 255, (FILE *) ep_out_file);
+    fgets(buff, 255, (FILE *) ep_out_file);
+
+    // Final sort
     long limit = totalNewLen * (long) pwd_length;
 
     char *startpoints = (char *) malloc(sizeof(char) * limit);
     char *endpoints = (char *) malloc(sizeof(char) * limit);
 
-    // Final filtration
-    for(int q=0; q<numberOfPasses; q++) {
+    char buff_point[pwd_length];
 
-        // Generate file name according to table number
-        char tempStartPath[100];
-        char tempEndPath[100];
-        strcat(tempStartPath, "start_");
-        strcat(tempEndPath, "end_");
-        char tableChar[10];
-        sprintf(tableChar, "%d", q);
-        strcat(tempStartPath, tableChar);
-        strcat(tempStartPath, ".bin");
-        strcat(tempEndPath, tableChar);
-        strcat(tempEndPath, ".bin");
+    for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
 
-        char buff[255];
-
-        FILE * tempStartFile2;
-        FILE * tempEndFile2;
-
-        tempStartFile2 = fopen(tempStartPath, "rb");
-        tempEndFile2 = fopen(tempEndPath, "rb");
-
-        if (tempStartFile2 == NULL) {
-            perror("Can't open temp start file");
-            printf("%d, %s", q, tempStartPath);
-            exit(1);
+        fread(buff_point, pwd_length, 1, (FILE *) sp_out_file);
+        for (unsigned long j = i; j < i + pwd_length; j++) {
+            startpoints[j] = buff_point[j - i];
         }
 
-        if (tempEndFile2 == NULL) {
-            perror("Can't open temp end file.");
-            printf("%d, %s", q, tempEndPath);
-            exit(1);
+        fread(buff_point, pwd_length, 1, (FILE *) ep_out_file);
+        for (unsigned long j = i; j < i + pwd_length; j++) {
+            endpoints[j] = buff_point[j - i];
         }
 
-        // Skip header
-        fgets(buff, 255, (FILE *) tempStartFile2);
-        fgets(buff, 255, (FILE *) tempStartFile2);
-        fgets(buff, 255, (FILE *) tempStartFile2);
-
-        // just to skip the first 3 rows of end_file (same as start_file)
-        fgets(buff, 255, (FILE *) tempEndFile2);
-        fgets(buff, 255, (FILE *) tempEndFile2);
-        fgets(buff, 255, (FILE *) tempEndFile2);
-
-        char buff_point[pwd_length];
-
-        long tempLimit = batchSize * (long) pwd_length;
-
-        for (unsigned long i = 0; i < tempLimit; i = i + sizeof(char) * pwd_length) {
-
-            fread(buff_point, pwd_length, 1, (FILE *) tempStartFile2);
-            for (unsigned long j = batchSize + i; j < batchSize + i + pwd_length; j++) {
-                startpoints[j] = buff_point[(j - batchSize) - i];
-            }
-
-            fread(buff_point, pwd_length, 1, (FILE *) tempEndFile2);
-            for (unsigned long j = batchSize + i; j < batchSize + i + pwd_length; j++) {
-                endpoints[j] = buff_point[(j - batchSize) - i];
-            }
-
-        }
-
-        q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
-
-        totalNewLen = dedup(endpoints, startpoints, sizeof(char) * pwd_length, mt,
-                             (int (*)(void *, void *, int)) (cmpstr));
-
-        fclose(tempStartFile2);
-        fclose(tempEndFile2);
     }
 
-    // Writing it all in a final file
-    FILE *sp_out_file = fopen(start_out_path, "wb");
-    FILE *ep_out_file = fopen(end_out_path, "wb");
+    q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, totalNewLen - 1, (int (*)(void *, void *, int)) (cmpstr));
+
+    long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, totalNewLen,
+                         (int (*)(void *, void *, int)) (cmpstr));
+
+    // We can delete temporary files now
+    remove(tempStartName);
+    remove(tempEndName);
+
+    sp_out_file = fopen(start_path, "wb");
+    ep_out_file = fopen(end_path, "wb");
+
+    if (sp_out_file == NULL) {
+        perror("Can't open start file.");
+        exit(1);
+    }
+
+    if (ep_out_file == NULL) {
+        perror("Can't open end file.");
+        exit(1);
+    }
 
     // Write the header
-    fprintf(sp_out_file, "%ld\n", totalNewLen);
-    fprintf(ep_out_file, "%ld\n", totalNewLen);
+    fprintf(sp_out_file, "%ld\n", new_len);
+    fprintf(ep_out_file, "%ld\n", new_len);
     fprintf(sp_out_file, "%d\n", pwd_length);
     fprintf(ep_out_file, "%d\n", pwd_length);
     fprintf(sp_out_file, "%d\n", t);
     fprintf(ep_out_file, "%d\n", t);
 
-
+    // Write points
     char *point = (char *) malloc(sizeof(char) * pwd_length);
-    for (long i = 0; i < totalNewLen; i++) {
+    for (long i = 0; i < new_len; i++) {
         memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
         fwrite(point, pwd_length, 1, (FILE *) sp_out_file);
         sp_success++;
@@ -301,6 +290,9 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
         fwrite(point, pwd_length, 1, (FILE *) ep_out_file);
         ep_success++;
     }
+
+    fclose(sp_out_file);
+    fclose(ep_out_file);
 
     long *success = (long *) malloc(sizeof(long) * 4);
     success[0] = mt;

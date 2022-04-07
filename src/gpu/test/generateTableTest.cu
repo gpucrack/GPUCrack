@@ -124,23 +124,22 @@ int main(int argc, char *argv[]) {
             writePoint(endName, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, end_file);
 
             currentPos += batchSize;
+
+            cudaFreeHost(passwords);
         }
 
         fclose(start_file);
         fclose(end_file);
 
-        /*
         printf("Engaging filtration...\n");
 
         // Clean the table by deleting duplicate endpoints
-        long *res = filter(startName, endName, startName, endName, 0, batchSize/2);
+        long *res = filter(startName, endName, startName, endName, numberOfCPUPass, batchSize);
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
             printf("The files have been generated with success.\n");
         }
-         */
 
-        cudaFreeHost(passwords);
     }
 
     return 0;
