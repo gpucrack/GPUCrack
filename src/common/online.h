@@ -16,6 +16,8 @@ unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7',
                                          'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
                                          'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                                          'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+// The length of the digest produced by the hash function (NTLM).
+#define PASSWORD_LENGTH 3
 
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16
@@ -100,8 +102,9 @@ void ntlm(char *key, char *hash, int pwd_length);
  * @param digest the digest we're looking to crack.
  * @param password if found, the password corresponding to the digest.
  * @param pwd_length the password length, read in the files.
+ * @param nbTable the number of tables to be searched into.
  */
-void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password, int pwd_length);
+void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable);
 
 /**
  * Generates passwords in an exhaustive fashion and tries to crack them.
