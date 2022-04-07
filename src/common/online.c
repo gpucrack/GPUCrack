@@ -343,13 +343,15 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
     printf("Total number of end points (mtTotal): %lu\n", mtTotal);
     printf("Chain length (t): %d\n\n", t);
 
-    char *startpoints = malloc(sizeof(char) * pwd_length * mtTotal);
-    char *endpoints = malloc(sizeof(char) * pwd_length * mtTotal);
+    char **startpoints = malloc(sizeof(char) * pwd_length * mtTotal);
+    char **endpoints = malloc(sizeof(char) * pwd_length * mtTotal);
     char buffStart[255];
     char buffEnd[255];
 
     // Fill the start points and end points arrays
     for (int table = 0; table < nbTable; table++) {
+        startpoints[table] = malloc(sizeof(char) * pwd_length * mt[table]);
+        endpoints[table] = malloc(sizeof(char) * pwd_length * mt[table]);
 
         char tableChar[3];
         sprintf(tableChar, "%d", table);
@@ -374,35 +376,24 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
         fgets(buffStart, 255, (FILE *) fpStartN); // header
 
         FILE *fpEndN;
-        fpEndN = fopen(tableStartNPath, "rb");
+        fpEndN = fopen(tableEndNPath, "rb");
         fscanf(fpEndN, "%s", buffEnd);
         fgets(buffEnd, 255, (FILE *) fpEndN); // skip
         fgets(buffEnd, 255, (FILE *) fpEndN); // the
         fgets(buffEnd, 255, (FILE *) fpEndN); // header
 
-        long i = 0;
-        long limit = mt[table];
-        if (table > 0) {
-            i = mt[table-1];
-            limit = i + mt[table];
-        }
-
-        for (long iStart = i; iStart < limit; iStart = iStart + sizeof(char) * pwd_length) {
+        for (unsigned long i = 0; i < mt[table] * pwd_length; i = i + sizeof(char) * pwd_length) {
             fread(buffStart, pwd_length, 1, (FILE *) fpStartN);
-            for (long j = iStart; j < iStart + pwd_length; j++) {
-                startpoints[j] = buffStart[j - iStart];
+            for (unsigned long j = i; j < i + pwd_length; j++) {
+                startpoints[table][j] = buffStart[j - i];
+            }
+            fread(buffEnd, pwd_length, 1, (FILE *) fpEndN);
+            for (unsigned long j = i; j < i + pwd_length; j++) {
+                endpoints[table][j] = buffEnd[j - i];
             }
         }
 
         fclose(fpStartN);
-
-        for (long iEnd = i; iEnd < limit; iEnd = iEnd + sizeof(char) * pwd_length) {
-            fread(buffEnd, pwd_length, 1, (FILE *) fpEndN);
-            for (long j = iEnd; j < iEnd + pwd_length; j++) {
-                endpoints[j] = buffEnd[j - iEnd];
-            }
-        }
-
         fclose(fpEndN);
     }
 
@@ -410,7 +401,7 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
     for (long i = t - 1; i >= 0; i--) {
         char column_plain_text[pwd_length];
         unsigned char column_digest[HASH_LENGTH * 2];
-        strcpy(column_digest, digest);
+        strncpy(column_digest, digest, sizeof(unsigned char) * HASH_LENGTH * 2);
 
         // Get the reduction corresponding to the current column
         for (unsigned long k = i; k < t - 1; k++) {
@@ -419,40 +410,45 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
         }
         reduce_digest(column_digest, t - 1, column_plain_text, pwd_length);
 
-        //printf("Trying to find %s in endpoints...\n", column_plain_text);
-        long found = search_endpoint(&endpoints, column_plain_text, mtTotal, pwd_length);
+        //printf("Trying to find %.*s in endpoints...\n", pwd_length, column_plain_text);
+        long found = -1;
+        int table = -1;
+        do {
+            table++;
+            found = search_endpoint(&(endpoints[table]), column_plain_text, mt[table], pwd_length);
 
-        if (found == -1) {
-            continue;
-        }
+            if (found == -1) {
+                continue;
+            }
 
-        printf("Match found in chain number %ld...", found);
+            printf("Match found in chain number %ld of table %d...", found, table);
 
-        // We found a matching endpoint: reconstruct the chain
-        char chain_plain_text[pwd_length];
-        unsigned char chain_digest[HASH_LENGTH];
+            // We found a matching endpoint: reconstruct the chain
+            char chain_plain_text[pwd_length];
+            unsigned char chain_digest[HASH_LENGTH];
 
-        // Copy the corresponding start point into chain_plain_text
-        for (long l = 0; l < pwd_length; l++) {
-            chain_plain_text[l] = startpoints[(found * pwd_length) + l];
-        }
+            // Copy the corresponding start point into chain_plain_text
+            for (long l = 0; l < pwd_length; l++) {
+                chain_plain_text[l] = startpoints[table][(found * pwd_length) + l];
+            }
 
-        // Reconstruct the chain from the beginning
-        for (unsigned long k = 0; k < i; k++) {
+            // Reconstruct the chain from the beginning
+            for (unsigned long k = 0; k < i; k++) {
+                ntlm(chain_plain_text, chain_digest, pwd_length);
+                reduce_digest(chain_digest, k, chain_plain_text, pwd_length);
+            }
             ntlm(chain_plain_text, chain_digest, pwd_length);
-            reduce_digest(chain_digest, k, chain_plain_text, pwd_length);
-        }
-        ntlm(chain_plain_text, chain_digest, pwd_length);
 
-        // printf("Comparing '%s' and '%s' for false alert check.\n", chain_digest, digest);
+            //printf("Comparing '%s' and '%s' for false alert check.\n", chain_digest, digest);
 
-        // Check if the computed hash is the one we're looking for
-        if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
-            printf(" Password cracked! (column=%ld)\n", i);
-            memcpy(password, chain_plain_text, pwd_length);
-            return;
-        }
-        printf(" False alert. (column=%ld)\n", i);
+            // Check if the computed hash is the one we're looking for
+            if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
+                printf(" Password cracked! (column=%ld)\n", i);
+                memcpy(password, chain_plain_text, pwd_length);
+                return;
+            }
+            printf(" False alert. (column=%ld)\n", i);
+        } while (table < nbTable - 1);
     }
 
     strcpy(password, ""); // password was not found
@@ -730,8 +726,10 @@ int checkTables(char *path, int *nbTable, int *pwdLength) {
         startOk = fpStartN != NULL;
         endOk = fpEndN != NULL;
 
-        fclose(fpStartN);
-        fclose(fpEndN);
+        if (startOk && endOk) {
+            fclose(fpStartN);
+            fclose(fpEndN);
+        }
 
         if (startOk && !endOk) {
             printf("Error: start points file found but no corresponding end points file found when trying to read '%s'.\n",
@@ -763,19 +761,19 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[2], "-p") == 0) {
         const char *password = argv[3]; // the password we will be looking to crack, after it's hashed
         unsigned char digest[HASH_LENGTH * 2]; // the hashed password
-        char found[pwd_length];
+        char found[pwdLength];
 
-        ntlm(password, digest, pwd_length);
+        ntlm(password, digest, pwdLength);
 
-        printf("Looking for password '%.*s', hashed as %s.\n", pwd_length, password, digest);
+        printf("Looking for password '%.*s', hashed as %s.\n", pwdLength, password, digest);
         printf("Starting attack...\n");
 
-        online_from_files(start_path, end_path, digest, found, pwd_length);
+        online_from_files(argv[1], digest, found, pwdLength, tableNb);
 
         if (!strcmp(found, "")) {
             printf("No password found for the given hash.\n");
         } else {
-            printf("Password '%.*s' found for the given hash!\n", pwd_length, found);
+            printf("Password '%.*s' found for the given hash!\n", pwdLength, found);
         }
         exit(0);
     }
@@ -783,7 +781,7 @@ int main(int argc, char *argv[]) {
         // User typed 'online table -h hash'
     else if (strcmp(argv[2], "-h") == 0) {
         char *digest = argv[3]; // the hashed password
-        char found[pwd_length];
+        char found[pwdLength];
 
         // Convert hash to lowercase
         for (int i = 0; digest[i]; i++) {
@@ -793,12 +791,12 @@ int main(int argc, char *argv[]) {
         printf("Looking to crack the ntlm hash '%s'.\n", digest);
         printf("Starting attack...\n");
 
-        online_from_files(start_path, end_path, digest, found, pwd_length);
+        online_from_files(argv[1], digest, found, pwdLength, tableNb);
 
         if (!strcmp(found, "")) {
             printf("No password found for the given hash.\n");
         } else {
-            printf("Password '%.*s' found for the given hash!\n", pwd_length, found);
+            printf("Password '%.*s' found for the given hash!\n", pwdLength, found);
         }
         exit(0);
     }
@@ -810,9 +808,9 @@ int main(int argc, char *argv[]) {
         printf("Looking to crack %d passwords.\n", nb_cover);
         printf("Starting the attacks...\n");
 
-        int foundNumber = online_from_files_coverage(start_path, end_path, pwd_length, nb_cover);
+        //int foundNumber = online_from_files_coverage(argv[1], pwd_length, nb_cover);
 
-        printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
-        printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
+        //printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
+        //printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
     }
 }
