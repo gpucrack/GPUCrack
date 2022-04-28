@@ -1,8 +1,3 @@
-#ifndef RAINBOW_H
-#define RAINBOW_H
-
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
@@ -14,9 +9,6 @@
 #include <math.h>
 #include <time.h>
 
-// The password length in the rainbow tables.
-#define PASSWORD_LENGTH 5
-
 // The length of the charset.
 #define CHARSET_LENGTH 62
 
@@ -24,23 +16,13 @@ unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7',
                                          'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
                                          'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                                          'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+// The length of the digest produced by the hash function (NTLM).
+#define PASSWORD_LENGTH 3
 
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16
 
-// Handy macro for debug prints.
-#if !defined NDEBUG || defined DEBUG_TEST
-#define DEBUG_TEST 1
-#else
-#define DEBUG_TEST 0
-#endif
-#define DEBUG_PRINT(fmt, ...)                              \
-    do {                                                   \
-        if (DEBUG_TEST) fprintf(stderr, fmt, __VA_ARGS__); \
-    } while (0)
-
-// A password put into a union. This is easier to use with malloc and crypto
-// functions.
+// A password put into a union.
 typedef struct {
     uint8_t bytes[PASSWORD_LENGTH];
 } Password;
@@ -48,7 +30,7 @@ typedef struct {
 // A digest put into a union.
 typedef union {
     uint8_t bytes[HASH_LENGTH];
-    uint32_t i[HASH_LENGTH/4];
+    uint32_t i[HASH_LENGTH / 4];
 } Digest;
 
 /**
@@ -120,10 +102,33 @@ void ntlm(char *key, char *hash, int pwd_length);
  * @param digest the digest we're looking to crack.
  * @param password if found, the password corresponding to the digest.
  * @param pwd_length the password length, read in the files.
+ * @param nbTable the number of tables to be searched into.
  */
-void online_from_files(char *start_path, char *end_path, unsigned char *digest, char *password, int pwd_length);
+void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable);
 
+/**
+ * Generates passwords in an exhaustive fashion and tries to crack them.
+ * @param start_path the path to the startpoint file.
+ * @param end_path the path to the endpoint file.
+ * @param pwd_length  the length of every password the table contains.
+ * @param nb_cover the number of passwords to be cracked.
+ * @return the number of passwords that were successfully cracked.
+ */
 int online_from_files_coverage(char *start_path, char *end_path, int pwd_length, int nb_cover);
 
+/**
+ * Checks whether the correct number of arguments was given when the program was called.
+ * @param argc the number of arguments.
+ * @return 0 if the check was successful
+ */
+int checkArgs(int argc);
 
-#endif
+/**
+ * Retrieves the number of tables provided and the length of its passwords.
+ * Also checks if the table exists, and verifies that every start points file has its corresponding end points file.
+ * @param path the path to the table.
+ * @param nbTable the number of table found for specified path.
+ * @param pwdLength the length of every password the table contains.
+ * @return 0 if no error was encountered
+ */
+int checkTables(char *path, int *nbTable, int *pwdLength);
