@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <c++/9/fstream>
+#include <fstream>
 
 #include "commons.cuh"
 

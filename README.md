@@ -14,6 +14,24 @@ NTLM password cracker using TMTOs, optimized for GPU computation.
 
 The file hierarchy of the repo is explained [here](./doc/file_hierarchy.md).
 
+## Building
+
+```sh
+cmake .
+```
+
+then,
+
+```sh
+make <target>
+```
+
+For example,
+
+```sh
+make mpiGenerateTableTest
+```
+
 ## Contributors
 
 🚧 WORK IN PROGRESS 🚧
