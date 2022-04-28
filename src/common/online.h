@@ -15,7 +15,7 @@
 #include <time.h>
 
 // The password length in the rainbow tables.
-#define PASSWORD_LENGTH 3
+#define PASSWORD_LENGTH 5
 
 // The length of the charset.
 #define CHARSET_LENGTH 62

@@ -153,7 +153,7 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
     for(int q=0; q<numberOfPasses; q++) {
 
-        long limit = batchSize * (long) pwd_length;
+        unsigned long long limit = batchSize * (long) pwd_length;
 
         // Retrieve the points
         char *startpoints = (char *) malloc(sizeof(char) * limit);
@@ -161,15 +161,15 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
         char buff_point[pwd_length];
 
-        for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+        for (unsigned long long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
 
             fread(buff_point, pwd_length, 1, (FILE *) start_file);
-            for (unsigned long j = i; j < i + pwd_length; j++) {
+            for (unsigned long long j = i; j < i + pwd_length; j++) {
                 startpoints[j] = buff_point[j - i];
             }
 
             fread(buff_point, pwd_length, 1, (FILE *) end_file);
-            for (unsigned long j = i; j < i + pwd_length; j++) {
+            for (unsigned long long j = i; j < i + pwd_length; j++) {
                 endpoints[j] = buff_point[j - i];
             }
 
@@ -177,14 +177,14 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
         q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
 
-        long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, batchSize,
+        unsigned long long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, batchSize,
                              (int (*)(void *, void *, int)) (cmpstr));
 
         totalNewLen += new_len;
 
         // Write points
         char *point = (char *) malloc(sizeof(char) * pwd_length);
-        for (long i = 0; i < new_len; i++) {
+        for (unsigned long long i = 0; i < new_len; i++) {
             memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
             fwrite(point, pwd_length, 1, (FILE *) sp_out_file);
             sp_success++;
@@ -228,35 +228,44 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     fgets(buff, 255, (FILE *) ep_out_file);
 
     // Final sort
-    long limit = totalNewLen * (long) pwd_length;
+    unsigned long long limit = totalNewLen * (long) pwd_length;
 
     char *startpoints = (char *) malloc(sizeof(char) * limit);
     char *endpoints = (char *) malloc(sizeof(char) * limit);
 
     char buff_point[pwd_length];
 
-    for (unsigned long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
+    for (unsigned long long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
 
         fread(buff_point, pwd_length, 1, (FILE *) sp_out_file);
-        for (unsigned long j = i; j < i + pwd_length; j++) {
+        for (unsigned long long j = i; j < i + pwd_length; j++) {
             startpoints[j] = buff_point[j - i];
         }
 
         fread(buff_point, pwd_length, 1, (FILE *) ep_out_file);
-        for (unsigned long j = i; j < i + pwd_length; j++) {
+        for (unsigned long long j = i; j < i + pwd_length; j++) {
             endpoints[j] = buff_point[j - i];
         }
 
     }
 
-    q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, totalNewLen - 1, (int (*)(void *, void *, int)) (cmpstr));
-
-    long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, totalNewLen,
-                         (int (*)(void *, void *, int)) (cmpstr));
-
     // We can delete temporary files now
     remove(tempStartName);
     remove(tempEndName);
+
+    unsigned long long new_len = 0;
+
+    // Don't filter if we have only one part
+    if (numberOfPasses > 1) {
+
+        q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, totalNewLen - 1, (int (*)(void *, void *, int)) (cmpstr));
+
+        new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, totalNewLen,
+                             (int (*)(void *, void *, int)) (cmpstr));
+
+    }else{
+        new_len = totalNewLen;
+    }
 
     sp_out_file = fopen(start_path, "wb");
     ep_out_file = fopen(end_path, "wb");
@@ -281,7 +290,7 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
     // Write points
     char *point = (char *) malloc(sizeof(char) * pwd_length);
-    for (long i = 0; i < new_len; i++) {
+    for (unsigned long long i = 0; i < new_len; i++) {
         memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
         fwrite(point, pwd_length, 1, (FILE *) sp_out_file);
         sp_success++;
@@ -296,7 +305,7 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
     long *success = (long *) malloc(sizeof(long) * 4);
     success[0] = mt;
-    success[1] = totalNewLen;
+    success[1] = new_len;
     success[2] = sp_success;
     success[3] = ep_success;
 

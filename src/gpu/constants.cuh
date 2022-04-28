@@ -14,7 +14,7 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 #define HASH_LENGTH 16
 
 // The length of a password.
-#define PASSWORD_LENGTH 4
+#define PASSWORD_LENGTH 5
 
 // How many thread per block to launch the hashKernel
 // MUST BE A POWER OF 2

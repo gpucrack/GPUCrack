@@ -235,26 +235,6 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
 
 }
 
-
-__host__ void writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug) {
-    std::ofstream file = openFile(path);
-
-    // Iterate through every end point
-    for (int i = 0; i < endNumber; i++) {
-        file << (*passwords)[i].bytes << "-->";
-        // Iterate through every byte of the end point
-        for (int j = 0; j < HASH_LENGTH; j++) {
-            char buf[HASH_LENGTH];
-            sprintf(buf, "%02X", (*results)[i].bytes[j]); // %02X formats as uppercase hex with leading zeroes
-            file << buf;
-        }
-        file << std::endl;
-    }
-
-    if (debug) printf("The end point reduction file was written.\n");
-    file.close();
-}
-
 __host__ int computeT(long mtMax, int pwd_length) {
     double domain = pow(CHARSET_LENGTH, pwd_length);
 
@@ -304,4 +284,147 @@ __host__ int getTotalSystemMemory() {
     if (value > 31.0) return 32;
     else if (value > 15.0) return 16;
     else if (value > 7.0) return 8;
+}
+
+__host__ unsigned long long *
+computeParameters(unsigned long long *parameters, int argc, char *argv[], bool debug) {
+
+    int pwd_length = atoi(argv[1]);
+
+    long domain = pow(CHARSET_LENGTH, pwd_length);
+
+    long idealM0 = (long)(0.1*(double)domain);
+
+    long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
+
+    long mtMax = getNumberPassword(atoi(argv[3]), pwd_length);
+
+    mtMax = idealMtMax;
+
+    long passwordNumber = idealM0;
+
+    int t = computeT(mtMax, pwd_length);
+
+    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
+    //int numberOfCPUPass = 3;
+
+    long batchSize = computeBatchSize(numberOfCPUPass, passwordNumber);
+
+    if (debug) {
+        printf("Number of CPU passes: %d\n", numberOfCPUPass);
+        printf("CPU batch size: %ld\n", batchSize);
+        printf("Password length: %d\n", pwd_length);
+        printf("m0: %ld\n", passwordNumber);
+        printf("mtMax: %ld\n", mtMax);
+        printf("Number of columns (t): %d\n\n", t);
+    }
+
+    parameters[0] = passwordNumber;
+    parameters[1] = mtMax;
+    parameters[2] = t;
+    parameters[3] = numberOfCPUPass;
+    parameters[4] = batchSize;
+
+    return parameters;
+}
+
+__host__ void generateTables(unsigned long long * parameters, Password * passwords, int argc, char *argv[]) {
+
+    char * path;
+    int pwd_length = atoi(argv[1]);
+    int tableNumber = atoi(argv[2]);
+
+    // User typed 'generateTable c n mt'
+    if (argc == 4) {
+        path = (char *) "test";
+    }
+
+    // User typed 'generateTable c n mt path'
+    if (argc == 5) {
+        path = argv[4];
+    }
+
+    unsigned long long passwordNumber = parameters[0];
+    unsigned long long t = parameters[2];
+    unsigned long long numberOfCPUPass = parameters[3];
+    unsigned long long batchSize = parameters[4];
+
+    for(int table=0; table < tableNumber; table++) {
+
+        unsigned long long tableOffset = table * passwordNumber;
+
+        // Generate file name according to table number
+        char startName[100];
+        char endName[100];
+        strcpy(startName, path);
+        strcat(startName, "_start_");
+        strcpy(endName, path);
+        strcat(endName, "_end_");
+        char tableChar[10];
+        sprintf(tableChar, "%d", table);
+        strcat(startName, tableChar);
+        strcat(startName, ".bin");
+        strcat(endName, tableChar);
+        strcat(endName, ".bin");
+
+
+        long currentPos = 0;
+
+        FILE * start_file;
+        FILE * end_file;
+
+        for(int i=0; i<numberOfCPUPass; i++) {
+
+            initPasswordArray(&passwords, batchSize, currentPos, tableOffset);
+
+            printf("current position: %ld\n", currentPos);
+
+            if (currentPos == 0){
+                createFile(startName, true);
+
+                start_file = fopen(startName, "wb");
+                if (start_file == nullptr) {
+                    printf("Can't open file %s\n", startName);
+                    exit(1);
+                }
+            }
+
+            writePoint(startName, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, start_file);
+
+            auto numberOfPass = memoryAnalysisGPU(batchSize);
+
+            generateChains(passwords, batchSize, numberOfPass, t,
+                           true, THREAD_PER_BLOCK, false, false, nullptr, pwd_length, startName, endName);
+
+            printf("Chains generated!\n");
+
+            if (currentPos == 0){
+                createFile(endName, true);
+
+                end_file = fopen(endName, "wb");
+                if (end_file == nullptr) {
+                    printf("Can't open file %s\n", endName);
+                    exit(1);
+                }
+            }
+
+            writePoint(endName, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, end_file);
+
+            currentPos += batchSize;
+
+            cudaFreeHost(passwords);
+        }
+
+        fclose(start_file);
+        fclose(end_file);
+
+        printf("Engaging filtration...\n");
+
+        // Clean the table by deleting duplicate endpoints
+        long *res = filter(startName, endName, startName, endName, numberOfCPUPass, batchSize);
+        if (res[2] == res[3]) {
+            printf("Filtration done!\n\n");
+            printf("The files have been generated with success.\n");
+        }
+    }
 }

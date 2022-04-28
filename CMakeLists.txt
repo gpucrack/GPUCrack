@@ -52,7 +52,8 @@ add_executable(chainCoverageTest
         src/gpu/test/chainCoverageTest.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/reduction/reduction.cu
-        src/gpu/hash/hash.cu)
+        src/gpu/hash/hash.cu
+        src/common/filtration.c)
 
 add_executable(chainBenchmarkTest
         src/gpu/chains.cu

@@ -18,6 +18,10 @@
 #include "./hash/hash.cuh"
 #include "./reduction/reduction.cuh"
 
+extern "C" {
+#include "../common/filtration.h"
+}
+
 __host__ void handleCudaError(cudaError_t status);
 
 // Generates passwordNumber random passwords, using a 62 character alphanumeric charset.
@@ -86,17 +90,6 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
                          unsigned long long totalLength, FILE *file);
 
 /**
- * Writes the last reductions of a table (password --> end point) into a text file.
- * @param path the path of the file to save.
- * @param passwords the array containing every password located in row t-1.
- * @param results the array containing every end point.
- * @param endNumber the number of end points (called m_t).
- * @param debug (default: false) to print a message when the file is written.
- */
-__host__ void
-writeEndingReduction(char *path, Password **passwords, Digest **results, int endNumber, bool debug = false);
-
-/**
  * Function used to compute t
  * @param goRam : How many Go of RAM we will use to compute t
  * @param mtMax : Number of chains we want in the end points (mt < m0)
@@ -127,5 +120,10 @@ __host__ long getM0(long mtMax, int pwd_length);
  * @return system RAM (CPU)
  */
 __host__ int getTotalSystemMemory();
+
+__host__ unsigned long long *
+computeParameters(unsigned long long *parameters, int argc, char *argv[], bool debug);
+
+__host__ void generateTables(unsigned long long * parameters, Password * passwords, int argc, char *argv[]);
 
 #endif //GPU_CRACK_COMMONS_CUH
