@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.1)
 project(GPU_crack CUDA CXX C)
 
 set(CMAKE_CUDA_STANDARD 14)
 
+find_package(MPI REQUIRED)
+
 include_directories(src/gpu/hash/hash_functions)
+include_directories(/usr/lib/x86_64-linux-gnu/openmpi/include)
 
 add_executable(hashBenchmarkTest
         src/gpu/hash/test/hashBenchmarkTest.cu
@@ -77,6 +80,14 @@ add_executable(generateTableTest
         src/gpu/reduction/reduction.cu
         src/common/filtration.c)
 
+add_executable(mpiGenerateTableTest
+        src/gpu/chains.cu
+        src/gpu/commons.cu
+        src/gpu/test/mpiGenerateTableTest.cu
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/gpu/reduction/reduction.cu
+        src/common/filtration.c)
+
 add_executable(online
         src/common/online.c)
 
@@ -117,8 +128,15 @@ set_target_properties(chainBenchmarkThreadTest PROPERTIES
 set_target_properties(generateTableTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
+set_target_properties(mpiGenerateTableTest PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
 set_target_properties(online PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
+
+target_link_libraries(mpiGenerateTableTest PRIVATE ${MPI_C_LIBRARIES})
+
+target_include_directories(mpiGenerateTableTest PRIVATE ${MPI_C_INCLUDE_PATH}) 
