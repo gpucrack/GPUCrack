@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 // The length of the charset.
 #define CHARSET_LENGTH 62

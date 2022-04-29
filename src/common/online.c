@@ -454,6 +454,7 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
     strcpy(password, ""); // password was not found
 }
 
+// TODO: adapt this function to the new structure of the tables
 int online_from_files_coverage(char *start_path, char *end_path, int pwd_length, int nb_cover) {
     FILE *fp;
     fp = fopen(start_path, "rb");
@@ -640,27 +641,6 @@ int online_from_files_coverage(char *start_path, char *end_path, int pwd_length,
     return numberFound;
 }
 
-int checkArgs(int argc) {
-    // Normal number of arguments
-    if (argc == 4) {
-        return 0;
-    }
-
-    // Abnormal number of arguments
-    if (argc < 4) {
-        printf("Error: not enough arguments were given.\n");
-    } else if (argc > 4) {
-        printf("Error: too many arguments were given.\n");
-    }
-    printf("Usage: 'online path -p password', where:"
-           "\n   - path is the path to the table (without '_start_N.bin')."
-           "\n   - password is the plain text password you're looking to crack. The program will thus hash it first, then try to crack it."
-           "\nOther usage: 'online path -h hash', where hash is the NTLM hash you're looking to crack."
-           "\nOther usage: 'online path -c N', where N is the number of exhaustively generated passwords you're looking to crack."
-           "\n\n");
-    exit(1);
-}
-
 int checkTables(char *path, int *nbTable, int *pwdLength) {
     int resNbTables = 0;
     int resPwdLength = 0;
@@ -749,68 +729,120 @@ int checkTables(char *path, int *nbTable, int *pwdLength) {
 }
 
 int main(int argc, char *argv[]) {
-    printf("GPUCrack v0.1.4\n"
-           "<https://github.com/gpucrack/GPUCrack/>\n\n");
+    printf("GPUCrack v0.1.4\n\n");
 
+    // Default values
+    int mode = 0; // 0: bad arguments, 1: password cracking, 2: single hash cracking, 3: multiple hashes cracking, 4: coverage test
+    char *path; // path to the table files (without '_start_N.bin') (-t)
+    char *pwd; // password to crack (-p)
+    char *hash; // hash to crack (-h)
+    int nbCoverage; // number of passwords to crack for coverage (-c)
+    char *hashFile; // file containing the hashes to crack (-m)
+
+    // Parse arguments
+    int opt;
+    while((opt = getopt(argc, argv, "t:p:h:c:m:")) != -1)
+    {
+        switch(opt)
+        {
+            case 't':
+                path = optarg;
+                break;
+            case 'p':
+                pwd = optarg;
+                mode = 1;
+                break;
+            case 'h':
+                hash = optarg;
+                mode = 2;
+                break;
+            case 'm':
+                hashFile = optarg;
+                mode = 3;
+                break;
+            case 'c':
+                nbCoverage = atoi(optarg);
+                mode = 4;
+                break;
+            case '?':
+            default:
+                printf ("Usage: %s -t <path> [-p <password>] [-h <hash>] [-c <nbCoverage>] [-m <hashFile>].\n"
+                        "    <path> is the path to the table (without '_start_N.bin')\n"
+                        "    (optional) <password> is the password you're looking to crack\n"
+                        "    (optional) <hash> is the hash you're looking to crack\n"
+                        "    (optional) <nbCoverage> is the number of passwords you want to crack to test the table's coverage\n"
+                        "    (optional) <hashFile> is the text file containing all the hashes you're looking to crack\n"
+                        , argv[0]);
+                break;
+        }
+    }
+
+    // Extra arguments (ignored)
+    if (optind < argc){
+        printf ("%d extra command-line arguments were given and will be ignored:\n", argc - optind);
+        for (; optind < argc; optind++) {
+            printf ("    '%s'\n", argv[optind]);
+        }
+    }
+
+    // Check the tables and retrieve their parameters
     int tableNb = 0;
     int pwdLength = 0;
-    checkArgs(argc);
-    checkTables(argv[1], &tableNb, &pwdLength);
+    checkTables(path, &tableNb, &pwdLength);
 
-    // User typed 'online table -p password'
-    if (strcmp(argv[2], "-p") == 0) {
-        const char *password = argv[3]; // the password we will be looking to crack, after it's hashed
-        unsigned char digest[HASH_LENGTH * 2]; // the hashed password
-        char found[pwdLength];
+    // Initialize variables
+    char found[pwdLength];
+    unsigned char digest[HASH_LENGTH * 2];
+    int foundNumber = 0;
 
-        ntlm(password, digest, pwdLength);
+    switch(mode) {
+        // Password cracking
+        case 1:
+            ntlm(pwd, digest, pwdLength); // TODO: replace digest with hash (test)
+            printf("Looking for password '%.*s', hashed as %s.\n", pwdLength, pwd, digest);
+            online_from_files(path, digest, found, pwdLength, tableNb);
+            break;
 
-        printf("Looking for password '%.*s', hashed as %s.\n", pwdLength, password, digest);
-        printf("Starting attack...\n");
+        // Single hash cracking
+        case 2:
+            // Convert hash to lowercase
+            for (int i = 0; hash[i]; i++) {
+                hash[i] = tolower(hash[i]);
+            }
+            printf("Looking for hash '%s'.\n", hash);
+            online_from_files(path, hash, found, pwdLength, tableNb);
+            break;
 
-        online_from_files(argv[1], digest, found, pwdLength, tableNb);
+        // Multiple hashes cracking
+        case 3:
+            // TODO
+            break;
 
-        if (!strcmp(found, "")) {
-            printf("No password found for the given hash.\n");
-        } else {
-            printf("Password '%.*s' found for the given hash!\n", pwdLength, found);
-        }
-        exit(0);
+        // Coverage test
+        case 4:
+            // TODO when online_from_files_coverage is implemented
+            //foundNumber = online_from_files_coverage(argv[1], pwd_length, nb_cover);
+            //printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
+            //printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
+            exit(0);
+
+        case 0:
+        default:
+            printf("Error: no instruction was given.\n");
+            printf ("Usage: %s -t <path> [-p <password>] [-h <hash>] [-c <nbCoverage>] [-m <hashFile>].\n"
+                    "    <path> is the path to the table (without '_start_N.bin')\n"
+                    "    (optional) <password> is the password you're looking to crack\n"
+                    "    (optional) <hash> is the hash you're looking to crack\n"
+                    "    (optional) <nbCoverage> is the number of passwords you want to crack to test the table's coverage\n"
+                    "    (optional) <hashFile> is the text file containing all the hashes you're looking to crack\n"
+                    , argv[0]);
+            exit(1);
     }
 
-        // User typed 'online table -h hash'
-    else if (strcmp(argv[2], "-h") == 0) {
-        char *digest = argv[3]; // the hashed password
-        char found[pwdLength];
-
-        // Convert hash to lowercase
-        for (int i = 0; digest[i]; i++) {
-            digest[i] = tolower(digest[i]);
-        }
-
-        printf("Looking to crack the ntlm hash '%s'.\n", digest);
-        printf("Starting attack...\n");
-
-        online_from_files(argv[1], digest, found, pwdLength, tableNb);
-
-        if (!strcmp(found, "")) {
-            printf("No password found for the given hash.\n");
-        } else {
-            printf("Password '%.*s' found for the given hash!\n", pwdLength, found);
-        }
-        exit(0);
+    if (!strcmp(found, "")) {
+        printf("No password found for the given hash.\n");
+    } else {
+        printf("Password '%.*s' found for the given hash!\n", pwdLength, found);
     }
-
-        // User typed 'online -c N'
-    else if (strcmp(argv[2], "-c") == 0) {
-        int nb_cover = atoi(argv[3]);
-
-        printf("Looking to crack %d passwords.\n", nb_cover);
-        printf("Starting the attacks...\n");
-
-        //int foundNumber = online_from_files_coverage(argv[1], pwd_length, nb_cover);
-
-        //printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
-        //printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
-    }
+    exit(0);
 }
