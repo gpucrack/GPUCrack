@@ -294,7 +294,7 @@ void ntlm(char *key, char *hash, int pwd_length) {
     strcpy(hash, hex_format);
 }
 
-void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable, int debug) {
+void online_from_files(char *path, char *digest, char *password, int pwd_length, int nbTable, int debug) {
     int t;
     unsigned long mt[nbTable];
     unsigned long mtTotal = 0;
@@ -780,7 +780,7 @@ int main(int argc, char *argv[]) {
                         "    -m : multiple hashes. <hashFile> is the text file containing all the hashes you're looking to crack.\n"
                         "    -d : debug mode. Prints false alerts and more details about the cracking process.\n"
                         , argv[0]);
-                break;
+                exit(1);
         }
     }
 
@@ -799,17 +799,18 @@ int main(int argc, char *argv[]) {
 
     // Initialize variables
     char found[pwdLength];
-    unsigned char digest[HASH_LENGTH * 2];
-    int foundNumber = 0;
+
 
     switch(mode) {
         // Password cracking
         case 1:
-            ntlm(pwd, digest, pwdLength); // TODO: replace digest with hash (test)
-            printf("Looking for password '%.*s', hashed as %s.\n", pwdLength, pwd, digest);
-            online_from_files(path, digest, found, pwdLength, tableNb, debug);
-            break;
-
+            {
+                char digest[HASH_LENGTH * 2];
+                ntlm(pwd, digest, pwdLength); // TODO: replace digest with hash (test)
+                printf("Looking for password '%.*s', hashed as %s.\n", pwdLength, pwd, digest);
+                online_from_files(path, digest, found, pwdLength, tableNb, debug);
+                break;
+            }
         // Single hash cracking
         case 2:
             // Convert hash to lowercase
@@ -822,16 +823,47 @@ int main(int argc, char *argv[]) {
 
         // Multiple hashes cracking
         case 3:
-            // TODO
-            break;
+            {
+            // Read hashes from file
+            FILE *fhashFile = fopen(hashFile, "r");
+            if (fhashFile == NULL) {
+                printf("Error: cannot open file '%s'\n", hashFile);
+                exit(1);
+            }
+            char line[HASH_LENGTH * 2 + 1];
+            while (fgets(line, sizeof(line), fhashFile) != NULL) {
+                char foundLocal[pwdLength];
+                // Remove newline character
+                line[strcspn(line, "\n")] = 0;
+                // Convert hash to lowercase
+                for (int i = 0; line[i]; i++) {
+                    line[i] = tolower(line[i]);
+                }
+                // If the hash is not empty
+                if (line[0] != '\0') {
+                    printf("Looking for hash '%s'.\n", line);
+                    online_from_files(path, line, foundLocal, pwdLength, tableNb, debug);
+                    if (!strcmp(foundLocal, "")) {
+                        printf("No password found for the hash '%s'.\n", line);
+                    } else {
+                        printf("Password '%.*s' found!\n", pwdLength, foundLocal);
+                    }
+                }
+            }
+
+                exit(0);
+            }
 
         // Coverage test
         case 4:
+        {
+            int foundNumber = 0;
             // TODO when online_from_files_coverage is implemented
             //foundNumber = online_from_files_coverage(argv[1], pwd_length, nb_cover);
             //printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
             //printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
             exit(0);
+        }
 
         case 0:
         default:

@@ -106,7 +106,7 @@ void ntlm(char *key, char *hash, int pwd_length);
  * @param nbTable the number of tables to be searched into.
  * @param debug if true, prints more detailed results.
  */
-void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable, int debug);
+void online_from_files(char *path, char *digest, char *password, int pwd_length, int nbTable, int debug);
 
 /**
  * Generates passwords in an exhaustive fashion and tries to crack them.
