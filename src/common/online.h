@@ -108,17 +108,6 @@ void ntlm(char *key, char *hash, int pwdLength);
 void online_from_files(char *path, char *digest, char *password, int pwdLength, int nbTable, int debug);
 
 /**
- * Generates passwords in an exhaustive fashion and tries to crack them.
- * @param path the path to the table's file(s) (without '_start_N.bin').
- * @param pwdLength the password length, read in the files.
- * @param nbCover the number of passwords that will be generated and cracked.
- * @param nbTable the number of tables to be searched into.
- * @param debug if true, prints more detailed results.
- * @return the number of passwords that were successfully cracked.
- */
-int online_from_files_coverage(char *path, int pwdLength, int nbCover, int nbTable, int debug);
-
-/**
  * Checks whether the correct number of arguments was given when the program was called.
  * @param argc the number of arguments.
  * @return 0 if the check was successful

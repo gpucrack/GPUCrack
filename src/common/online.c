@@ -456,194 +456,6 @@ void online_from_files(char *path, char *digest, char *password, int pwdLength, 
     strcpy(password, ""); // password was not found
 }
 
-/*
-// TODO: adapt this function to the new structure of the tables
-int online_from_files_coverage(char *path, int pwdLength, int nb_cover, int nbTable, int debug) {
-    FILE *fp;
-    fp = fopen(start_path, "rb");
-
-    if (fp == NULL)(exit(1));
-
-    char buff[255];
-    // Retrieve the number of points
-    fscanf(fp, "%s", buff);
-    unsigned long mt;
-    sscanf(buff, "%ld", &mt);
-    printf("Number of points (mt): %lu\n", mt);
-    fgets(buff, 255, (FILE *) fp);
-
-    // Retrieve the password length
-    fgets(buff, 255, (FILE *) fp);
-    printf("Password length: %d\n", pwdLength);
-
-    // Retrieve the chain length (t)
-    int t;
-    fgets(buff, 255, (FILE *) fp);
-    sscanf(buff, "%d", &t);
-    printf("Chain length (t): %d\n\n", t);
-
-    char *startpoints = malloc(sizeof(char) * pwdLength * mt);
-
-    long limit = (long) mt * (long) pwdLength;
-
-    char buff_sp[pwdLength];
-
-    for (long i = 0; i < limit; i = i + sizeof(char) * pwdLength) {
-        fread(buff_sp, pwdLength, 1, (FILE *) fp);
-        for (long j = i; j < i + pwdLength; j++) {
-            startpoints[j] = buff_sp[j - i];
-        }
-    }
-
-    // Close the start file
-    fclose(fp);
-
-    FILE *fp2;
-    char buff2[255];
-    fp2 = fopen(end_path, "rb");
-    fgets(buff2, 255, (FILE *) fp2);
-    fgets(buff2, 255, (FILE *) fp2);
-    fgets(buff2, 255, (FILE *) fp2);
-
-    char *endpoints = malloc(sizeof(char) * pwdLength * mt);
-
-    char buff_ep[pwdLength];
-
-    for (long i = 0; i < limit; i = i + sizeof(char) * pwdLength) {
-        fread(buff_ep, pwdLength, 1, (FILE *) fp);
-
-        for (long j = i; j < i + pwdLength; j++) {
-            endpoints[j] = buff_ep[j - i];
-        }
-    }
-
-    // Close the end file
-    fclose(fp2);
-
-    int numberFound = 0;
-
-    srand(time(NULL));
-
-    unsigned long long nb_hashes = 0;
-
-    for (int p = 0; p < nb_cover; p++) {
-
-        char password[pwdLength];
-        unsigned char digest[HASH_LENGTH * 2];
-
-        long counter = p;
-        // Generate one password
-        for (int n = 0; n < pwdLength; n++) {
-            //password[n] = charset[rand() % CHARSET_LENGTH];
-            password[n] = charset[counter % CHARSET_LENGTH];
-            counter /= CHARSET_LENGTH;
-        }
-
-        if ((p % 100) == 0) {
-            printf("%d: ", p);
-            for (int q = 0; q < pwdLength; q++) {
-                printf("%c", password[q]);
-            }
-            printf("\n");
-        }
-
-        //printf("%d / %d (%d found) - Trying with: %.*s", p+1, nb_cover, numberFound, pwdLength, password);
-
-        ntlm(password, digest, pwdLength);
-
-        //printf(" (%s)...", digest);
-
-        for (long i = t - 1; i >= 0; i--) {
-
-            char column_plainText[pwdLength];
-            unsigned char column_digest[HASH_LENGTH * 2];
-            strncpy(column_digest, digest, sizeof(unsigned char) * HASH_LENGTH * 2);
-
-            *//* DEBUG
-            if(p == 100) {
-                for(int q=0; q<HASH_LENGTH*2; q++){
-                    printf("%c", column_digest[q]);
-                }
-                printf(" === ");
-
-                for(int q=0; q<HASH_LENGTH*2; q++){
-                    printf("%c", digest[q]);
-                }
-                printf("\n");
-            }
-             *//*
-
-            // get the reduction corresponding to the current column
-            for (unsigned long k = i; k < t - 1; k++) {
-                *//* DEBUG
-                if(p == 100) {
-                    for(int q=0; q<HASH_LENGTH*2; q++){
-                        printf("%c", column_digest[q]);
-                    }
-                    printf(" --> ");
-                }
-                 *//*
-                reduce_digest(column_digest, k, column_plainText, pwdLength);
-                *//* DEBUG
-                if(p == 100) {
-                    for(int q=0; q<pwdLength; q++){
-                        printf("%c", column_plainText[q]);
-                    }
-                    printf(" --> ");
-                }
-                 *//*
-                ntlm(column_plainText, column_digest, pwdLength);
-                *//* DEBUG
-                if(p == 100) {
-                    for(int q=0; q<HASH_LENGTH*2; q++){
-                        printf("%c", column_digest[q]);
-                    }
-                    printf("\n");
-                }
-                 *//*
-                nb_hashes++;
-            }
-            reduce_digest(column_digest, t - 1, column_plainText, pwdLength);
-
-
-            long found = search_endpoint(&endpoints, column_plainText, mt, pwdLength);
-
-            if (found == -1) {
-                continue;
-            }
-
-            // we found a matching endpoint, reconstruct the chain
-            char chain_plainText[pwdLength];
-            unsigned char chain_digest[HASH_LENGTH * 2];
-
-            // Copy the startpoint into chain_plainText
-            for (long l = 0; l < pwdLength; l++) {
-                chain_plainText[l] = startpoints[(found * pwdLength) + l];
-            }
-
-            for (unsigned long k = 0; k < i; k++) {
-                ntlm(chain_plainText, chain_digest, pwdLength);
-                nb_hashes++;
-                reduce_digest(chain_digest, k, chain_plainText, pwdLength);
-            }
-            ntlm(chain_plainText, chain_digest, pwdLength);
-            nb_hashes++;
-
-            if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
-                strcpy(password, chain_plainText);
-                numberFound++;
-                //printf(" Found!");
-                break;
-            }
-        }
-        //printf("\n");
-    }
-
-    printf("\n%llu cryptographic operations were done.\n", nb_hashes);
-    printf("In theory, it should have been %llu.\n\n", nb_cover * compute_atk_time(mt, 1, t, compute_N(pwdLength)));
-    return numberFound;
-}*/
-
 int checkTables(char *path, int *nbTable, int *pwdLength) {
     int resNbTables = 0;
     int resPwdLength = 0;
@@ -791,6 +603,7 @@ int main(int argc, char *argv[]) {
         for (; optind < argc; optind++) {
             printf ("    '%s'\n", argv[optind]);
         }
+        printf("\n");
     }
 
     // Check the tables and retrieve their parameters
@@ -859,10 +672,35 @@ int main(int argc, char *argv[]) {
         case 4:
         {
             int foundNumber = 0;
-            // TODO when online_from_files_coverage is implemented
-            //foundNumber = online_from_files_coverage(argv[1], pwdLength, nb_cover);
-            //printf("%d out of %d passwords were cracked successfully.\n", foundNumber, nb_cover);
-            //printf("Success rate: %.2f %%\n", ((double) foundNumber / nb_cover) * 100);
+            // Initialize random seed
+            srand(time(0));
+            // nbCoverage loops
+            for (int i = 0; i < nbCoverage; i++) {
+
+                // Generate a random password using the charset
+                char pwdLocal[pwdLength];
+                for (int j = 0; j < pwdLength; j++) {
+                    pwdLocal[j] = charset[rand() % CHARSET_LENGTH];
+                }
+
+                pwdLocal[pwdLength] = '\0';
+                char digest[HASH_LENGTH * 2];
+                ntlm(pwdLocal, digest, pwdLength);
+
+                // Check if the password is in the table
+                printf("Looking for password '%.*s', hashed as %s.", pwdLength, pwdLocal, digest);
+                online_from_files(path, digest, found, pwdLength, tableNb, debug);
+                if (!strcmp(found, "")) {
+                    printf(" Not found\n");
+                }
+                else {
+                    printf(" Found\n");
+                    foundNumber++;
+                }
+            }
+
+            printf("\n%d out of %d passwords were cracked successfully.\n", foundNumber, nbCoverage);
+            printf("Success rate: %.2f %%\n", ((double) foundNumber / nbCoverage) * 100);
             exit(0);
         }
 
