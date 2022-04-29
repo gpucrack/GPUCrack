@@ -38,28 +38,28 @@ typedef union {
  * Searches for a specific char array in a list of endpoints.
  * Uses binary search algorithm.
  * @param endpoints the SORTED list of endpoints (as a char array array).
- * @param plain_text the endpoint to find.
+ * @param plainText the endpoint to find.
  * @param mt the number of endpoints in the list.
- * @param pwd_length the length of the password
+ * @param pwdLength the length of the password
  * @return the index of found value in the list if found, -1 otherwise.
  */
-unsigned long search_endpoint(char **endpoints, char *plain_text, unsigned long mt, int pwd_length);
+unsigned long search_endpoint(char **endpoints, char *plainText, unsigned long mt, int pwdLength);
 
 /**
  * Transforms a char array to a password.
  * @param text the char array.
  * @param password the resulting password.
- * @param pwd_length the length of the password.
+ * @param pwdLength the length of the password.
  */
-void char_to_password(char text[], Password *password, int pwd_length);
+void char_to_password(char text[], Password *password, int pwdLength);
 
 /**
  * Transforms a password to a char array.
  * @param password the password.
  * @param text the resulting chay array.
- * @param pwd_length the length of the password.
+ * @param pwdLength the length of the password.
  */
-void password_to_char(Password *password, char text[], int pwd_length);
+void password_to_char(Password *password, char text[], int pwdLength);
 
 /**
  * Transforms a char array into a digest.
@@ -82,41 +82,41 @@ void display_password(Password *pwd);
 
 /**
  * Reduces a digest into a password.
- * @param char_digest the digest to reduce.
+ * @param charDigest the digest to reduce.
  * @param index the column index (using rainbow table means the reduction function depends on the column).
- * @param char_plain the result of the reduction.
- * @param pwd_length the length of the password to produce.
+ * @param charPlain the result of the reduction.
+ * @param pwdLength the length of the password to produce.
  */
-void reduce_digest(char *char_digest, unsigned int index, char *char_plain, int pwd_length);
+void reduce_digest(char *charDigest, unsigned int index, char *charPlain, int pwdLength);
 
 /**
  * Hashes a key into its NTLM digest.
  * @param key the char array to hash.
  * @param hash the NTLM hash of key.
  */
-void ntlm(char *key, char *hash, int pwd_length);
+void ntlm(char *key, char *hash, int pwdLength);
 
 /**
  * Perform the online attack with the startpoint and endpoint files.
- * @param start_path the path to the startpoint file.
- * @param end_path the path to the endpoint file.
+ * @param path the path to the table's file(s) (without '_start_N.bin').
  * @param digest the digest we're looking to crack.
  * @param password if found, the password corresponding to the digest.
- * @param pwd_length the password length, read in the files.
+ * @param pwdLength the password length, read in the files.
  * @param nbTable the number of tables to be searched into.
  * @param debug if true, prints more detailed results.
  */
-void online_from_files(char *path, char *digest, char *password, int pwd_length, int nbTable, int debug);
+void online_from_files(char *path, char *digest, char *password, int pwdLength, int nbTable, int debug);
 
 /**
  * Generates passwords in an exhaustive fashion and tries to crack them.
- * @param start_path the path to the startpoint file.
- * @param end_path the path to the endpoint file.
- * @param pwd_length  the length of every password the table contains.
- * @param nb_cover the number of passwords to be cracked.
+ * @param path the path to the table's file(s) (without '_start_N.bin').
+ * @param pwdLength the password length, read in the files.
+ * @param nbCover the number of passwords that will be generated and cracked.
+ * @param nbTable the number of tables to be searched into.
+ * @param debug if true, prints more detailed results.
  * @return the number of passwords that were successfully cracked.
  */
-int online_from_files_coverage(char *start_path, char *end_path, int pwd_length, int nb_cover);
+int online_from_files_coverage(char *path, int pwdLength, int nbCover, int nbTable, int debug);
 
 /**
  * Checks whether the correct number of arguments was given when the program was called.
