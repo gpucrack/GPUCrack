@@ -294,7 +294,7 @@ void ntlm(char *key, char *hash, int pwd_length) {
     strcpy(hash, hex_format);
 }
 
-void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable) {
+void online_from_files(char *path, unsigned char *digest, char *password, int pwd_length, int nbTable, int debug) {
     int t;
     unsigned long mt[nbTable];
     unsigned long mtTotal = 0;
@@ -340,8 +340,10 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
         t = tTable;
     }
 
-    printf("Total number of end points (mtTotal): %lu\n", mtTotal);
-    printf("Chain length (t): %d\n\n", t);
+    if (debug) {
+        printf("Total number of end points (mtTotal): %lu\n", mtTotal);
+        printf("Chain length (t): %d\n\n", t);
+    }
 
     char **startpoints = malloc(sizeof(char) * pwd_length * mtTotal);
     char **endpoints = malloc(sizeof(char) * pwd_length * mtTotal);
@@ -421,7 +423,7 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
                 continue;
             }
 
-            printf("Match found in chain number %ld of table %d...", found, table);
+            if (debug) printf("Match found in chain number %ld of table %d...", found, table);
 
             // We found a matching endpoint: reconstruct the chain
             char chain_plain_text[pwd_length];
@@ -443,11 +445,11 @@ void online_from_files(char *path, unsigned char *digest, char *password, int pw
 
             // Check if the computed hash is the one we're looking for
             if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
-                printf(" Password cracked! (column=%ld)\n", i);
+                if (debug) printf(" Password cracked! (column=%ld)\n", i);
                 memcpy(password, chain_plain_text, pwd_length);
                 return;
             }
-            printf(" False alert. (column=%ld)\n", i);
+            if (debug) printf(" False alert. (column=%ld)\n", i);
         } while (table < nbTable - 1);
     }
 
@@ -738,10 +740,11 @@ int main(int argc, char *argv[]) {
     char *hash; // hash to crack (-h)
     int nbCoverage; // number of passwords to crack for coverage (-c)
     char *hashFile; // file containing the hashes to crack (-m)
+    int debug = 0; // debug mode (-d)
 
     // Parse arguments
     int opt;
-    while((opt = getopt(argc, argv, "t:p:h:c:m:")) != -1)
+    while((opt = getopt(argc, argv, "t:p:h:c:m:d")) != -1)
     {
         switch(opt)
         {
@@ -764,14 +767,18 @@ int main(int argc, char *argv[]) {
                 nbCoverage = atoi(optarg);
                 mode = 4;
                 break;
+            case 'd':
+                debug = 1;
+                break;
             case '?':
             default:
-                printf ("Usage: %s -t <path> [-p <password>] [-h <hash>] [-c <nbCoverage>] [-m <hashFile>].\n"
+                printf ("Usage: %s -t <path> [-p <password>] [-h <hash>] [-c <nbCoverage>] [-m <hashFile>] [-d].\n"
                         "    <path> is the path to the table (without '_start_N.bin')\n"
-                        "    (optional) <password> is the password you're looking to crack\n"
-                        "    (optional) <hash> is the hash you're looking to crack\n"
-                        "    (optional) <nbCoverage> is the number of passwords you want to crack to test the table's coverage\n"
-                        "    (optional) <hashFile> is the text file containing all the hashes you're looking to crack\n"
+                        "    -p : plaintext cracking. <password> is the plain-text password you're looking to crack.\n"
+                        "    -h : single hash cracking. <hash> is the hash you're looking to crack.\n"
+                        "    -c : coverage test. <nbCoverage> is the number of passwords you want to crack to test the table's coverage.\n"
+                        "    -m : multiple hashes. <hashFile> is the text file containing all the hashes you're looking to crack.\n"
+                        "    -d : debug mode. Prints false alerts and more details about the cracking process.\n"
                         , argv[0]);
                 break;
         }
@@ -800,7 +807,7 @@ int main(int argc, char *argv[]) {
         case 1:
             ntlm(pwd, digest, pwdLength); // TODO: replace digest with hash (test)
             printf("Looking for password '%.*s', hashed as %s.\n", pwdLength, pwd, digest);
-            online_from_files(path, digest, found, pwdLength, tableNb);
+            online_from_files(path, digest, found, pwdLength, tableNb, debug);
             break;
 
         // Single hash cracking
@@ -810,7 +817,7 @@ int main(int argc, char *argv[]) {
                 hash[i] = tolower(hash[i]);
             }
             printf("Looking for hash '%s'.\n", hash);
-            online_from_files(path, hash, found, pwdLength, tableNb);
+            online_from_files(path, hash, found, pwdLength, tableNb, debug);
             break;
 
         // Multiple hashes cracking
@@ -829,12 +836,13 @@ int main(int argc, char *argv[]) {
         case 0:
         default:
             printf("Error: no instruction was given.\n");
-            printf ("Usage: %s -t <path> [-p <password>] [-h <hash>] [-c <nbCoverage>] [-m <hashFile>].\n"
+            printf ("Usage: %s -t <path> [-p <password>] [-h <hash>] [-c <nbCoverage>] [-m <hashFile>] [-d].\n"
                     "    <path> is the path to the table (without '_start_N.bin')\n"
-                    "    (optional) <password> is the password you're looking to crack\n"
-                    "    (optional) <hash> is the hash you're looking to crack\n"
-                    "    (optional) <nbCoverage> is the number of passwords you want to crack to test the table's coverage\n"
-                    "    (optional) <hashFile> is the text file containing all the hashes you're looking to crack\n"
+                    "    -p : plaintext cracking. <password> is the plain-text password you're looking to crack.\n"
+                    "    -h : single hash cracking. <hash> is the hash you're looking to crack.\n"
+                    "    -c : coverage test. <nbCoverage> is the number of passwords you want to crack to test the table's coverage.\n"
+                    "    -m : multiple hashes. <hashFile> is the text file containing all the hashes you're looking to crack.\n"
+                    "    -d : debug mode. Prints false alerts and more details about the cracking process.\n"
                     , argv[0]);
             exit(1);
     }
