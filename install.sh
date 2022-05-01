@@ -25,8 +25,8 @@ if [[ "$error_check" == *"The CUDA compiler identification is unknown"* || "$err
     nvcc_path=$(which nvcc)
     echo "nvcc_path: $nvcc_path"
     if [ -z "$nvcc_path" ]; then
-        printf "NVCC not found. Please install CUDA and try again.\n"
-        exit 1
+        printf "NVCC not found. Please install CUDA and try again.\nIf you are sure CUDA is installed on your system, enter the full path to the nvcc executable :"
+        read nvcc_path
     fi
     rm -rf ./CMakeFiles
     rm ./CMakeCache.txt
