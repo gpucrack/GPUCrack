@@ -122,3 +122,5 @@ set_target_properties(online PROPERTIES
 
 set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
+
+target_link_libraries(online PRIVATE m)

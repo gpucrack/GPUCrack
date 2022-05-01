@@ -35,8 +35,8 @@ typedef union {
 } Digest;
 
 /**
- * Searches for a specific char array in a list of endpoints.
- * Uses binary search algorithm.
+ * Searches for a specific char array in a list of end points.
+ * Uses a binary search algorithm, therefore the list of end points must be sorted.
  * @param endpoints the SORTED list of endpoints (as a char array array).
  * @param plainText the endpoint to find.
  * @param mt the number of endpoints in the list.
@@ -46,7 +46,7 @@ typedef union {
 unsigned long search_endpoint(char **endpoints, char *plainText, unsigned long mt, int pwdLength);
 
 /**
- * Transforms a char array to a password.
+ * Transforms a char array to a Password struct.
  * @param text the char array.
  * @param password the resulting password.
  * @param pwdLength the length of the password.
@@ -54,7 +54,7 @@ unsigned long search_endpoint(char **endpoints, char *plainText, unsigned long m
 void char_to_password(char text[], Password *password, int pwdLength);
 
 /**
- * Transforms a password to a char array.
+ * Transforms a Password struct to a char array.
  * @param password the password.
  * @param text the resulting chay array.
  * @param pwdLength the length of the password.
@@ -62,26 +62,14 @@ void char_to_password(char text[], Password *password, int pwdLength);
 void password_to_char(Password *password, char text[], int pwdLength);
 
 /**
- * Transforms a char array into a digest.
+ * Transforms a char array into a Digest struct.
  * @param text the char array.
  * @param digest the resulting digest.
  */
 void char_to_digest(char text[], Digest *digest, int len);
 
 /**
- * Prints a digest in the console.
- * @param digest the digest to print.
- */
-void display_digest(Digest *digest);
-
-/**
- * Prints a password in the console.
- * @param pwd the password to print.
- */
-void display_password(Password *pwd);
-
-/**
- * Reduces a digest into a password.
+ * Reduces the given digest into a plain-text password using characters from the charset.
  * @param charDigest the digest to reduce.
  * @param index the column index (using rainbow table means the reduction function depends on the column).
  * @param charPlain the result of the reduction.
@@ -90,14 +78,14 @@ void display_password(Password *pwd);
 void reduce_digest(char *charDigest, unsigned int index, char *charPlain, int pwdLength);
 
 /**
- * Hashes a key into its NTLM digest.
+ * Hashes a plain-text char array into its NTLM digest.
  * @param key the char array to hash.
  * @param hash the NTLM hash of key.
  */
 void ntlm(char *key, char *hash, int pwdLength);
 
 /**
- * Perform the online attack with the startpoint and endpoint files.
+ * Tries to crack a password using rainbow tables.
  * @param path the path to the table's file(s) (without '_start_N.bin').
  * @param digest the digest we're looking to crack.
  * @param password if found, the password corresponding to the digest.
@@ -106,13 +94,6 @@ void ntlm(char *key, char *hash, int pwdLength);
  * @param debug if true, prints more detailed results.
  */
 void online_from_files(char *path, char *digest, char *password, int pwdLength, int nbTable, int debug);
-
-/**
- * Checks whether the correct number of arguments was given when the program was called.
- * @param argc the number of arguments.
- * @return 0 if the check was successful
- */
-int checkArgs(int argc);
 
 /**
  * Retrieves the number of tables provided and the length of its passwords.
