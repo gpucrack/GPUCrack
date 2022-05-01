@@ -117,9 +117,6 @@ set_target_properties(chainBenchmarkThreadTest PROPERTIES
 set_target_properties(generateTableTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(online PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
 set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
