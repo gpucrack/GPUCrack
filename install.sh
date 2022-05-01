@@ -6,6 +6,10 @@ printf "GPUCrack v0.1.4\n\nThis script will install GPUCrack on your system base
 printf "Do you want to install the GPUCrack NTLM table generator? (CUDA needed) (y/n): "
 read install_gpucrack_ntlm
 if [ "$install_gpucrack_ntlm" = "y" ]; then
+    printf "What is the length of the passwords you want to generate tables for? (1-8): "
+    read pwd_length
+    modified_file=$(sed "s/^#define PASSWORD_LENGTH.*/#define PASSWORD_LENGTH ${pwd_length}/" ./src/gpu/constants.cuh)
+    echo "$modified_file" > ./src/gpu/constants.cuh
     printf "Installing the GPUCrack NTLM table generator...  "
 fi
 if [ "$install_gpucrack_ntlm" = "n" ]; then
