@@ -46,7 +46,7 @@ typedef union {
 unsigned long search_endpoint(char **endpoints, char *plainText, unsigned long mt, int pwdLength);
 
 /**
- * Transforms a char array to a Password struct.
+ * Transforms a char array to a Password union.
  * @param text the char array.
  * @param password the resulting password.
  * @param pwdLength the length of the password.
@@ -54,7 +54,7 @@ unsigned long search_endpoint(char **endpoints, char *plainText, unsigned long m
 void char_to_password(char text[], Password *password, int pwdLength);
 
 /**
- * Transforms a Password struct to a char array.
+ * Transforms a Password union to a char array.
  * @param password the password.
  * @param text the resulting chay array.
  * @param pwdLength the length of the password.
@@ -62,7 +62,7 @@ void char_to_password(char text[], Password *password, int pwdLength);
 void password_to_char(Password *password, char text[], int pwdLength);
 
 /**
- * Transforms a char array into a Digest struct.
+ * Transforms a char array into a Digest union.
  * @param text the char array.
  * @param digest the resulting digest.
  */
