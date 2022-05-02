@@ -131,12 +131,11 @@ set_target_properties(generateTableTest PROPERTIES
 set_target_properties(mpiGenerateTableTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(online PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
 set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(mpiGenerateTableTest PRIVATE ${MPI_C_LIBRARIES})
 
 target_include_directories(mpiGenerateTableTest PRIVATE ${MPI_C_INCLUDE_PATH}) 
+
+target_link_libraries(online PRIVATE m)
