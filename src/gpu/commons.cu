@@ -47,7 +47,7 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
 }
 
 // Returns the number of batch that we need to do
-__host__ int memoryAnalysisGPU(long passwordNumber) {
+__host__ int memoryAnalysisGPU(unsigned long long passwordNumber) {
 
     printf("\n==========GPU MEMORY ANALYSIS==========\n");
 
@@ -118,33 +118,33 @@ __host__ int memoryAnalysisGPU(long passwordNumber) {
     return finalNumberOfPass;
 }
 
-__host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory) {
+__host__ int memoryAnalysisCPU(unsigned long long passwordNumber, unsigned long long passwordMemory) {
 
     if (passwordNumber > passwordMemory) {
-        long numberOfPass = (long) ((long) passwordNumber / (long) passwordMemory);
-        return (int) numberOfPass + 1;
+        int numberOfPass = (int)((unsigned long long)((unsigned long long) passwordNumber / (unsigned long long) passwordMemory));
+        return numberOfPass + 1;
     } else {
         return 1;
     }
 }
 
-__host__ long computeBatchSize(int numberOfPass, long passwordNumber) {
+__host__ unsigned long long computeBatchSize(int numberOfPass, unsigned long long passwordNumber) {
     // If we have less than 1 round then the batch size is the number of passwords
-    if (numberOfPass > 1) return (long)(((long)passwordNumber / (long) numberOfPass)) + 1;
-    else return passwordNumber + 1;
+    if (numberOfPass > 1) return (unsigned long long)(((unsigned long long)passwordNumber / (unsigned long long) numberOfPass)) + 1;
+    else return passwordNumber;
 }
 
-__host__ void initEmptyArrays(Password **passwords, Digest **results, long passwordNumber) {
-    handleCudaError(cudaMallocHost(passwords, passwordNumber * sizeof(Password), cudaHostAllocDefault));
+__host__ void initEmptyArrays(Password **passwords, Digest **results, unsigned long long passwordNumber) {
+    handleCudaError(cudaMallocHost(passwords, (unsigned long long)passwordNumber * (unsigned long long)sizeof(Password), cudaHostAllocDefault));
     handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber) {
+__host__ void initArrays(Password **passwords, Digest **results, unsigned long long passwordNumber) {
     generatePasswords(passwords, passwordNumber, 0, 0);
-    handleCudaError(cudaMallocHost(results, passwordNumber * sizeof(Digest), cudaHostAllocDefault));
+    handleCudaError(cudaMallocHost(results, (unsigned long long)passwordNumber * (unsigned long long)sizeof(Digest), cudaHostAllocDefault));
 }
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset, unsigned long long tableOffset) {
+__host__ void initPasswordArray(Password **passwords, unsigned long long passwordNumber, unsigned long long offset, unsigned long long tableOffset) {
     generatePasswords(passwords, passwordNumber, offset, tableOffset);
 }
 
@@ -182,7 +182,7 @@ __host__ std::ofstream openFile(const char *path) {
     return file;
 }
 
-__host__ void writePoint(char *path, Password **passwords, long number, int t, int pwd_length, bool debug, long start,
+__host__ void writePoint(char *path, Password **passwords, unsigned long long number, int t, int pwd_length, bool debug, unsigned long long start,
                          unsigned long long totalLength, FILE *file) {
 
     double program_time_used;
@@ -192,7 +192,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
     if (start == 0) {
 
         int numLen = 0;
-        long numSave = totalLength;
+        unsigned long long numSave = totalLength;
 
         while (numSave != 0) {
             numSave /= 10;
@@ -200,7 +200,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
         }
 
         char num[numLen];
-        sprintf(num, "%ld", totalLength);
+        sprintf(num, "%llu", totalLength);
 
         int pwdlLen = 1;
         char pwdl[pwdlLen];
@@ -224,7 +224,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
     }
 
     // Iterate through every point
-    for (long i = 0; i < number; i++) {
+    for (unsigned long long i = 0; i < number; i++) {
         fwrite((*passwords)[i].bytes, sizeof(uint8_t) * pwd_length, 1, file);
     }
 
@@ -235,11 +235,11 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
 
 }
 
-__host__ int computeT(long mtMax, int pwd_length) {
-    double domain = pow(CHARSET_LENGTH, pwd_length);
+__host__ int computeT(unsigned long long mtMax, int pwd_length) {
+    double domain = pow((double)CHARSET_LENGTH, (double)pwd_length);
 
     // Compute t knowing mtMax
-    int result = (int) ((double) ((double) (2 * domain) / (double) mtMax)) + 1;
+    int result = (int)((double) ((double) (2 * domain) / (double)mtMax)) + 1;
 
     return result;
 }
@@ -291,31 +291,31 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
 
     int pwd_length = atoi(argv[1]);
 
-    long domain = pow(CHARSET_LENGTH, pwd_length);
+    unsigned long long domain = (unsigned long long)pow((double)CHARSET_LENGTH, (double)pwd_length);
 
-    long idealM0 = (long)(0.01*(double)domain) + 1;
+    unsigned long long idealM0 = (unsigned long long)((double)0.001*(double)domain) + 1;
 
-    long idealMtMax = (long)((double)((double)idealM0/(double)19.83)) + 1;
+    unsigned long long idealMtMax = (unsigned long long)((double)((double)idealM0/(double)19.83)) + 1;
 
-    long mtMax = getNumberPassword(atoi(argv[3]), pwd_length);
+    unsigned long long mtMax = getNumberPassword(atoi(argv[3]), pwd_length);
 
     mtMax = idealMtMax;
 
-    long passwordNumber = idealM0;
+    unsigned long long passwordNumber = idealM0;
 
     int t = computeT(mtMax, pwd_length);
 
     auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
     //int numberOfCPUPass = 3;
 
-    long batchSize = computeBatchSize(numberOfCPUPass, passwordNumber);
+    unsigned long long batchSize = computeBatchSize(numberOfCPUPass, passwordNumber);
 
     if (debug) {
         printf("Number of CPU passes: %d\n", numberOfCPUPass);
-        printf("CPU batch size: %ld\n", batchSize);
+        printf("CPU batch size: %llu\n", batchSize);
         printf("Password length: %d\n", pwd_length);
-        printf("m0: %ld\n", passwordNumber);
-        printf("mtMax: %ld\n", mtMax);
+        printf("m0: %llu\n", passwordNumber);
+        printf("mtMax: %llu\n", mtMax);
         printf("Number of columns (t): %d\n\n", t);
     }
 
@@ -328,7 +328,7 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
     return parameters;
 }
 
-__host__ void generateTables(unsigned long long * parameters, Password * passwords, int argc, char *argv[]) {
+__host__ void generateTables(const unsigned long long * parameters, Password * passwords, int argc, char *argv[]) {
 
     char * path;
     int pwd_length = atoi(argv[1]);
@@ -351,7 +351,7 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
 
     for(int table=0; table < tableNumber; table++) {
 
-        unsigned long long tableOffset = table * passwordNumber;
+        unsigned long long tableOffset = (unsigned long long)table * (unsigned long long)passwordNumber;
 
         // Generate file name according to table number
         char startName[100];
@@ -368,7 +368,7 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
         strcat(endName, ".bin");
 
 
-        long currentPos = 0;
+        unsigned long long currentPos = 0;
 
         FILE * start_file;
         FILE * end_file;
@@ -377,7 +377,7 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
 
             initPasswordArray(&passwords, batchSize, currentPos, tableOffset);
 
-            printf("current position: %ld\n", currentPos);
+            printf("current position: %llu\n", currentPos);
 
             if (currentPos == 0){
                 createFile(startName, true);
@@ -389,11 +389,11 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
                 }
             }
 
-            writePoint(startName, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, start_file);
+            writePoint(startName, &passwords, batchSize, (int)t, pwd_length, true, currentPos, passwordNumber, start_file);
 
             auto numberOfPass = memoryAnalysisGPU(batchSize);
 
-            generateChains(passwords, batchSize, numberOfPass, t,
+            generateChains(passwords, batchSize, numberOfPass, (int)t,
                            true, THREAD_PER_BLOCK, false, false, nullptr, pwd_length, startName, endName);
 
             printf("Chains generated!\n");
@@ -408,7 +408,7 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
                 }
             }
 
-            writePoint(endName, &passwords, batchSize, t, pwd_length, true, currentPos, passwordNumber, end_file);
+            writePoint(endName, &passwords, batchSize, (int)t, pwd_length, true, currentPos, passwordNumber, end_file);
 
             currentPos += batchSize;
 
@@ -421,7 +421,7 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
         printf("Engaging filtration...\n");
 
         // Clean the table by deleting duplicate endpoints
-        long *res = filter(startName, endName, startName, endName, numberOfCPUPass, batchSize, path);
+        long *res = filter(startName, endName, startName, endName, (int)numberOfCPUPass, batchSize, path);
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
             printf("The files have been generated with success.\n");

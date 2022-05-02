@@ -12,21 +12,21 @@ void swap(void *v1, void *v2, long size) {
     memcpy(v2, buffer, size);
 }
 
-void q_sort(void *v, void *m, long size, long long int left, long long int right, int (*comp)(void *, void *, int)) {
-    void *vt, *v3, *mt, *m3;
-    long long i, last, mid = (left + right) / 2;
+void q_sort(void *v, void *m, long size, long long left, long long right, int (*comp)(void *, void *, int)) {
+    char *vt, *v3, *mt, *m3;
+    long long i, last, mid = (long long)(((long long)left + (long long)right) / (long long)2);
     if (left >= right) {
         return;
     }
 
     // v left value
-    void *vl = (char *) (v + (left * size));
+    char *vl = (char *) (v + (long long)((long long)left * (long long)size));
     // v right value
-    void *vr = (char *) (v + (mid * size));
+    char *vr = (char *) (v + (long long)((long long)mid * (long long)size));
     // m left value
-    void *ml = (char *) (m + (left * size));
+    char *ml = (char *) (m + (long long)((long long)left * (long long)size));
     // m right value
-    void *mr = (char *) (m + (mid * size));
+    char *mr = (char *) (m + (long long)((long long)mid * (long long)size));
 
     swap(vl, vr, size);
     swap(ml, mr, size);
@@ -37,18 +37,18 @@ void q_sort(void *v, void *m, long size, long long int left, long long int right
         // vl and vt will have the starting address
         // of the elements which will be passed to
         // comp function.
-        vt = (char *) (v + (i * size));
-        mt = (char *) (m + (i * size));
+        vt = (char *) (v + (long long)((long long)i * (long long)size));
+        mt = (char *) (m + (long long)((long long)i * (long long)size));
         if ((*comp)(vl, vt, size) > 0) {
             ++last;
-            v3 = (char *) (v + (last * size));
-            m3 = (char *) (m + (last * size));
+            v3 = (char *) (v + (long long)((long long)last * (long long)size));
+            m3 = (char *) (m + (long long)((long long)last * (long long)size));
             swap(vt, v3, size);
             swap(mt, m3, size);
         }
     }
-    v3 = (char *) (v + (last * size));
-    m3 = (char *) (m + (last * size));
+    v3 = (char *) (v + (long long)((long long)last * (long long)size));
+    m3 = (char *) (m + (long long)((long long)last * (long long)size));
     swap(vl, v3, size);
     swap(ml, m3, size);
 
@@ -60,13 +60,13 @@ void q_sort(void *v, void *m, long size, long long int left, long long int right
 long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(void *, void *, int)) {
     long long index = 1;
     for (long long i = 1; i < mt; i++) {
-        char *prev = (char *) (v + ((i - 1) * size));
-        char *actual = (char *) (v + (i * size));
-        char *mirror = (char *) (m + (i * size));
+        char *prev = (char *) (v + (long long)((long long)(i - 1) * (long long)size));
+        char *actual = (char *) (v + (long long)((long long)i * (long long)size));
+        char *mirror = (char *) (m + (long long)((long long)i * (long long)size));
 
         if ((*comp)(prev, actual, size) != 0) {
-            char *indexed = (char *) (v + (index * size));
-            char *indexed_mirror = (char *) (m + (index * size));
+            char *indexed = (char *) (v + (long long)((long long)index * (long long)size));
+            char *indexed_mirror = (char *) (m + (long long)((long long)index * (long long)size));
             memcpy(indexed, actual, size);
             memcpy(indexed_mirror, mirror, size);
 
@@ -148,8 +148,8 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
     }
 
     // Write the header
-    fprintf(sp_out_file, "%ld\n", batchSize);
-    fprintf(ep_out_file, "%ld\n", batchSize);
+    fprintf(sp_out_file, "%llu\n", batchSize);
+    fprintf(ep_out_file, "%llu\n", batchSize);
     fprintf(sp_out_file, "%d\n", pwd_length);
     fprintf(ep_out_file, "%d\n", pwd_length);
     fprintf(sp_out_file, "%d\n", t);
@@ -157,7 +157,7 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
 
     for(int q=0; q<numberOfPasses; q++) {
 
-        unsigned long long limit = batchSize * (long) pwd_length;
+        unsigned long long limit = (unsigned long long)batchSize * (unsigned long long)pwd_length;
 
         // Retrieve the points
         char *startpoints = (char *) malloc(sizeof(char) * limit);
@@ -285,8 +285,8 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
     }
 
     // Write the header
-    fprintf(sp_out_file, "%lld\n", new_len);
-    fprintf(ep_out_file, "%lld\n", new_len);
+    fprintf(sp_out_file, "%llu\n", new_len);
+    fprintf(ep_out_file, "%llu\n", new_len);
     fprintf(sp_out_file, "%d\n", pwd_length);
     fprintf(ep_out_file, "%d\n", pwd_length);
     fprintf(sp_out_file, "%d\n", t);

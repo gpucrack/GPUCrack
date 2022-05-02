@@ -28,7 +28,7 @@ void swap(void *v1, void *v2, long size);
  * @param right end of array.
  * @param comp pointer to the comparison function.
  */
-void q_sort(void *v, void *m, long size, long long int left, long long int right, int (*comp)(void *, void *, int));
+void q_sort(void *v, void *m, long size, long long left, long long right, int (*comp)(void *, void *, int));
 
 /**
  * Deletes all duplicates in an array.

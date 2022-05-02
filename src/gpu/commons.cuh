@@ -33,18 +33,18 @@ __host__ void generatePasswords(Password **result, long passwordNumber, unsigned
 __host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
 
 // Returns the number of batches that we need to do
-__host__ int memoryAnalysisGPU(long passwordNumber);
+__host__ int memoryAnalysisGPU(unsigned long long passwordNumber);
 
-__host__ int memoryAnalysisCPU(long passwordNumber, long passwordMemory);
+__host__ int memoryAnalysisCPU(unsigned long long passwordNumber, unsigned long long passwordMemory);
 
 // Returns the size a batch should have
-__host__ long computeBatchSize(int numberOfPass, long passwordNumber);
+__host__ unsigned long long computeBatchSize(int numberOfPass, unsigned long long passwordNumber);
 
-__host__ void initEmptyArrays(Password **passwords, Digest **results, long passwordNumber);
+__host__ void initEmptyArrays(Password **passwords, Digest **results, unsigned long long passwordNumber);
 
-__host__ void initArrays(Password **passwords, Digest **results, long passwordNumber);
+__host__ void initArrays(Password **passwords, Digest **results, unsigned long long passwordNumber);
 
-__host__ void initPasswordArray(Password **passwords, long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
+__host__ void initPasswordArray(Password **passwords, unsigned long long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
 
 /**
  * Prints the name and the version of the product in the console.
@@ -86,7 +86,7 @@ __host__ std::ofstream openFile(const char *path);
  * @param pwd_length the length of a password (in characters).
  * @param debug (default: false) to print a message when the file is written.
  */
-__host__ void writePoint(char *path, Password **passwords, long number, int t, int pwd_length, bool debug, long start,
+__host__ void writePoint(char *path, Password **passwords, unsigned long long number, int t, int pwd_length, bool debug, unsigned long long start,
                          unsigned long long totalLength, FILE *file);
 
 /**
@@ -96,7 +96,7 @@ __host__ void writePoint(char *path, Password **passwords, long number, int t, i
  * @param pwd_length the length of a password (in characters).
  * @return the number of columns in a chain
  */
-__host__ int computeT(long mtMax, int pwd_length);
+__host__ int computeT(unsigned long long mtMax, int pwd_length);
 
 /**
  * Function used to get the maximum number of password to input based on RAM.
@@ -124,6 +124,6 @@ __host__ int getTotalSystemMemory();
 __host__ unsigned long long *
 computeParameters(unsigned long long *parameters, int argc, char *argv[], bool debug);
 
-__host__ void generateTables(unsigned long long * parameters, Password * passwords, int argc, char *argv[]);
+__host__ void generateTables(const unsigned long long * parameters, Password * passwords, int argc, char *argv[]);
 
 #endif //GPU_CRACK_COMMONS_CUH
