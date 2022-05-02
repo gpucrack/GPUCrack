@@ -95,9 +95,6 @@ add_executable(filtrationTest
         src/common/test/filtrationTest.c
         src/common/filtration.c)
 
-add_executable(test
-        src/common/test/test.cpp)
-
 set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
@@ -136,10 +133,5 @@ set_target_properties(tableCoverageTest PROPERTIES
 
 set_target_properties(filtrationTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
-
-set_target_properties(test PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
-target_link_libraries(test PRIVATE m)
 
 target_link_libraries(online PRIVATE m)
