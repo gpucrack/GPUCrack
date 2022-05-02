@@ -131,9 +131,6 @@ set_target_properties(chainBenchmarkThreadTest PROPERTIES
 set_target_properties(generateTableTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
-set_target_properties(online PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
 set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
@@ -144,3 +141,5 @@ set_target_properties(test PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(test PRIVATE m)
+
+target_link_libraries(online PRIVATE m)

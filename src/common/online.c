@@ -1,56 +1,5 @@
 #include "online.h"
 
-unsigned long long power(unsigned long long x, unsigned long long y) {
-    if (y == 0) return 0;
-    unsigned long long res = 1;
-    for (unsigned long long i = 0; i < y; i++) {
-        res *= x;
-    }
-    return res;
-}
-
-// Number of possible passwords given its domain (length and number of characters used).
-unsigned long long compute_N(unsigned char pwdLength) {
-    return power((unsigned long long) CHARSET_LENGTH, (unsigned long long) pwdLength);
-}
-
-// Compute qi using the approximate formula (alpha must be > 0.9)
-unsigned long long compute_qi(unsigned long m, unsigned int t, unsigned long long N, unsigned long i) {
-    return 1 - (m / N) - (i * (i - 1)) / (t * (t + 1));
-}
-
-unsigned long long compute_pk(unsigned long m, unsigned long long N, unsigned long k) {
-    return (m / N) * power((1 - (m / N)), k - 1);
-}
-
-// l: number of tables
-unsigned long long compute_atk_time(unsigned long m, unsigned char l, unsigned int t, unsigned long long N) {
-
-    unsigned long long left_part = 0;
-
-    for (unsigned long k = 1; k < (l * t) + 1; k++) {
-        unsigned int c = t - ((k - 1) / l);
-
-        // Compute the sum on the left parenthesis with qi
-        unsigned long long left_qsum = 0;
-        for (unsigned int i = c; i < t + 1; i++) {
-            left_qsum += compute_qi(m, t, N, i) * i;
-        }
-
-        left_part += compute_pk(m, N, k) * ((((t - c) * (t - c + 1)) / 2) + left_qsum) * l;
-    }
-
-    // Compute the sum on the right parenthesis with qi
-    unsigned long long right_qsum = 0;
-    for (unsigned int i = 1; i < t + 1; i++) {
-        right_qsum += compute_qi(m, t, N, i) * i;
-    }
-
-    unsigned long long right_part = (power(1 - (m / N), l * t)) * (((t * (t - 1)) / 2) + right_qsum) * l;
-
-    return left_part + right_part;
-}
-
 unsigned long search_endpoint(char **endpoints, char *plainText, unsigned long mt, int pwdLength) {
     unsigned long lower = 0;
     unsigned long upper = mt - 1;
@@ -108,12 +57,6 @@ void char_to_digest(char text[], Digest *digest, int len) {
     }
 }
 
-void display_digest(Digest *digest) {
-    for (unsigned char i = 0; i < HASH_LENGTH; i++) {
-        printf("%02X", (unsigned char) digest->bytes[i]);
-    }
-}
-
 void reduce_digest(char *charDigest, unsigned int index, char *charPlain, int pwdLength) {
     Digest *digest = (Digest *) malloc(sizeof(Digest));
     char_to_digest(charDigest, digest, HASH_LENGTH);
@@ -124,7 +67,7 @@ void reduce_digest(char *charDigest, unsigned int index, char *charPlain, int pw
     unsigned long long temp = 0;
     temp = (unsigned long long) ((unsigned long long)(*digest).i[0] + (unsigned long long)(*digest).i[1] +
             (unsigned long long)(*digest).i[2] + (unsigned long long)(*digest).i[3] + (unsigned long long)index) %
-           (unsigned long long) (power(CHARSET_LENGTH, pwdLength));
+           (unsigned long long) (pow((double) CHARSET_LENGTH, (double) pwdLength));
 
     for (int i = pwdLength - 1; i >= 0; i--) {
         unsigned char reste = charset[(unsigned long long) ((unsigned long long) temp %
