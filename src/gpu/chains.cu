@@ -23,33 +23,35 @@ generateChains(Password *h_passwords, long passwordNumber, int numberOfPass, int
     }
 }
 
-__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, int pwd_length) {
-    const unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void
+ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, int pwd_length, unsigned long long domain) {
+    unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
     for (int i = 0; i < chainLength; i++) {
         ntlm(&passwords[index], &digests[index], pwd_length);
-        reduceDigest(i, &digests[index], &passwords[index], pwd_length);
+        reduceDigest(i, &digests[index], &passwords[index], pwd_length, domain);
     }
 }
 
-__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int pwd_length) {
-    const unsigned long index = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void
+ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int pwd_length, unsigned long long domain) {
+    unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // Trick to for a working print
     Password * password = (Password*) malloc(sizeof(Password));
     Digest * digest = (Digest*) malloc(sizeof(Digest));
     for (int i = 0; i < chainLength; i++) {
-        if(index == (0)){
+        if(index == (1)){
             printf("%d: ", i);
             printPassword(&passwords[index]);
             printf(" --> ");
         }
         ntlm(&passwords[index], &digests[index], pwd_length);
-        if (index == (0)){
+        if (index == (1)){
             printDigest(&digests[index]);
             printf(" --> ");
         }
-        reduceDigest(i, &digests[index], &passwords[index], pwd_length);
-        if(index == (0)){
+        reduceDigest(i, &digests[index], &passwords[index], pwd_length, domain);
+        if(index == (1)){
             printPassword(&passwords[index]);
             printf("\n");
         }
@@ -67,6 +69,10 @@ chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *millis
     double program_time_used;
     clock_t program_start, program_end;
     program_start = clock();
+
+    unsigned long long domain = (unsigned long long)pow(CHARSET_LENGTH, pwd_length);
+
+    printf("Domain : %lld\n", domain);
 
     // Device copies for endpoints
     Digest *d_results;
@@ -113,10 +119,10 @@ chainKernel(long passwordNumber, int numberOfPass, long batchSize, float *millis
         cudaEventRecord(start);
         if (debug)
             ntlmChainKernelDebug<<<((batchSize) / threadPerBlock) + 1, threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength, pwd_length);
+                    d_passwords, d_results, chainLength, pwd_length, domain);
         else
             ntlmChainKernel<<<((batchSize) / threadPerBlock) + 1, threadPerBlock, 0, stream1>>>(
-                    d_passwords, d_results, chainLength, pwd_length);
+                    d_passwords, d_results, chainLength, pwd_length, domain);
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 

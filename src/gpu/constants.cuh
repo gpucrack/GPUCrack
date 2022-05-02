@@ -14,11 +14,11 @@ __device__ static const unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', 
 #define HASH_LENGTH 16
 
 // The length of a password.
-#define PASSWORD_LENGTH 5
+#define PASSWORD_LENGTH 6
 
 // How many thread per block to launch the hashKernel
 // MUST BE A POWER OF 2
-#define THREAD_PER_BLOCK 32
+#define THREAD_PER_BLOCK 512
 
 // This is the maximum number of thread that we can used on a GPU
 #define MAX_THREAD_NUMBER 1024

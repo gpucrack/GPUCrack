@@ -239,7 +239,7 @@ __host__ int computeT(long mtMax, int pwd_length) {
     double domain = pow(CHARSET_LENGTH, pwd_length);
 
     // Compute t knowing mtMax
-    int result = (int) ((double) ((double) (2 * domain) / (double) mtMax) - 2);
+    int result = (int) ((double) ((double) (2 * domain) / (double) mtMax)) + 1;
 
     return result;
 }
@@ -293,9 +293,9 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(0.1*(double)domain);
+    long idealM0 = (long)(0.01*(double)domain) + 1;
 
-    long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
+    long idealMtMax = (long)((double)((double)idealM0/(double)19.83)) + 1;
 
     long mtMax = getNumberPassword(atoi(argv[3]), pwd_length);
 
@@ -421,7 +421,7 @@ __host__ void generateTables(unsigned long long * parameters, Password * passwor
         printf("Engaging filtration...\n");
 
         // Clean the table by deleting duplicate endpoints
-        long *res = filter(startName, endName, startName, endName, numberOfCPUPass, batchSize);
+        long *res = filter(startName, endName, startName, endName, numberOfCPUPass, batchSize, path);
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
             printf("The files have been generated with success.\n");

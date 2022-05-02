@@ -13,9 +13,12 @@ void generate_digests_random(Digest **digests, int n) {
     }
 }
 
-__host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Password *plain_text, int pwd_length) {
+__host__ __device__ void
+reduceDigest(unsigned long long index, Digest *digest, Password *plain_text, int pwd_length, unsigned long long domain) {
     unsigned long long temp = 0;
-    temp = (unsigned long long)((*digest).i[0] + (*digest).i[1] + (*digest).i[2] + (*digest).i[3] + index) % (unsigned long long)(pow(CHARSET_LENGTH, pwd_length));
+    unsigned long long left = (unsigned long long)((unsigned long long)(*digest).i[0] + (unsigned long long)(*digest).i[1] +
+                                                   (unsigned long long)(*digest).i[2] + (unsigned long long)(*digest).i[3] + (unsigned long long)index);
+    temp = (unsigned long long)((unsigned long long)left % (unsigned long long)domain);
 
     for(int i=pwd_length-1; i>=0; i--){
         unsigned char reste = charset[(unsigned long long)((unsigned long long)temp % (unsigned long long)CHARSET_LENGTH)];
@@ -24,9 +27,10 @@ __host__ __device__ void reduceDigest(unsigned int index, Digest *digest, Passwo
     }
 }
 
-__global__ void reduceDigests(Digest *digests, Password *plain_texts, int column, int pwd_length) {
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    reduceDigest(column, &digests[idx], &plain_texts[idx], pwd_length);
+__global__ void
+reduceDigests(Digest *digests, Password *plain_texts, int column, int pwd_length, unsigned long long domain) {
+    unsigned long long idx = blockIdx.x * blockDim.x + threadIdx.x;
+    reduceDigest(column, &digests[idx], &plain_texts[idx], pwd_length, domain);
 }
 
 int count_duplicates(Password **passwords, bool debug, int passwordNumber, int pwd_length) {
@@ -95,7 +99,7 @@ __host__ void reduceKernel(int passwordNumber, int numberOfPass, int batchSize, 
         cudaEventRecord(start);
         // Reduce all those digests into passwords
         reduceDigests<<<((batchSize) / threadPerBlock) + 1, threadPerBlock>>>(d_results,
-                                                                          d_passwords, 0, pwd_length);
+                                                                              d_passwords, 0, pwd_length, 0);
 
         cudaEventRecord(end);
         cudaEventSynchronize(end);

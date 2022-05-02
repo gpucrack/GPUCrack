@@ -18,9 +18,11 @@
  * @param chainLength : chainLength = how many columns in the chain
  * @param pwd_length the length of a password (in characters).
  */
-__global__ void ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, int pwd_length);
+__global__ void
+ntlmChainKernel(Password *passwords, Digest *digests, int chainLength, int pwd_length, unsigned long long domain);
 
-__global__ void ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int pwd_length);
+__global__ void
+ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int pwd_length, unsigned long long domain);
 
 /**
  * Main function called to generate chains

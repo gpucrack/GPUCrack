@@ -2,7 +2,7 @@
 
 int main() {
 
-    int passwordNumber = getNumberPassword(6);
+    int passwordNumber = getNumberPassword(6, PASSWORD_LENGTH);
 
     Password * passwords;
     Digest * result;

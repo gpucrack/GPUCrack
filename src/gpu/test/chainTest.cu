@@ -7,7 +7,7 @@ int main(int argc, char *argv[]){
 
     long domain = pow(CHARSET_LENGTH, pwd_length);
 
-    long idealM0 = (long)(0.1*(double)domain);
+    long idealM0 = (long)(0.001*(double)domain);
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
@@ -16,12 +16,8 @@ int main(int argc, char *argv[]){
     mtMax = idealMtMax;
 
     long passwordNumber = idealM0;
-    //long passwordNumber = 18980;
 
     int t = computeT(mtMax, pwd_length);
-    //int t = 500;
-
-    //mtMax = 949;
 
     printf("mtMax: %ld\n", mtMax);
 
@@ -37,10 +33,6 @@ int main(int argc, char *argv[]){
     initArrays(&passwords, &result, passwordNumber);
 
     auto numberOfPass = memoryAnalysisGPU(passwordNumber);
-
-    passwords[0].bytes[0] = 'Z';
-    passwords[0].bytes[1] = 'm';
-    passwords[0].bytes[2] = 'd';
 
     // Adjust t depending on the chain length you want to test
     generateChains(passwords, passwordNumber, numberOfPass, t,

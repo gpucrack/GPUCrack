@@ -28,7 +28,7 @@ void swap(void *v1, void *v2, long size);
  * @param right end of array.
  * @param comp pointer to the comparison function.
  */
-void q_sort(void *v, void *m, long size, long left, long right, int (*comp)(void *, void *, int));
+void q_sort(void *v, void *m, long size, long long int left, long long int right, int (*comp)(void *, void *, int));
 
 /**
  * Deletes all duplicates in an array.
@@ -39,7 +39,7 @@ void q_sort(void *v, void *m, long size, long left, long right, int (*comp)(void
  * @param comp a pointer to the comparison function.
  * @return the number of startpoints written after deduplication
  */
-long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int));
+long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(void *, void *, int));
 
 /**
  * Cleans a table by deleting all of its duplicate endpoints.
@@ -53,5 +53,6 @@ long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int)
  *          - the number of startpoints written after deduplication;
  *          - the number of endpoints written after deduplication.
  */
-long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path,
-             const int numberOfPasses, const unsigned long long batchSize);
+long *
+filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, const int numberOfPasses,
+       const unsigned long long batchSize, char *path);

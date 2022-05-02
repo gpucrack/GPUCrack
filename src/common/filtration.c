@@ -12,9 +12,9 @@ void swap(void *v1, void *v2, long size) {
     memcpy(v2, buffer, size);
 }
 
-void q_sort(void *v, void *m, long size, long left, long right, int (*comp)(void *, void *, int)) {
+void q_sort(void *v, void *m, long size, long long int left, long long int right, int (*comp)(void *, void *, int)) {
     void *vt, *v3, *mt, *m3;
-    long i, last, mid = (left + right) / 2;
+    long long i, last, mid = (left + right) / 2;
     if (left >= right) {
         return;
     }
@@ -51,21 +51,22 @@ void q_sort(void *v, void *m, long size, long left, long right, int (*comp)(void
     m3 = (char *) (m + (last * size));
     swap(vl, v3, size);
     swap(ml, m3, size);
+
     q_sort(v, m, size, left, last - 1, comp);
     q_sort(v, m, size, last + 1, right, comp);
 }
 
 
-long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int)) {
-    long index = 1;
-    for (long i = 1; i < mt; i++) {
-        void *prev = (char *) (v + ((i - 1) * size));
-        void *actual = (char *) (v + (i * size));
-        void *mirror = (char *) (m + (i * size));
+long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(void *, void *, int)) {
+    long long index = 1;
+    for (long long i = 1; i < mt; i++) {
+        char *prev = (char *) (v + ((i - 1) * size));
+        char *actual = (char *) (v + (i * size));
+        char *mirror = (char *) (m + (i * size));
 
         if ((*comp)(prev, actual, size) != 0) {
-            void *indexed = (char *) (v + (index * size));
-            void *indexed_mirror = (char *) (m + (index * size));
+            char *indexed = (char *) (v + (index * size));
+            char *indexed_mirror = (char *) (m + (index * size));
             memcpy(indexed, actual, size);
             memcpy(indexed_mirror, mirror, size);
 
@@ -75,8 +76,9 @@ long dedup(void *v, void *m, int size, long mt, int (*comp)(void *, void *, int)
     return index;
 }
 
-long *filter(const char *start_path, const char *end_path, const char *start_out_path, const char *end_out_path,
-             const int numberOfPasses, const unsigned long long batchSize) {
+long *
+filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, const int numberOfPasses,
+       const unsigned long long batchSize, char *path) {
 
     char buff[255];
 
@@ -97,9 +99,9 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     }
 
     // Retrieve the number of points
-    long mt;
+    unsigned long long mt;
     fscanf(start_file, "%s", buff);
-    sscanf(buff, "%ld", &mt);
+    sscanf(buff, "%llu", &mt);
     fgets(buff, 255, (FILE *) start_file);
 
     // Retrieve the password length
@@ -123,23 +125,25 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     long sp_success = 0;
     long ep_success = 0;
 
-    char tempStartName[100] = "t";
-    char tempEndName[100] = "t";
-    strcat(tempStartName, "emp_");
-    strcat(tempStartName, start_path);
-    strcat(tempEndName, "emp_");
-    strcat(tempEndName, end_path);
+    char tempStartName[100] = "";
+    char tempEndName[100] = "";
+    strcat(tempStartName, path);
+    strcat(tempStartName, "_temp_start.bin");
+    strcat(tempEndName, path);
+    strcat(tempEndName, "_temp_end.bin");
 
     FILE *sp_out_file = fopen(tempStartName, "wb");
     FILE *ep_out_file = fopen(tempEndName, "wb");
 
     if (sp_out_file == NULL) {
         perror("Can't open start file.");
+        printf("%s\n", tempStartName);
         exit(1);
     }
 
     if (ep_out_file == NULL) {
         perror("Can't open end file.");
+        printf("%s\n", tempEndName);
         exit(1);
     }
 
@@ -253,7 +257,7 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     remove(tempStartName);
     remove(tempEndName);
 
-    unsigned long long new_len = 0;
+    unsigned long long new_len;
 
     // Don't filter if we have only one part
     if (numberOfPasses > 1) {
@@ -267,8 +271,8 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
         new_len = totalNewLen;
     }
 
-    sp_out_file = fopen(start_path, "wb");
-    ep_out_file = fopen(end_path, "wb");
+    sp_out_file = fopen(start_out_path, "wb");
+    ep_out_file = fopen(end_out_path, "wb");
 
     if (sp_out_file == NULL) {
         perror("Can't open start file.");
@@ -281,8 +285,8 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
     }
 
     // Write the header
-    fprintf(sp_out_file, "%ld\n", new_len);
-    fprintf(ep_out_file, "%ld\n", new_len);
+    fprintf(sp_out_file, "%lld\n", new_len);
+    fprintf(ep_out_file, "%lld\n", new_len);
     fprintf(sp_out_file, "%d\n", pwd_length);
     fprintf(ep_out_file, "%d\n", pwd_length);
     fprintf(sp_out_file, "%d\n", t);
@@ -290,6 +294,7 @@ long *filter(const char *start_path, const char *end_path, const char *start_out
 
     // Write points
     char *point = (char *) malloc(sizeof(char) * pwd_length);
+
     for (unsigned long long i = 0; i < new_len; i++) {
         memcpy(point, startpoints + (i * pwd_length), sizeof(char) * pwd_length);
         fwrite(point, pwd_length, 1, (FILE *) sp_out_file);

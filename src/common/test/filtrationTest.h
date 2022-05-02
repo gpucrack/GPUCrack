@@ -1,0 +1,6 @@
+#ifndef GPU_CRACK_FILTRATIONTEST_H
+#define GPU_CRACK_FILTRATIONTEST_H
+
+#include "../filtration.h"
+
+#endif //GPU_CRACK_FILTRATIONTEST_H

@@ -15,7 +15,10 @@ add_executable(hashBenchmarkTest
 add_executable(hashGeneralTest
         src/gpu/commons.cu
         src/gpu/hash/test/hashGeneralTest.cu
-        src/gpu/hash/hash_functions/ntlm.cu)
+        src/gpu/hash/hash_functions/ntlm.cu
+        src/common/filtration.c
+        src/gpu/chains.cu
+        src/gpu/reduction/reduction.cu)
 
 add_executable(hashComplianceTest
         src/gpu/commons.cu
@@ -28,15 +31,19 @@ add_executable(reductionCPU
 
 add_executable(reduction
         src/gpu/commons.cu
-        src/gpu/reduction/reduction.cu src/gpu/reduction/test/reductionTest.cu src/gpu/reduction/test/reductionTest.cuh)
+        src/gpu/reduction/reduction.cu
+        src/gpu/reduction/test/reductionTest.cu
+        src/gpu/reduction/test/reductionTest.cuh)
 
 add_executable(chainTest
         src/gpu/chains.cu
         src/gpu/commons.cu
         src/gpu/test/chainTest.cu
         src/gpu/hash/hash_functions/ntlm.cu
-        src/gpu/reduction/reduction.cu
-        src/gpu/hash/hash.cu)
+        src/gpu/hash/hash.cu
+        src/common/filtration.c
+        src/gpu/chains.cu
+        src/gpu/reduction/reduction.cu)
 
 add_executable(chainTotalCoverageTest
         src/gpu/chains.cu
@@ -84,6 +91,13 @@ add_executable(tableCoverageTest
         src/common/test/tableCoverageTest.c
 )
 
+add_executable(filtrationTest
+        src/common/test/filtrationTest.c
+        src/common/filtration.c)
+
+add_executable(test
+        src/common/test/test.cpp)
+
 set_target_properties(hashBenchmarkTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 
@@ -122,3 +136,11 @@ set_target_properties(online PROPERTIES
 
 set_target_properties(tableCoverageTest PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(filtrationTest PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(test PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+target_link_libraries(test PRIVATE m)
