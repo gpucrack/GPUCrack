@@ -83,8 +83,6 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
     numberOfPasses *= 2;
     batchSize = (batchSize/2) + 1;
 
-    printf("%llu, %d\n", batchSize, numberOfPasses);
-
     char buff[255];
 
     FILE *start_file;
