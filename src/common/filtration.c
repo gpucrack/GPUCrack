@@ -77,8 +77,13 @@ long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(vo
 }
 
 long *
-filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, const int numberOfPasses,
-       const unsigned long long batchSize, char *path) {
+filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, int numberOfPasses,
+       unsigned long long batchSize, char *path) {
+
+    numberOfPasses *= 2;
+    batchSize = (batchSize/2) + 1;
+
+    printf("%llu, %d\n", batchSize, numberOfPasses);
 
     char buff[255];
 
