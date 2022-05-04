@@ -632,7 +632,7 @@ int main(int argc, char *argv[]) {
                 ntlm(pwdLocal, digest, pwdLength);
 
                 // Check if the password is in the table
-                printf("Looking for password '%.*s', hashed as %s.", pwdLength, pwdLocal, digest);
+                printf("%d - Looking for password '%.*s', hashed as %s.", i, pwdLength, pwdLocal, digest);
                 online_from_files(path, digest, found, pwdLength, tableNb, debug);
                 if (!strcmp(found, "")) {
                     printf(" Not found\n");
@@ -641,6 +641,8 @@ int main(int argc, char *argv[]) {
                     printf(" Found\n");
                     foundNumber++;
                 }
+                // Print current success rate and percentage
+                printf("%d/%d (%d%%)\n", foundNumber, i + 1, (foundNumber * 100) / (i + 1));
             }
 
             printf("\n%d out of %d passwords were cracked successfully.\n", foundNumber, nbCoverage);
