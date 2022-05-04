@@ -293,7 +293,7 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
 
     unsigned long long domain = (unsigned long long)pow((double)CHARSET_LENGTH, (double)pwd_length);
 
-    unsigned long long idealM0 = (unsigned long long)((double)0.001*(double)domain) + 1;
+    unsigned long long idealM0 = (unsigned long long)((double)0.1*(double)domain) + 1;
 
     unsigned long long idealMtMax = (unsigned long long)((double)((double)idealM0/(double)19.83)) + 1;
 
@@ -418,13 +418,24 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
         fclose(start_file);
         fclose(end_file);
 
-        printf("Engaging filtration...\n");
+        /*printf("Engaging filtration...\n");
+
+        // Start the timer
+        clock_t start = clock();
 
         // Clean the table by deleting duplicate endpoints
-        long *res = filter(startName, endName, startName, endName, (int)numberOfCPUPass, batchSize, path);
+        long *res = filter(startName, endName, startName, endName, (int)numberOfCPUPass*64, batchSize/64, path);
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
             printf("The files have been generated with success.\n");
         }
+
+        // Stop the timer
+        clock_t end = clock();
+        double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+
+        if (res[2] == res[3]) {
+            printf("Filtration done in %f sec.\n", time_spent);
+        }*/
     }
 }
