@@ -78,9 +78,9 @@ long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(vo
 
 long *
 filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, int numberOfPasses,
-       unsigned long long batchSize, char *path) {
+       unsigned long long batchSize, char *path, unsigned long long passwordMemory) {
 
-    numberOfPasses *= 2;
+    if (batchSize*2 > passwordMemory) numberOfPasses *= 2;
     batchSize = (batchSize/2) + 1;
 
     char buff[255];
