@@ -1,5 +1,93 @@
 #include "filtration.h"
 
+// A heap has current size and array of elements
+struct MaxHeap
+{
+    long size;
+    char* array;
+};
+
+// A utility function to swap to integers
+void swap2(char* a, char* b, int size) {
+    char buffer[size];
+
+    memcpy(buffer, a, size);
+    memcpy(a, b, size);
+    memcpy(b, buffer, size);
+}
+
+// The main function to heapify a Max Heap. The function
+// assumes that everything under given root (element at
+// index idx) is already heapified
+void maxHeapify(struct MaxHeap* maxHeap, char* array_spectre, long idx, int pwd_length)
+{
+    long largest = idx;  // Initialize largest as root
+    long left = 2*idx + pwd_length;
+    long right = 2*idx + 2*pwd_length;
+
+    // See if left child of root exists and is greater than
+    // root
+    if (left < maxHeap->size &&
+        memcmp(maxHeap->array + left, maxHeap->array + largest, pwd_length) > 0)
+        largest = left;
+
+    // See if right child of root exists and is greater than
+    // the largest so far
+    if (right < maxHeap->size &&
+        memcmp(maxHeap->array + right, maxHeap->array + largest, pwd_length) > 0)
+        largest = right;
+
+    // Change root, if needed
+    if (largest != idx)
+    {
+        swap2(&maxHeap->array[largest], &maxHeap->array[idx], pwd_length);
+        swap2(&array_spectre[largest], &array_spectre[idx], pwd_length);
+        maxHeapify(maxHeap, array_spectre, largest, pwd_length);
+    }
+}
+
+// A utility function to create a max heap of given capacity
+struct MaxHeap* createAndBuildHeap(char *array, char * array_spectre, long size, int pwd_length)
+{
+    long i;
+    struct MaxHeap* maxHeap =
+            (struct MaxHeap*) malloc(sizeof(struct MaxHeap));
+    maxHeap->size = size;   // initialize size of heap
+    maxHeap->array = array; // Assign address of first element of array
+
+    // Start from bottommost and rightmost internal mode and heapify all
+    // internal modes in bottom up way
+    for (i = ((((maxHeap->size)/pwd_length) - 2) / 2); i >= 0; --i)
+        maxHeapify(maxHeap, array_spectre, i*pwd_length, pwd_length);
+    return maxHeap;
+}
+
+// The main function to sort an array of given size
+void heapSort(char* array, char* array_spectre, long size, int pwd_length, int debug)
+{
+    // Build a heap from the input data.
+    struct MaxHeap* maxHeap = createAndBuildHeap(array, array_spectre, size, pwd_length);
+    // Repeat following steps while heap size is greater than 1.
+    // The last element in max heap will be the minimum element
+    while (maxHeap->size > pwd_length)
+    {
+        // The largest item in Heap is stored at the root. Replace
+        // it with the last item of the heap followed by reducing the
+        // size of heap by 1.
+        swap2(&maxHeap->array[0], &maxHeap->array[maxHeap->size - pwd_length], pwd_length);
+        swap2(&array_spectre[0], &array_spectre[maxHeap->size - pwd_length], pwd_length);
+        maxHeap->size = maxHeap->size - pwd_length;  // Reduce heap size
+
+        // Finally, heapify the root of tree.
+        maxHeapify(maxHeap,array_spectre, 0, pwd_length);
+
+        // Print the size of heap if it is a multiple of size/1000
+        if (debug && maxHeap->size % (size/100) == 0)
+        printf("%ld\n", maxHeap->size);
+
+    }
+}
+
 int cmpstr(void *v1, void *v2, int len) {
     return memcmp(v1, v2, len);
 }
@@ -157,6 +245,9 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
 
     for(int q=0; q<numberOfPasses; q++) {
 
+        // Print batch number
+        printf("Batch %d\n", q);
+
         unsigned long long limit = (unsigned long long)batchSize * (unsigned long long)pwd_length;
 
         // Retrieve the points
@@ -179,7 +270,12 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
 
         }
 
-        q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
+        // Display a message if size % 10 == 0
+
+        //printf("\n\nPass %d: %llu points\n", q, batchSize);
+
+        //q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
+        heapSort(endpoints, startpoints, limit, pwd_length, 1);
 
         unsigned long long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, batchSize,
                              (int (*)(void *, void *, int)) (cmpstr));
@@ -197,6 +293,9 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
             fwrite(point, pwd_length, 1, (FILE *) ep_out_file);
             ep_success++;
         }
+
+        free(startpoints);
+        free(endpoints);
 
         currentPos += batchSize;
     }
@@ -262,7 +361,8 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
     // Don't filter if we have only one part
     if (numberOfPasses > 1) {
 
-        q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, totalNewLen - 1, (int (*)(void *, void *, int)) (cmpstr));
+        //q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, totalNewLen - 1, (int (*)(void *, void *, int)) (cmpstr));
+        heapSort(endpoints, startpoints, limit, pwd_length, 1);
 
         new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, totalNewLen,
                              (int (*)(void *, void *, int)) (cmpstr));
