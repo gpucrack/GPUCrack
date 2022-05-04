@@ -392,6 +392,12 @@ void online_from_files(char *path, char *digest, char *password, int pwdLength, 
             if (memcmp(chain_digest, digest, HASH_LENGTH) == 0) {
                 if (debug) printf(" Password cracked! (column=%ld)\n", i);
                 memcpy(password, chain_plainText, pwdLength);
+                for (int iter_table = 0; iter_table < nbTable; iter_table++) {
+                    free(startpoints[iter_table]);
+                    free(endpoints[iter_table]);
+                }
+                free(startpoints);
+                free(endpoints);
                 return;
             }
             if (debug) printf(" False alert. (column=%ld)\n", i);
@@ -399,6 +405,12 @@ void online_from_files(char *path, char *digest, char *password, int pwdLength, 
     }
 
     strcpy(password, ""); // password was not found
+    for (int table = 0; table < nbTable; table++) {
+        free(startpoints[table]);
+        free(endpoints[table]);
+    }
+    free(startpoints);
+    free(endpoints);
 }
 
 int checkTables(char *path, int *nbTable, int *pwdLength) {
