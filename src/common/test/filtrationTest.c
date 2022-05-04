@@ -1,8 +1,12 @@
 #include "filtrationTest.h"
 
+// C implementation of Heap Sort
+#include <stdio.h>
+#include <stdlib.h>
+
 int main(int argc, char *argv[]) {
 
-    char * path = (char *) "test";
+    char * path = (char *) "table6";
 
     char startName[100];
     char endName[100];
@@ -31,10 +35,19 @@ int main(int argc, char *argv[]) {
 
     printf("Engaging filtration...\n");
 
+    // Start the timer
+    clock_t start = clock();
+
+    int blocks = 64;
+
     // Clean the table by deleting duplicate endpoints
-    long *res = filter(startName, endName, startNameF, endNameF, 1, 56800237, NULL);
+    long *res = filter(startName, endName, startNameF, endNameF, 1*blocks, 2840011780/blocks, "table6");
+
+    // Stop the timer
+    clock_t end = clock();
+    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+
     if (res[2] == res[3]) {
-        printf("Filtration done!\n\n");
-        printf("The files have been generated with success.\n");
+        printf("Filtration done in %f sec.\n", time_spent);
     }
 }
