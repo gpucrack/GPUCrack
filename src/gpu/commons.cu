@@ -293,7 +293,7 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
 
     unsigned long long domain = (unsigned long long)pow((double)CHARSET_LENGTH, (double)pwd_length);
 
-    unsigned long long idealM0 = (unsigned long long)((double)0.1*(double)domain) + 1;
+    unsigned long long idealM0 = (unsigned long long)((double)0.01*(double)domain) + 1;
 
     unsigned long long idealMtMax = (unsigned long long)((double)((double)idealM0/(double)19.83)) + 1;
 
