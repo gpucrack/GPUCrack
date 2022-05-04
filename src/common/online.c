@@ -290,8 +290,8 @@ void online_from_files(char *path, char *digest, char *password, int pwdLength, 
         printf("Chain length (t): %d\n\n", t);
     }
 
-    char **startpoints = malloc(sizeof(char) * pwdLength * mtTotal);
-    char **endpoints = malloc(sizeof(char) * pwdLength * mtTotal);
+    char **startpoints = malloc(sizeof(char *) * nbTable);
+    char **endpoints = malloc(sizeof(char *) * nbTable);
     char buffStart[255];
     char buffEnd[255];
 
