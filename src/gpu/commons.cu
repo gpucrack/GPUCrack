@@ -418,7 +418,7 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
         fclose(start_file);
         fclose(end_file);
 
-        /*printf("Engaging filtration...\n");
+        printf("Engaging filtration...\n");
 
         // Start the timer
         clock_t start = clock();
@@ -438,6 +438,6 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
 
         if (res[2] == res[3]) {
             printf("Filtration done in %f sec.\n", time_spent);
-        }*/
+        }
     }
 }
