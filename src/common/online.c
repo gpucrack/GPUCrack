@@ -635,10 +635,10 @@ int main(int argc, char *argv[]) {
                 printf("%d - Looking for password '%.*s', hashed as %s.", i, pwdLength, pwdLocal, digest);
                 online_from_files(path, digest, found, pwdLength, tableNb, debug);
                 if (!strcmp(found, "")) {
-                    printf(" Not found\n");
+                    printf(" Not found ");
                 }
                 else {
-                    printf(" Found\n");
+                    printf(" Found ");
                     foundNumber++;
                 }
                 // Print current success rate and percentage
