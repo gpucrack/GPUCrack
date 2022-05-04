@@ -427,6 +427,7 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
         unsigned long long passwordMemory = getNumberPassword(getTotalSystemMemory()-9, pwd_length);
 
         long *res = filter(startName, endName, startName, endName, (int) numberOfCPUPass, batchSize, path, passwordMemory);
+        //long * res = filter2(startName, endName, startName, endName, path, 0);
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
             printf("The files have been generated with success.\n");

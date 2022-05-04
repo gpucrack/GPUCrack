@@ -44,7 +44,8 @@ add_executable(generateTableTest
         src/gpu/test/generateTableTest.cu
         src/gpu/hash/hash_functions/ntlm.cu
         src/gpu/reduction/reduction.cu
-        src/common/filtration.c)
+        src/common/filtration.c
+        src/common/filtration2.cu)
 
 add_executable(online
         src/common/online.c)
