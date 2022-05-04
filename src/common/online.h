@@ -18,7 +18,7 @@ unsigned char charset[CHARSET_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7',
                                          'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                                          'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 // The length of the digest produced by the hash function (NTLM).
-#define PASSWORD_LENGTH 3
+#define PASSWORD_LENGTH 6
 
 // The length of the digest produced by the hash function (NTLM).
 #define HASH_LENGTH 16
@@ -32,6 +32,7 @@ typedef struct {
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[HASH_LENGTH / 4];
+    uint64_t value[HASH_LENGTH/8];
 } Digest;
 
 /**

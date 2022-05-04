@@ -16,8 +16,11 @@ void generate_digests_random(Digest **digests, int n) {
 __host__ __device__ void
 reduceDigest(unsigned long long index, Digest *digest, Password *plain_text, int pwd_length, unsigned long long domain) {
     unsigned long long temp = 0;
-    unsigned long long left = (unsigned long long)((unsigned long long)(*digest).i[0] + (unsigned long long)(*digest).i[1] +
-                                                   (unsigned long long)(*digest).i[2] + (unsigned long long)(*digest).i[3] + (unsigned long long)index);
+
+    unsigned long long left = (unsigned long long)((unsigned long long)(*digest).value[0]
+            + (unsigned long long)(*digest).value[1]
+            + (unsigned long long)index);
+
     temp = (unsigned long long)((unsigned long long)left % (unsigned long long)domain);
 
     for(int i=pwd_length-1; i>=0; i--){

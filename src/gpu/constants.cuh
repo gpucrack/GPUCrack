@@ -32,5 +32,6 @@ typedef struct {
 typedef union {
     uint8_t bytes[HASH_LENGTH];
     uint32_t i[HASH_LENGTH/4];
+    uint64_t value[HASH_LENGTH/8];
 } Digest;
 #endif  // CONSTANTS_CUH

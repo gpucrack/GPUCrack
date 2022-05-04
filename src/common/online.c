@@ -65,8 +65,9 @@ void reduce_digest(char *charDigest, unsigned int index, char *charPlain, int pw
     char_to_password("abcdefg", plainText, pwdLength);
 
     unsigned long long temp = 0;
-    temp = (unsigned long long) ((unsigned long long)(*digest).i[0] + (unsigned long long)(*digest).i[1] +
-            (unsigned long long)(*digest).i[2] + (unsigned long long)(*digest).i[3] + (unsigned long long)index) %
+    temp = (unsigned long long) ((unsigned long long)(*digest).value[0]
+            + (unsigned long long)(*digest).value[1]
+            + (unsigned long long)index) %
            (unsigned long long) (pow((double) CHARSET_LENGTH, (double) pwdLength));
 
     for (int i = pwdLength - 1; i >= 0; i--) {
