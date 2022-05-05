@@ -364,7 +364,7 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
     if (numberOfPasses > 1) {
 
         //q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, totalNewLen - 1, (int (*)(void *, void *, int)) (cmpstr));
-        heapSort(endpoints, startpoints, limit, pwd_length, 1);
+        heapSort(endpoints, startpoints, limit, pwd_length, debug);
 
         new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, totalNewLen,
                              (int (*)(void *, void *, int)) (cmpstr));

@@ -628,6 +628,8 @@ int main(int argc, char *argv[]) {
         // Coverage test
         case 4:
         {
+            // Total time spent
+            double totalTime = 0;
             int foundNumber = 0;
             // Initialize random seed
             srand(time(0));
@@ -646,7 +648,19 @@ int main(int argc, char *argv[]) {
 
                 // Check if the password is in the table
                 printf("%d - Looking for password '%.*s', hashed as %s.", i, pwdLength, pwdLocal, digest);
+
+                // Start the timer
+                clock_t start = clock();
+
                 online_from_files(path, digest, found, pwdLength, tableNb, debug);
+
+                // Stop the timer
+                clock_t end = clock();
+                // Compute elapsed time
+                double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+                // Add elapsed time to total time
+                totalTime += elapsed;
+
                 if (!strcmp(found, "")) {
                     printf(" Not found ");
                 }
@@ -654,9 +668,15 @@ int main(int argc, char *argv[]) {
                     printf(" Found ");
                     foundNumber++;
                 }
+
+                printf("in %.2f seconds.", elapsed);
                 // Print current success rate and percentage
                 printf("%d/%d (%d%%)\n", foundNumber, i + 1, (foundNumber * 100) / (i + 1));
             }
+
+            // Print total time spent and show average time
+            printf("\nTotal time spent: %.2f seconds.\n", totalTime);
+            printf("Average time: %.2f seconds.\n", totalTime / nbCoverage);
 
             printf("\n%d out of %d passwords were cracked successfully.\n", foundNumber, nbCoverage);
             printf("Success rate: %.2f %%\n", ((double) foundNumber / nbCoverage) * 100);
