@@ -1,7 +1,7 @@
 #include "commons.cuh"
 
 __host__ void printSignature() {
-    printf("GPUCrack v0.1.3\n"
+    printf("GPUCrack v0.1.4\n"
            "<https://github.com/gpucrack/GPUCrack/>\n\n");
 }
 
@@ -291,15 +291,14 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
 
     int pwd_length = atoi(argv[1]);
 
+    double percent;
+    sscanf(argv[3],"%lf", &percent);
+
     unsigned long long domain = (unsigned long long)pow((double)CHARSET_LENGTH, (double)pwd_length);
 
-    unsigned long long idealM0 = (unsigned long long)((double)0.1*(double)domain) + 1;
+    unsigned long long idealM0 = (unsigned long long)((double)percent*(double)domain) + 1;
 
-    unsigned long long idealMtMax = (unsigned long long)((double)((double)idealM0/(double)19.83)) + 1;
-
-    unsigned long long mtMax = getNumberPassword(atoi(argv[3]), pwd_length);
-
-    mtMax = idealMtMax;
+    unsigned long long mtMax = (unsigned long long)((double)((double)idealM0/(double)19.83)) + 1;
 
     unsigned long long passwordNumber = idealM0;
 
@@ -311,6 +310,7 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
     unsigned long long batchSize = computeBatchSize(numberOfCPUPass, passwordNumber);
 
     if (debug) {
+        printf("Percentage of m0: %f\n", percent);
         printf("Number of CPU passes: %d\n", numberOfCPUPass);
         printf("CPU batch size: %llu\n", batchSize);
         printf("Password length: %d\n", pwd_length);
