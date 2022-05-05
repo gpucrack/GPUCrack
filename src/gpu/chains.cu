@@ -1,8 +1,11 @@
 #include "chains.cuh"
 
 __host__ void
-generateChains(Password *h_passwords, unsigned long long passwordNumber, int numberOfPass, int numberOfColumn, bool save,
-               int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results, int pwd_length, char* start_path, char* end_path) {
+generateChains(Password *h_passwords, unsigned long long passwordNumber, int numberOfPass, int numberOfColumn,
+               bool save, int theadsPerBlock, bool debug, bool debugKernel, Digest *h_results, int pwd_length,
+               char *start_path, char *end_path, float *totalGPU, int batchNumber) {
+
+    printf("Generating chains...\n");
 
     float milliseconds = 0;
 
@@ -12,15 +15,11 @@ generateChains(Password *h_passwords, unsigned long long passwordNumber, int num
     // less operations
     chainKernel(passwordNumber, numberOfPass, batchSize, &milliseconds,
                 &h_passwords, theadsPerBlock,
-                numberOfColumn, debugKernel, &h_results, pwd_length, start_path, end_path);
+                numberOfColumn, debugKernel, &h_results, pwd_length, start_path, end_path, debugKernel);
 
-    if (debug) {
-        printf("Total GPU time : %f milliseconds\n", milliseconds);
-        printf("Chain rate : %f MC/s\n",
-               ((float) (passwordNumber) / (milliseconds / 1000)) / 1000000);
-        printf("Column rate : %f MCo/s\n",
-               (((float) (passwordNumber) / (milliseconds / 1000)) / 1000000) * (float)(numberOfColumn));
-    }
+    printf("Batch %d done in : %f milliseconds (GPU time).\n", batchNumber, milliseconds);
+
+    *totalGPU = *totalGPU + milliseconds;
 }
 
 __global__ void
@@ -61,18 +60,13 @@ ntlmChainKernelDebug(Password *passwords, Digest *digests, int chainLength, int 
 }
 
 __host__ void
-chainKernel(unsigned long long passwordNumber, int numberOfPass, unsigned long long batchSize, float *milliseconds, Password **h_passwords,
-            int threadPerBlock, int chainLength, bool debug, Digest **h_results, int pwd_length,
-            char* start_path, char* end_path) {
-
-
-    double program_time_used;
-    clock_t program_start, program_end;
-    program_start = clock();
+chainKernel(unsigned long long passwordNumber, int numberOfPass, unsigned long long batchSize, float *milliseconds,
+            Password **h_passwords, int threadPerBlock, int chainLength, bool debug, Digest **h_results,
+            int pwd_length, char *start_path, char *end_path, bool kernelDebug) {
 
     unsigned long long domain = (unsigned long long)pow(CHARSET_LENGTH, pwd_length);
 
-    printf("Domain : %lld\n", domain);
+    if (debug) printf("Domain : %lld\n", domain);
 
     // Device copies for endpoints
     Digest *d_results;
@@ -90,7 +84,7 @@ chainKernel(unsigned long long passwordNumber, int numberOfPass, unsigned long l
     unsigned long long chainsRemaining = passwordNumber;
     unsigned long long currentIndex = 0;
 
-    printf("Generating chains...\n\n");
+    if (debug) printf("Generating chains...\n\n");
 
     // Main loop, we add +1 to be sure to do all the batches in case
     // we have 2.5 for example, it'll be 3 passes
@@ -117,12 +111,14 @@ chainKernel(unsigned long long passwordNumber, int numberOfPass, unsigned long l
                         cudaMemcpyHostToDevice, stream1));
 
         cudaEventRecord(start);
-        if (debug)
+
+        if (kernelDebug)
             ntlmChainKernelDebug<<<((unsigned long long)((unsigned long long)(batchSize) / (unsigned long long)threadPerBlock)) + 1, threadPerBlock, 0, stream1>>>(
                     d_passwords, d_results, chainLength, pwd_length, domain);
         else
             ntlmChainKernel<<<((unsigned long long)((unsigned long long)(batchSize) / (unsigned long long)threadPerBlock)) + 1, threadPerBlock, 0, stream1>>>(
                     d_passwords, d_results, chainLength, pwd_length, domain);
+
         cudaEventRecord(end);
         cudaEventSynchronize(end);
 
@@ -162,10 +158,4 @@ chainKernel(unsigned long long passwordNumber, int numberOfPass, unsigned long l
         cudaFree(d_results);
     }
     cudaStreamDestroy(stream1);
-
-    program_end = clock();
-    program_time_used =
-            ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
-    printf("Total execution time : %f seconds = %f minutes = %f hours\n", program_time_used,
-           program_time_used/60, (program_time_used/60)/60);
 }

@@ -82,8 +82,7 @@ void heapSort(char* array, char* array_spectre, long size, int pwd_length, int d
         maxHeapify(maxHeap,array_spectre, 0, pwd_length);
 
         // Print the size of heap if it is a multiple of size/1000
-        if (debug && maxHeap->size % (size/100) == 0)
-        printf("%ld\n", maxHeap->size);
+        if (debug && maxHeap->size % (size/100) == 0) printf("%ld\n", maxHeap->size);
 
     }
 }
@@ -166,7 +165,7 @@ long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(vo
 
 long *
 filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, int numberOfPasses,
-       unsigned long long batchSize, char *path, unsigned long long passwordMemory) {
+       unsigned long long batchSize, char *path, unsigned long long passwordMemory, bool debug) {
 
     if (batchSize*2 > passwordMemory) numberOfPasses *= 2;
     batchSize = (batchSize/2) + 1;
@@ -249,7 +248,7 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
     for(int q=0; q<numberOfPasses; q++) {
 
         // Print batch number
-        printf("Batch %d\n", q);
+        if (debug) printf("Batch %d\n", q);
 
         unsigned long long limit = (unsigned long long)batchSize * (unsigned long long)pwd_length;
 
@@ -278,7 +277,7 @@ filter(char *start_path, char *end_path, const char *start_out_path, const char 
         //printf("\n\nPass %d: %llu points\n", q, batchSize);
 
         //q_sort(endpoints, startpoints, sizeof(char) * pwd_length, 0, batchSize - 1, (int (*)(void *, void *, int)) (cmpstr));
-        heapSort(endpoints, startpoints, limit, pwd_length, 1);
+        heapSort(endpoints, startpoints, limit, pwd_length, debug);
 
         unsigned long long new_len = dedup(endpoints, startpoints, sizeof(char) * pwd_length, batchSize,
                              (int (*)(void *, void *, int)) (cmpstr));

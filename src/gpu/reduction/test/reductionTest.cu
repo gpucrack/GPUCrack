@@ -1,14 +1,14 @@
 #include "reductionTest.cuh"
 
 int main() {
-    int passwordNumber = getNumberPassword(1, PASSWORD_LENGTH);
+    int passwordNumber = getNumberPassword(1, PASSWORD_LENGTH, false);
 
     Password * passwords;
     Digest * result;
 
     initEmptyArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber, false);
 
     reduce(passwords, result, passwordNumber, numberOfPass, THREAD_PER_BLOCK, PASSWORD_LENGTH);
 

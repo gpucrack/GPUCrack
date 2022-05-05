@@ -16,11 +16,13 @@ int main(int argc, char *argv[]) {
 
     unsigned long long parameters[5];
 
-    computeParameters(parameters, argc, argv, true);
+    bool debug = false;
+
+    computeParameters(parameters, argc, argv, debug);
 
     Password * passwords;
 
-    generateTables(parameters, passwords, argc, argv);
+    generateTables(parameters, passwords, argc, argv, debug);
 
     return 0;
 }

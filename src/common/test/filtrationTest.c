@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     int blocks = 64;
 
     // Clean the table by deleting duplicate endpoints
-    long *res = filter(startName, endName, startNameF, endNameF, 1*blocks, 2840011780/blocks, "table6");
+    long *res = filter(startName, endName, startNameF, endNameF, 1 * blocks, 2840011780 / blocks, "table6", 0, NULL);
 
     // Stop the timer
     clock_t end = clock();

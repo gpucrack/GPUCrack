@@ -76,8 +76,8 @@ int main(int argc, char *argv[]){
         printPassword(&(passwords[(i*passwordNumber)+offset]));
         printf("\n");
         printf("%d: ", i);
-        generateChains(&(passwords[i*passwordNumber]), passwordNumber, 1, i,
-                       false, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path);
+        generateChains(&(passwords[i * passwordNumber]), passwordNumber, 1, i,
+                       false, THREAD_PER_BLOCK, false, false, NULL, pwd_length, start_path, end_path, nullptr, 0);
         printf("After: ");
         printPassword(&(passwords[(i*passwordNumber)+offset]));
         printf("\n-----\n");

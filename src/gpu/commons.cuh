@@ -34,7 +34,7 @@ __host__ void generatePasswords(Password **result, long passwordNumber, unsigned
 __host__ void generateNewPasswords2(Password **result, long passwordNumber, unsigned long long offset, unsigned long long tableOffset);
 
 // Returns the number of batches that we need to do
-__host__ int memoryAnalysisGPU(unsigned long long passwordNumber);
+__host__ int memoryAnalysisGPU(unsigned long long passwordNumber, bool debug);
 
 __host__ int memoryAnalysisCPU(unsigned long long passwordNumber, unsigned long long passwordMemory);
 
@@ -105,7 +105,7 @@ __host__ int computeT(unsigned long long mtMax, int pwd_length);
  * @param pwd_length the length of a password (in characters).
  * @return maximum m0 based on the RAM (goRAM) available
  */
-__host__ long getNumberPassword(int goRam, int pwd_length);
+__host__ long getNumberPassword(int goRam, int pwd_length, bool debug);
 
 /**
  * Function used to get m0 value based on mt and RAM
@@ -125,6 +125,7 @@ __host__ int getTotalSystemMemory();
 __host__ unsigned long long *
 computeParameters(unsigned long long *parameters, int argc, char *argv[], bool debug);
 
-__host__ void generateTables(const unsigned long long * parameters, Password * passwords, int argc, char *argv[]);
+__host__ void
+generateTables(const unsigned long long *parameters, Password *passwords, int argc, char *argv[], bool debug);
 
 #endif //GPU_CRACK_COMMONS_CUH

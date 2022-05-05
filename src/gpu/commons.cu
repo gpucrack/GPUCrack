@@ -47,30 +47,31 @@ __host__ void generateNewPasswords(Password **result, int passwordNumber) {
 }
 
 // Returns the number of batch that we need to do
-__host__ int memoryAnalysisGPU(unsigned long long passwordNumber) {
+__host__ int memoryAnalysisGPU(unsigned long long passwordNumber, bool debug) {
 
-    printf("\n==========GPU MEMORY ANALYSIS==========\n");
+    if(debug) printf("\n==========GPU MEMORY ANALYSIS==========\n");
 
     int nDevices;
     cudaGetDeviceCount(&nDevices);
 
-    printf("Number of devices: %d\n", nDevices);
-
-    for (int i = 0; i < nDevices; i++) {
-        cudaDeviceProp prop;
-        cudaGetDeviceProperties(&prop, i);
-        printf("Device Number: %d\n", i);
-        printf("  Device name: %s\n", prop.name);
-        printf("  Memory Clock Rate (MHz): %d\n", prop.memoryClockRate / 1024);
-        printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
-        printf("  Peak Memory Bandwidth (GB/s): %.1f\n",
-               2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
-        printf("  Total global memory (Gbytes) %.1f\n", (float) (prop.totalGlobalMem) / 1024.0 / 1024.0 / 1024.0);
-        printf("  Shared memory per block (Kbytes) %.1f\n", (float) (prop.sharedMemPerBlock) / 1024.0);
-        printf("  minor-major: %d-%d\n", prop.minor, prop.major);
-        printf("  Warp-size: %d\n", prop.warpSize);
-        printf("  Concurrent kernels: %s\n", prop.concurrentKernels ? "yes" : "no");
-        printf("  Concurrent computation/communication: %s\n\n", prop.deviceOverlap ? "yes" : "no");
+    if(debug) printf("Number of devices: %d\n", nDevices);
+    if(debug) {
+        for (int i = 0; i < nDevices; i++) {
+            cudaDeviceProp prop;
+            cudaGetDeviceProperties(&prop, i);
+            printf("Device Number: %d\n", i);
+            printf("  Device name: %s\n", prop.name);
+            printf("  Memory Clock Rate (MHz): %d\n", prop.memoryClockRate / 1024);
+            printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
+            printf("  Peak Memory Bandwidth (GB/s): %.1f\n",
+                   2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
+            printf("  Total global memory (Gbytes) %.1f\n", (float) (prop.totalGlobalMem) / 1024.0 / 1024.0 / 1024.0);
+            printf("  Shared memory per block (Kbytes) %.1f\n", (float) (prop.sharedMemPerBlock) / 1024.0);
+            printf("  minor-major: %d-%d\n", prop.minor, prop.major);
+            printf("  Warp-size: %d\n", prop.warpSize);
+            printf("  Concurrent kernels: %s\n", prop.concurrentKernels ? "yes" : "no");
+            printf("  Concurrent computation/communication: %s\n\n", prop.deviceOverlap ? "yes" : "no");
+        }
     }
 
     // Checking if THREAD_PER_BLOCK is a power of 2 because we will have memory problems otherwise
@@ -88,23 +89,23 @@ __host__ int memoryAnalysisGPU(unsigned long long passwordNumber) {
     // Just to keep a little of memory, just in case
     freeMem -= 500000000;
 
-    printf("GPU memory available: %ld Megabytes\n", (freeMem / 1000000));
+    if(debug) printf("GPU memory available: %ld Megabytes\n", (freeMem / 1000000));
 
     // Computing memory used by password and result array
     size_t memResult = sizeof(Digest) * passwordNumber;
     size_t memPasswords = sizeof(Password) * passwordNumber;
     size_t memUsed = memPasswords + memResult;
 
-    printf("Memory used by digest array : %ld Megabytes\n", (memResult / 1000000));
-    printf("Memory used by password array : %ld Megabytes\n", (memPasswords / 1000000));
+    if(debug) printf("Memory used by digest array : %ld Megabytes\n", (memResult / 1000000));
+    if(debug) printf("Memory used by password array : %ld Megabytes\n", (memPasswords / 1000000));
 
-    printf("This much memory will be used : %ld Megabytes\n\n", (memUsed / 1000000));
+    if(debug) printf("This much memory will be used : %ld Megabytes\n\n", (memUsed / 1000000));
 
     // We need to determine how many batch we'll do to hash all passwords
     // We need to compute the batch size as well
     auto numberOfPass = (double) ((double) memUsed / (double) freeMem);
     if (numberOfPass < 1) {
-        printf("Number of passes : %d\n", 1);
+        if(debug) printf("Number of passes : %d\n", 1);
         return 1;
     }
 
@@ -113,7 +114,7 @@ __host__ int memoryAnalysisGPU(unsigned long long passwordNumber) {
     int finalNumberOfPass = (int) numberOfPass;
     if ((finalNumberOfPass % 2) != 0) finalNumberOfPass++;
 
-    printf("Number of passes : %d\n", finalNumberOfPass);
+    if(debug) printf("Number of passes : %d\n", finalNumberOfPass);
 
     return finalNumberOfPass;
 }
@@ -231,7 +232,7 @@ __host__ void writePoint(char *path, Password **passwords, unsigned long long nu
     program_end = clock();
     program_time_used = ((double) (program_end - program_start)) / CLOCKS_PER_SEC;
 
-    if (debug) printf("File %s was written in %f seconds.\n\n", path, program_time_used);
+    printf("File %s was written in %f seconds.\n\n", path, program_time_used);
 
 }
 
@@ -261,10 +262,10 @@ __host__ long getM0(long mtMax, int pwd_length) {
 }
 
 // Returns the number of line we can store inside goRam
-__host__ long getNumberPassword(int goRam, int pwd_length) {
+__host__ long getNumberPassword(int goRam, int pwd_length, bool debug) {
     size_t memLine = pwd_length;
 
-    printf("size of a password: %ld\n", memLine);
+    if(debug) printf("size of a password: %ld\n", memLine);
 
     // memUsed = memLine * nbLine -> nbLine = memUsed / memLine
     // totalMem * 1000000000 pour passer de Giga octets à  octets
@@ -273,7 +274,7 @@ __host__ long getNumberPassword(int goRam, int pwd_length) {
 
     long result = (long) ((long) memUsed / (long) memLine);
 
-    printf("Number of password for %dGo of RAM: %ld\n", goRam, result);
+    if(debug) printf("Number of password for %dGo of RAM: %ld\n", goRam, result);
     return result;
 }
 
@@ -304,7 +305,8 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
 
     int t = computeT(mtMax, pwd_length);
 
-    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory()-9, pwd_length));
+    auto numberOfCPUPass = memoryAnalysisCPU(passwordNumber, getNumberPassword(getTotalSystemMemory() - 9, pwd_length,
+                                                                               debug));
     //int numberOfCPUPass = 3;
 
     unsigned long long batchSize = computeBatchSize(numberOfCPUPass, passwordNumber);
@@ -328,7 +330,11 @@ computeParameters(unsigned long long *parameters, int argc, char *argv[], bool d
     return parameters;
 }
 
-__host__ void generateTables(const unsigned long long * parameters, Password * passwords, int argc, char *argv[]) {
+__host__ void
+generateTables(const unsigned long long *parameters, Password *passwords, int argc, char *argv[], bool debug) {
+
+    // Start the timer
+    clock_t startTotal = clock();
 
     char * path;
     int pwd_length = atoi(argv[1]);
@@ -349,7 +355,11 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
     unsigned long long numberOfCPUPass = parameters[3];
     unsigned long long batchSize = parameters[4];
 
+    float totalGPUTime = 0.0;
+
     for(int table=0; table < tableNumber; table++) {
+
+        printf("===== Engaging table n°%d generation... =====\n\n", table);
 
         unsigned long long tableOffset = (unsigned long long)table * (unsigned long long)passwordNumber;
 
@@ -377,10 +387,10 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
 
             initPasswordArray(&passwords, batchSize, currentPos, tableOffset);
 
-            printf("current position: %llu\n", currentPos);
+            if (debug) printf("current position: %llu\n", currentPos);
 
             if (currentPos == 0){
-                createFile(startName, true);
+                createFile(startName, debug);
 
                 start_file = fopen(startName, "wb");
                 if (start_file == nullptr) {
@@ -389,17 +399,20 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
                 }
             }
 
-            writePoint(startName, &passwords, batchSize, (int)t, pwd_length, true, currentPos, passwordNumber, start_file);
+            writePoint(startName, &passwords, batchSize, (int)t, pwd_length, debug, currentPos, passwordNumber, start_file);
 
-            auto numberOfPass = memoryAnalysisGPU(batchSize);
+            auto numberOfPass = memoryAnalysisGPU(batchSize, debug);
 
-            generateChains(passwords, batchSize, numberOfPass, (int)t,
-                           true, THREAD_PER_BLOCK, false, false, nullptr, pwd_length, startName, endName);
+            generateChains(passwords, batchSize, numberOfPass, (int) t,
+                           true, THREAD_PER_BLOCK, debug, false, nullptr, pwd_length, startName, endName, &totalGPUTime,
+                           i);
 
-            printf("Chains generated!\n");
+            printf("\n");
+
+            if (debug) printf("Chains generated!\n");
 
             if (currentPos == 0){
-                createFile(endName, true);
+                createFile(endName, debug);
 
                 end_file = fopen(endName, "wb");
                 if (end_file == nullptr) {
@@ -408,7 +421,7 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
                 }
             }
 
-            writePoint(endName, &passwords, batchSize, (int)t, pwd_length, true, currentPos, passwordNumber, end_file);
+            writePoint(endName, &passwords, batchSize, (int)t, pwd_length, debug, currentPos, passwordNumber, end_file);
 
             currentPos += batchSize;
 
@@ -424,9 +437,10 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
         clock_t start = clock();
 
         // Clean the table by deleting duplicate endpoints
-        unsigned long long passwordMemory = getNumberPassword(getTotalSystemMemory()-9, pwd_length);
+        unsigned long long passwordMemory = getNumberPassword(getTotalSystemMemory() - 9, pwd_length, debug);
 
-        long *res = filter(startName, endName, startName, endName, (int) numberOfCPUPass, batchSize, path, passwordMemory);
+        long *res = filter(startName, endName, startName, endName, (int) numberOfCPUPass, batchSize, path,
+                           passwordMemory, debug);
         //long * res = filter2(startName, endName, startName, endName, path, 0);
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
@@ -438,7 +452,17 @@ __host__ void generateTables(const unsigned long long * parameters, Password * p
         double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
 
         if (res[2] == res[3]) {
-            printf("Filtration done in %f sec.\n", time_spent);
+            printf("Filtration done in %f sec.\n\n", time_spent);
         }
     }
+
+    printf("----------------------------------------\n");
+    printf("Total GPU time: %f milliseconds.\n", totalGPUTime);
+
+    // Start the timer
+    clock_t endTotal = clock();
+
+    double time_spent = (double)(endTotal - startTotal) / CLOCKS_PER_SEC;
+
+    printf("Generation done in %f sec.\n", time_spent);
 }

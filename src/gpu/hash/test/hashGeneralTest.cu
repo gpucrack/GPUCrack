@@ -2,14 +2,14 @@
 
 int main() {
 
-    int passwordNumber = getNumberPassword(6, PASSWORD_LENGTH);
+    int passwordNumber = getNumberPassword(6, PASSWORD_LENGTH, false);
 
     Password * passwords;
     Digest * result;
 
     initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber, false);
 
     hash(passwords, result, passwordNumber, numberOfPass, false);
 

@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 
     long idealMtMax = (long)((double)((double)idealM0/(double)19.83));
 
-    long mtMax = getNumberPassword(atoi(argv[2]), pwd_length);
+    long mtMax = getNumberPassword(atoi(argv[2]), pwd_length, false);
 
     mtMax = idealMtMax;
 
@@ -32,11 +32,11 @@ int main(int argc, char *argv[]){
     // check
     initArrays(&passwords, &result, passwordNumber);
 
-    auto numberOfPass = memoryAnalysisGPU(passwordNumber);
+    auto numberOfPass = memoryAnalysisGPU(passwordNumber, false);
 
     // Adjust t depending on the chain length you want to test
     generateChains(passwords, passwordNumber, numberOfPass, t,
-                   false, THREAD_PER_BLOCK, true, true, result, PASSWORD_LENGTH, start_path, end_path);
+                   false, THREAD_PER_BLOCK, true, true, result, PASSWORD_LENGTH, start_path, end_path, nullptr, 0);
 
     printf("Should be first password inside endpoints:\n");
     printPassword(&passwords[0]);

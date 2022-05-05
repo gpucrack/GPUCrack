@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /**
  * Compares two strings.
@@ -55,4 +56,4 @@ long long int dedup(char *v, char *m, int size, long long int mt, int (*comp)(vo
  */
 long *
 filter(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, int numberOfPasses,
-       unsigned long long batchSize, char *path, unsigned long long passwordMemory);
+       unsigned long long batchSize, char *path, unsigned long long passwordMemory, bool debug);
