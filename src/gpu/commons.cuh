@@ -17,6 +17,7 @@
 #include "./chains.cuh"
 #include "./hash/hash.cuh"
 #include "./reduction/reduction.cuh"
+#include "../common/filtration2.cuh"
 
 extern "C" {
 #include "../common/filtration.h"
