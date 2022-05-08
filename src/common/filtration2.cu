@@ -1,4 +1,5 @@
 #include "filtration2.cuh"
+using namespace std;
 
 long *
 filter2(char *start_path, char *end_path, const char *start_out_path, const char *end_out_path, char *path,
@@ -38,12 +39,28 @@ filter2(char *start_path, char *end_path, const char *start_out_path, const char
     fgets(buff, 255, (FILE *) start_file);
     sscanf(buff, "%d", &t);
 
-    std::unordered_map<std::string , std::string> map;
+    /*
+    struct Password {
+        char bytes[PWD_LENGTH];
+
+        bool operator==(const Password &p) const {
+            return (strncmp(bytes, p.bytes, PWD_LENGTH) == 0);
+        }
+
+        bool operator<(const Password &p) const {
+            return (strncmp(bytes, p.bytes, PWD_LENGTH) < 0);
+        }
+    };
+     */
+
+    map<string , string, less<>> map;
 
     // just to skip the first 3 rows of end_file (same as start_file)
     fgets(buff, 255, (FILE *) end_file);
     fgets(buff, 255, (FILE *) end_file);
     fgets(buff, 255, (FILE *) end_file);
+
+    //printf("Memory per entry: %llu\n", sizeof(string)*2);
 
     long sp_success = 0;
     long ep_success = 0;
@@ -53,28 +70,25 @@ filter2(char *start_path, char *end_path, const char *start_out_path, const char
     // Store all points inside hash table
     for (unsigned long long i = 0; i < limit; i = i + sizeof(char) * pwd_length) {
 
-        std::string end(pwd_length, '\0');
-        std::string start(pwd_length, '\0');
-        fread(&end[0], pwd_length, 1, (FILE *) end_file);
-        fread(&start[0], pwd_length, 1, (FILE *) start_file);
+        string * end = new string(pwd_length, '\0');
+        string * start = new string(pwd_length, '\0');
+        fread(&(*end)[0], pwd_length, 1, (FILE *) end_file);
+        fread(&(*start)[0], pwd_length, 1, (FILE *) start_file);
 
-        auto success = map.insert({end, start}).second;
+        map.insert(pair<string, string>(*end,*start));
 
-        if(!success){
-            end = "";
-            start = "";
-        }
+        delete end;
+        delete start;
 
-        if((i%1000000) == 0) printf("%llu\n", i);
     }
 
-    printf("Sorted!\n");
+    //printf("Sorted!\n");
 
     fclose(start_file);
     fclose(end_file);
 
     unsigned long long new_len = map.size();
-    printf("New size: %llu\n", new_len);
+    //printf("New size: %llu\n", new_len);
 
     FILE * sp_out_file = fopen(start_out_path, "wb");
     FILE * ep_out_file = fopen(end_out_path, "wb");
@@ -97,10 +111,10 @@ filter2(char *start_path, char *end_path, const char *start_out_path, const char
     fprintf(sp_out_file, "%d\n", t);
     fprintf(ep_out_file, "%d\n", t);
 
-    for (std::unordered_map<std::string, std::string>::iterator it = map.begin(); it != map.end(); ++it) {
+    for (auto it = map.begin(); it != map.end(); ++it) {
 
-        std::string endPoint = it->first;
-        std::string startPoint = it->second;
+        string endPoint = it->first;
+        string startPoint = it->second;
 
         char start[pwd_length];
         char end[pwd_length];

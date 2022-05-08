@@ -351,6 +351,7 @@ generateTables(const unsigned long long *parameters, Password *passwords, int ar
     }
 
     unsigned long long passwordNumber = parameters[0];
+    unsigned long long mtMax = parameters[1];
     unsigned long long t = parameters[2];
     unsigned long long numberOfCPUPass = parameters[3];
     unsigned long long batchSize = parameters[4];
@@ -437,11 +438,13 @@ generateTables(const unsigned long long *parameters, Password *passwords, int ar
         clock_t start = clock();
 
         // Clean the table by deleting duplicate endpoints
-        unsigned long long passwordMemory = getNumberPassword(getTotalSystemMemory() - 9, pwd_length, debug);
+        //unsigned long long passwordMemory = getNumberPassword(getTotalSystemMemory() - 9, pwd_length, debug);
 
-        long *res = filter(startName, endName, startName, endName, (int) numberOfCPUPass, batchSize, path,
-                           passwordMemory, debug);
-        //long * res = filter2(startName, endName, startName, endName, path, 0);
+        //long *res = filter(startName, endName, startName, endName, (int) numberOfCPUPass, batchSize, path,
+        //                   passwordMemory, debug);
+
+        long * res = filter2(startName, endName, startName, endName, path, mtMax);
+
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
             printf("The files have been generated with success.\n");
