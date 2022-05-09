@@ -4,7 +4,7 @@ int main(int argc, char *argv[]) {
 
     if (argc < 4) {
         printf("Error: not enough arguments given.\n"
-               "Usage: 'generateTable c n mt (path)', where:\n"
+               "Usage: 'generateTable c n p (path)', where:\n"
                "     - c is the passwords' length (in characters).\n"
                "     - n is the number of tables to generate.\n"
                "     - p is the ratio of the password's length domain to be used as m0.\n"
