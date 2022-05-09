@@ -443,7 +443,7 @@ generateTables(const unsigned long long *parameters, Password *passwords, int ar
         //long *res = filter(startName, endName, startName, endName, (int) numberOfCPUPass, batchSize, path,
         //                   passwordMemory, debug);
 
-        long * res = filter2(startName, endName, startName, endName, path, mtMax);
+        long * res = filterHT(startName, endName, startName, endName, path, batchSize, (int) numberOfCPUPass);
 
         if (res[2] == res[3]) {
             printf("Filtration done!\n\n");
