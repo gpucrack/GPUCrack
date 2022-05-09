@@ -5,7 +5,7 @@ unsigned long long
 finalFilter(FILE *tempStart, FILE *tempEnd, unsigned long long tempLen, FILE *startFile, FILE *endFile, int pwd_length,
             int t) {
 
-    map<PasswordHT , PasswordHT, less<>> map;
+    map<PasswordHT , PasswordHT, less<>> * map = new std::map<PasswordHT , PasswordHT, less<>>;
 
     unsigned long long limit = (unsigned long long)tempLen * (unsigned long long)pwd_length;
 
@@ -17,10 +17,10 @@ finalFilter(FILE *tempStart, FILE *tempEnd, unsigned long long tempLen, FILE *st
         fread(end.bytes, pwd_length, 1, (FILE *) tempEnd);
         fread(start.bytes, pwd_length, 1, (FILE *) tempStart);
 
-        map.insert(pair<PasswordHT, PasswordHT>(end,start));
+        (*map).insert(pair<PasswordHT, PasswordHT>(end,start));
     }
 
-    unsigned long long newLen = map.size();
+    unsigned long long newLen = (*map).size();
 
     // Write the header
     fprintf(startFile, "%llu\n", newLen);
@@ -31,7 +31,7 @@ finalFilter(FILE *tempStart, FILE *tempEnd, unsigned long long tempLen, FILE *st
     fprintf(endFile, "%d\n", t);
 
     // Then write the sorted points inside the final files
-    for (auto it = map.begin(); it != map.end(); ++it) {
+    for (auto it = (*map).begin(); it != (*map).end(); ++it) {
 
         PasswordHT endPoint = it->first;
         PasswordHT startPoint = it->second;
@@ -41,7 +41,8 @@ finalFilter(FILE *tempStart, FILE *tempEnd, unsigned long long tempLen, FILE *st
     }
 
     // Destroy the map
-    map.clear();
+    (*map).clear();
+    delete map;
 
     return newLen;
 }
@@ -50,7 +51,7 @@ unsigned long long
 filterBatch(FILE *startFile, FILE *endFile, unsigned long long batchSize, int pwd_length, FILE *tempStart,
             FILE *tempEnd) {
 
-    map<PasswordHT , PasswordHT, less<>> map;
+    map<PasswordHT , PasswordHT, less<>> * map = new std::map<PasswordHT , PasswordHT, less<>>;
 
     unsigned long long limit = (unsigned long long)batchSize * (unsigned long long)pwd_length;
 
@@ -62,11 +63,11 @@ filterBatch(FILE *startFile, FILE *endFile, unsigned long long batchSize, int pw
         fread(end.bytes, pwd_length, 1, (FILE *) endFile);
         fread(start.bytes, pwd_length, 1, (FILE *) startFile);
 
-        map.insert(pair<PasswordHT, PasswordHT>(end,start));
+        (*map).insert(pair<PasswordHT, PasswordHT>(end,start));
     }
 
     // Then write the sorted points inside a temporary file
-    for (auto it = map.begin(); it != map.end(); ++it) {
+    for (auto it = (*map).begin(); it != (*map).end(); ++it) {
 
         PasswordHT endPoint = it->first;
         PasswordHT startPoint = it->second;
@@ -75,10 +76,11 @@ filterBatch(FILE *startFile, FILE *endFile, unsigned long long batchSize, int pw
         fwrite(endPoint.bytes, pwd_length, 1, (FILE *) tempEnd);
     }
 
-    unsigned long long newLen = map.size();
+    unsigned long long newLen = (*map).size();
 
     // Destroy the map
-    map.clear();
+    (*map).clear();
+    delete map;
 
     return newLen;
 }
@@ -149,12 +151,16 @@ filterHT(char *start_path, char *end_path, const char *start_out_path, const cha
         exit(1);
     }
 
-    unsigned long long tempLen;
+    unsigned long long tempLen = 0;
 
     // Filter each batch
     for(int i = 0; i<numberOfPasses; i++) {
+        clock_t start = clock();
         tempLen += filterBatch(start_file, end_file, batchSize,
                     pwd_length, tempStart, tempEnd);
+        clock_t end = clock();
+        double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("Filtration batch %d done in : %f seconds.\n", i, time_spent);
     }
 
     fclose(tempStart);
